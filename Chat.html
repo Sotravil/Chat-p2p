@@ -1,0 +1,1534 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <title>Chat: paste.rs ➜ GitHub DB</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+  <style>
+    /* ====== RESET BÁSICO Y LAYOUT GLOBAL ====== */
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    html,body{
+      height:100%;
+    }
+
+    body{
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:#020617;                 /* fondo oscuro tipo app de chat */
+      color:#e5e7eb;
+      display:flex;
+      justify-content:center;
+    }
+
+    #app{
+      width:100%;
+      max-width:960px;                    /* se ve bien en desktop sin ser gigante */
+      padding:12px 10px 16px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    /* ====== ENCABEZADO ====== */
+    .app-header{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+    }
+
+    .app-title{
+      font-size:18px;
+      font-weight:700;
+    }
+
+    .app-subtitle{
+      font-size:12px;
+      color:#9ca3af;
+    }
+
+    /* ====== CONTROLES SUPERIORES (ROOM / SENDER) ====== */
+    #top{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      padding:8px;
+      border-radius:12px;
+      background:#020617;
+      border:1px solid #1f2937;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      font-size:11px;
+      color:#9ca3af;
+    }
+
+    .field-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      align-items:center;
+    }
+
+    input[type="text"]{
+      padding:6px 8px;
+      border-radius:999px;
+      border:1px solid #374151;
+      background:#020617;
+      color:#f9fafb;
+      font-size:13px;
+      min-width:120px;
+    }
+
+    input[type="text"]::placeholder{
+      color:#6b7280;
+    }
+
+    button{
+      padding:7px 14px;
+      border-radius:999px;
+      border:none;
+      background:#16a34a;
+      color:#f9fafb;
+      cursor:pointer;
+      font-size:13px;
+      font-weight:600;
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      transition:transform .12s,box-shadow .12s,opacity .12s;
+      white-space:nowrap;
+    }
+
+    button:hover{
+      transform:translateY(-1px);
+      box-shadow:0 4px 12px rgba(34,197,94,.3);
+    }
+
+    button:disabled{
+      opacity:.35;
+      cursor:not-allowed;
+      box-shadow:none;
+      transform:none;
+    }
+
+    .small{
+      font-size:11px;
+      color:#9ca3af;
+    }
+
+    /* ====== LAYOUT PRINCIPAL: CHAT + LADO DERECHO ====== */
+    #layout{
+      flex:1;
+      display:flex;
+      gap:10px;
+      min-height:0;           /* para que flex + overflow funcione bien */
+    }
+
+    #leftColumn{
+      flex:1.6;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-width:0;
+    }
+
+    #side{
+      flex:0.8;
+      max-width:260px;
+      font-size:11px;
+      color:#9ca3af;
+      border-radius:12px;
+      border:1px solid #1f2937;
+      background:#020617;
+      padding:10px;
+    }
+
+    /* ====== PANEL DE LOG DEL SISTEMA ====== */
+    #log{
+      background:#020617;
+      color:#e5e7eb;
+      padding:8px 10px;
+      border-radius:12px;
+      font-size:11px;
+      height:90px;
+      overflow-y:auto;
+      white-space:pre-wrap;
+      border:1px solid #1f2937;
+    }
+
+    #logTitle{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:4px;
+    }
+
+    /* ====== TARJETA DE CHAT ====== */
+    #chat{
+      margin-top:2px;
+      padding:0;
+      background:#020617;
+      border-radius:16px;
+      border:1px solid #1f2937;
+      display:none;                 /* se activa al unirse */
+      flex-direction:column;
+      min-height:260px;
+      max-height:calc(100vh - 230px);  /* para que no tape toda la pantalla en móvil */
+      overflow:hidden;
+    }
+
+    #chatHeader{
+      padding:8px 12px;
+      border-bottom:1px solid #111827;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:6px;
+    }
+
+    #chatHeader-left{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+
+    #chatRoomName{
+      font-size:14px;
+      font-weight:600;
+    }
+
+    #chatHeader-meta{
+      font-size:11px;
+      color:#9ca3af;
+    }
+
+    #chatStatus{
+      font-size:11px;
+      color:#22c55e;
+    }
+
+    /* ====== MENSAJES ====== */
+    #messages{
+      flex:1;
+      overflow-y:auto;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      padding:10px 10px 6px;
+      background:radial-gradient(circle at top,#111827 0,#020617 55%);
+    }
+
+    .msg{
+      padding:6px 9px;
+      border-radius:14px;
+      font-size:13px;
+      max-width:80%;
+      word-wrap:break-word;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+
+    .msg.me{
+      align-self:flex-end;
+      background:#16a34a;
+      color:#ecfdf5;
+      border-bottom-right-radius:4px;
+    }
+
+    .msg.other{
+      align-self:flex-start;
+      background:#111827;
+      color:#f9fafb;
+      border-bottom-left-radius:4px;
+    }
+
+    .msg .msg-meta{
+      font-size:10px;
+      color:#e5e7eb;
+      opacity:.8;
+    }
+
+    .msg .msg-text{
+      white-space:pre-wrap;
+    }
+
+    /* ====== INPUT (CAJA DE MENSAJE) ====== */
+    #bottomRow{
+      border-top:1px solid #111827;
+      padding:8px;
+      display:flex;
+      gap:6px;
+      align-items:flex-end;
+      background:#020617;
+    }
+
+    textarea{
+      flex:1;
+      width:100%;
+      box-sizing:border-box;
+      padding:7px 9px;
+      border-radius:12px;
+      border:1px solid #374151;
+      background:#020617;
+      color:#f9fafb;
+      resize:none;
+      font-size:13px;
+      max-height:96px;
+      min-height:40px;
+    }
+
+    textarea::placeholder{
+      color:#6b7280;
+    }
+
+    #sendBtn{
+      background:#16a34a;
+    }
+
+    #clearBtn{
+      background:#111827;
+    }
+
+    /* ====== LADO DERECHO (INFO REPO / PASTE) ====== */
+    #side strong{
+      color:#e5e7eb;
+    }
+
+    #lastPasteUrl{
+      margin-top:4px;
+      word-break:break-all;
+    }
+
+    code{
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:11px;
+      background:#0b1120;
+      padding:1px 4px;
+      border-radius:4px;
+    }
+
+    /* ====== RESPONSIVE ====== */
+    @media (max-width:768px){
+      #layout{
+        flex-direction:column;
+      }
+
+      #side{
+        max-width:none;
+        width:100%;
+        order:-1;         /* metadata arriba del chat en móvil */
+      }
+
+      #top{
+        padding:6px;
+      }
+
+      #chat{
+        max-height:calc(100vh - 260px);
+      }
+
+      .app-title{
+        font-size:16px;
+      }
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <!-- HEADER PRINCIPAL -->
+  <header class="app-header">
+    <div>
+      <div class="app-title">Chat paste.rs ➜ GitHub</div>
+      <div class="app-subtitle">Sin backend propio · multi-plataforma</div>
+    </div>
+    <div class="app-subtitle">Status: <span id="headerStatus">Desconectado</span></div>
+  </header>
+
+  <!-- CONTROLES DE ROOM / SENDER -->
+  <section id="top">
+    <div class="field">
+      <span>Room</span>
+      <input id="room" type="text" value="mainroom">
+    </div>
+
+    <div class="field">
+      <span>Nombre</span>
+      <input id="sender" type="text" placeholder="Tu nick">
+    </div>
+
+    <div class="field">
+      <span>&nbsp;</span>
+      <button id="joinBtn">Unirse / Crear</button>
+    </div>
+
+    <div class="field">
+      <span>Intervalo de actualización</span>
+      <div class="field-row">
+        <input id="interval" type="text" value="2000" style="width:70px">
+        <span class="small">ms</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENIDO PRINCIPAL: CHAT + INFO -->
+  <main id="layout">
+    <!-- Columna izquierda: log + chat -->
+    <div id="leftColumn">
+      <!-- LOG DEL SISTEMA -->
+      <div id="log">
+        💬 Elige una sala, pon tu nombre y pulsa "Unirse / Crear".
+      </div>
+
+      <!-- TARJETA DE CHAT -->
+      <section id="chat">
+        <div id="chatHeader">
+          <div id="chatHeader-left">
+            <div id="chatRoomName">Sala</div>
+            <div id="chatHeader-meta" class="small">Conectado como <span id="chatSenderName">—</span></div>
+          </div>
+          <div id="chatStatus">● Conectado</div>
+        </div>
+
+        <!-- Mensajes -->
+        <div id="messages"></div>
+
+        <!-- Input -->
+        <div id="bottomRow">
+          <textarea id="input" rows="2"
+                    placeholder="Escribe un mensaje (Ctrl+Enter para enviar)"></textarea>
+          <button id="sendBtn">Enviar</button>
+          <button id="clearBtn">Limpiar</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Columna derecha: info repo / último paste -->
+    <aside id="side">
+      <div><strong>Último paste URL:</strong></div>
+      <div id="lastPasteUrl" class="small">—</div>
+
+      <div style="margin-top:10px;">
+        <strong>Repo:</strong><br/>
+        Sotravil/chat-db<br/>
+        <span class="small">
+          Archivo por room:<br/>
+          <code>rooms/&lt;room&gt;.json</code>
+        </span>
+      </div>
+
+      <div style="margin-top:10px;">
+        <strong>Cómo funciona:</strong>
+        <p class="small" style="margin-top:4px;">
+          Cada mensaje se sube como JSON a <code>paste.rs</code> (vía
+          <code>corsproxy.io</code>).<br/>
+          Luego se agrega a <code>rooms/&lt;room&gt;.json</code> en
+          <code>Sotravil/chat-db</code>. Si el archivo no existe, se crea
+          automáticamente.
+        </p>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<script>
+/* ============================================================
+   CONFIGURACIÓN GENERAL
+   - Chat P2P usando paste.rs + GitHub (sin backend propio)
+   - Versión con:
+       • master<room>.json que se CREA si no existe
+       • rooms/<room>.json con metadatos completos de mensajes
+       • rooms-meta/<room>.json con metadatos del room
+         (ID, creador, fecha de creación, última actividad)
+       • Token de GitHub leído dinámicamente desde paste.rs
+   ============================================================ */
+
+/* ---------- Datos del repo ---------- */
+const GH_OWNER  = 'Sotravil';        // Dueño del repositorio
+const GH_REPO   = 'chat-db';         // Nombre del repositorio
+const GH_BRANCH = 'main';            // Rama a utilizar
+
+/* ---------- Token desde paste.rs ---------- */
+/*  IMPORTANTE:
+    No guardamos el token en el código. En su lugar, se lee
+    desde este paste de texto plano (vía proxy CORS).
+*/
+const TOKEN_PASTE_URL = 'https://paste.rs/4UElW.txt';
+
+/* ---------- paste.rs + proxy ---------- */
+const PASTE_BASE = 'https://paste.rs';              // Base de paste.rs
+const CORS_PROXY = 'https://corsproxy.io/?';        // Proxy para evitar CORS
+
+/* ---------- Intervalos por defecto ---------- */
+const MASTER_POLL_MS_DEFAULT = 100;   // ms entre polls al master<room>
+const MASTER_RESET_DELAY_MS  = 900;   // ms antes de poner master=false tras aplicar cambios
+const MAX_ROOM_MESSAGES      = 5000;  // límite de mensajes en memoria
+
+/* ============================================================
+   ESTADO GLOBAL EN EL CLIENTE
+   ============================================================ */
+
+/* ---------- Token de GitHub ---------- */
+// El token real se cargará dinámicamente desde el paste.
+let GH_TOKEN        = null;          // Token actual
+let ghTokenReady    = false;         // Flag: token listo
+let ghTokenPromise  = null;          // Promesa compartida para evitar cargas duplicadas
+
+/* ---------- Estado del room / usuario ---------- */
+let room    = null;                  // Nombre del room unido actualmente
+let sender  = null;                  // Nombre visible del usuario
+let running = false;                 // Flag: hay un room activo
+
+/* ---------- Estado de archivo rooms/<room>.json ---------- */
+let lastSha        = null;           // SHA del archivo rooms/<room>.json en GitHub
+let messagesCache  = [];             // Cache local de los mensajes del room
+let lastSeenTs     = 0;              // Último timestamp de mensaje renderizado
+
+/* ---------- Estado del master<room>.json ---------- */
+let masterPollTimer   = null;        // Timer del loop del master
+let masterProcessing  = false;       // Flag: se está procesando una actualización
+let masterPollMs      = MASTER_POLL_MS_DEFAULT;  // Intervalo actual de polling
+
+/* ---------- Metadatos del room ---------- */
+let roomMeta    = null;              // Objeto con metadatos del room
+let roomMetaSha = null;              // SHA de rooms-meta/<room>.json en GitHub
+
+/* ---------- Identidad del usuario local ---------- */
+// No podemos obtener IP real sin backend, así que usamos un ID persistente local.
+let currentUser = {
+  userId:      null,                 // ID único pseudo-UUID
+  fingerprint: null,                 // Huella simple (userAgent + random)
+  createdAt:   null                  // Fecha de creación de la identidad
+};
+
+/* ---------- Referencias a elementos del DOM ---------- */
+let messagesEl    = null;            // Contenedor de mensajes del chat
+let logEl         = null;            // Contenedor de logs
+let inputEl       = null;            // Input de mensaje
+let roomInputEl   = null;            // Input de room
+let senderInputEl = null;            // Input de nombre visible
+let intervalEl    = null;            // Input de intervalo de polling
+let joinBtnEl     = null;            // Botón para unirse al room
+let sendBtnEl     = null;            // Botón para enviar mensaje
+let clearBtnEl    = null;            // Botón para limpiar vista de mensajes
+let lastPasteEl   = null;            // Texto donde se muestra el último paste
+let roomInfoEl    = null;            // Donde mostraremos información del room
+
+/* ============================================================
+   UTILIDADES GENERALES
+   ============================================================ */
+
+/**
+ * Inicializa las referencias a los elementos del DOM.
+ * Si falta alguna, se loguea para facilitar debug.
+ */
+function initDom() {
+  try {
+    // Inputs principales
+    roomInputEl    = document.getElementById('room');
+    senderInputEl  = document.getElementById('sender');
+    intervalEl     = document.getElementById('interval');
+
+    // Botones
+    joinBtnEl      = document.getElementById('joinBtn');
+    sendBtnEl      = document.getElementById('sendBtn');
+    clearBtnEl     = document.getElementById('clearBtn');
+
+    // Contenedores de UI
+    logEl          = document.getElementById('log');
+    messagesEl     = document.getElementById('messages');
+    inputEl        = document.getElementById('input');
+    lastPasteEl    = document.getElementById('lastPasteUrl');
+
+    // Intentamos encontrar (o crear) un contenedor para info de sala
+    roomInfoEl     = document.getElementById('roomInfo');
+
+    // Si no existe en el HTML, lo creamos dinámicamente en la columna derecha
+    if (!roomInfoEl) {
+      const layout = document.getElementById('layout');
+      if (layout && layout.lastElementChild) {
+        const sidebar = layout.lastElementChild;   // asumiendo: derecha es el último hijo
+        const box = document.createElement('div');
+        box.className = 'box small';
+        box.innerHTML = `
+          <strong>Info sala:</strong><br/>
+          <div id="roomInfo">—</div>
+        `;
+        sidebar.appendChild(box);
+        roomInfoEl = box.querySelector('#roomInfo');
+      }
+    }
+
+    if (!messagesEl || !logEl || !inputEl || !roomInputEl || !senderInputEl || !intervalEl) {
+      console.warn('[INIT DOM WARNING] Falta algún elemento esperado en el HTML.');
+    }
+  } catch (e) {
+    console.error('[INIT DOM ERROR]', e);
+  }
+}
+
+/**
+ * Función para registrar mensajes en el panel de log del chat.
+ * @param {string} text  Texto a mostrar.
+ * @param {'INFO'|'ERROR'|'WARN'} level Nivel de severidad.
+ */
+function log(text, level='INFO') {
+  try {
+    if (!logEl) return;
+
+    const p = document.createElement('p');
+
+    if (level === 'ERROR') {
+      p.style.color = '#b91c1c';
+    } else if (level === 'WARN') {
+      p.style.color = '#92400e';
+    } else {
+      p.style.color = '#4b5563';
+    }
+
+    const now = new Date();
+    const hh  = String(now.getHours()).padStart(2,'0');
+    const mm  = String(now.getMinutes()).padStart(2,'0');
+    const ss  = String(now.getSeconds()).padStart(2,'0');
+
+    p.textContent = `[${hh}:${mm}:${ss}] [${level}] ${text}`;
+
+    logEl.appendChild(p);
+    logEl.scrollTop = logEl.scrollHeight;
+  } catch (e) {
+    console.error('[LOG ERROR]', e);
+  }
+}
+
+/**
+ * Pequeña utilidad para esperar X milisegundos.
+ */
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Construye una URL de la API de GitHub (contents endpoint).
+ */
+function ghFileUrl(path) {
+  const encoded = encodeURIComponent(path).replace(/%2F/g,'/');
+  return `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${encoded}`;
+}
+
+/**
+ * Construye una URL pasando por el proxy CORS.
+ */
+function buildProxyUrl(url) {
+  return `${CORS_PROXY}${encodeURIComponent(url)}`;
+}
+
+/* ============================================================
+   IDENTIDAD LOCAL DEL USUARIO
+   ============================================================ */
+
+/**
+ * Crea o carga la identidad persistente del usuario (sin backend).
+ * Usamos localStorage para conservar userId entre visitas.
+ */
+function initUserIdentity() {
+  try {
+    const stored = localStorage.getItem('p2pChatUserIdentity');
+    if (stored) {
+      currentUser = JSON.parse(stored);
+      return;
+    }
+
+    const now  = Date.now();
+    const rand = Math.random().toString(36).slice(2,10);
+    const ua   = navigator.userAgent || 'unknown';
+
+    const newUser = {
+      userId:      `u-${now}-${rand}`,
+      fingerprint: `fp-${btoa(ua).slice(0,16)}-${rand}`,
+      createdAt:   now
+    };
+
+    currentUser = newUser;
+    localStorage.setItem('p2pChatUserIdentity', JSON.stringify(newUser));
+  } catch (e) {
+    console.error('[IDENTITY ERROR]', e);
+    currentUser = {
+      userId:      'u-unknown',
+      fingerprint: 'fp-unknown',
+      createdAt:   Date.now()
+    };
+  }
+}
+
+/* ============================================================
+   TOKEN DE GITHUB DESDE PASTE.RS
+   ============================================================ */
+
+/**
+ * Lee el token desde TOKEN_PASTE_URL (texto plano) vía proxy CORS.
+ */
+async function loadGhTokenFromPaste() {
+  const proxyUrl = buildProxyUrl(TOKEN_PASTE_URL);
+
+  const res = await fetch(proxyUrl, {
+    method: 'GET',
+    headers: { 'Accept': 'text/plain' }
+  });
+
+  if (!res.ok) {
+    throw new Error(`No se pudo leer el token desde paste (${res.status}).`);
+  }
+
+  const text = (await res.text()).trim();
+  if (!text) {
+    throw new Error('El paste de token está vacío.');
+  }
+
+  GH_TOKEN     = text;
+  ghTokenReady = true;
+  log('✅ Token de GitHub cargado desde paste.rs.', 'INFO');
+}
+
+/**
+ * Asegura que el token esté disponible antes de usar la API de GitHub.
+ */
+async function ensureGhToken() {
+  if (ghTokenReady && GH_TOKEN) return;
+
+  if (ghTokenPromise) {
+    await ghTokenPromise;
+    return;
+  }
+
+  ghTokenPromise = loadGhTokenFromPaste();
+  await ghTokenPromise;
+}
+
+/* ============================================================
+   MASTER<ROOM>.JSON  (BANDERA TRUE/FALSE POR ROOM)
+   ============================================================ */
+
+/**
+ * Devuelve la URL de la API para el archivo master<room>.json.
+ * Ejemplo: mastermainroom.json
+ */
+function ghMasterUrl(roomName) {
+  return ghFileUrl(`master${roomName}.json`);
+}
+
+/**
+ * Crea el archivo master<room>.json en caso de que no exista.
+ * El contenido será "false" (texto plano).
+ */
+async function ensureMasterExistsForRoom() {
+  try {
+    if (!room) return;
+
+    await ensureGhToken();
+
+    const res = await fetch(ghMasterUrl(room), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `Bearer ${GH_TOKEN}`
+      }
+    });
+
+    // Si existe, no hay nada que hacer
+    if (res.ok) {
+      return;
+    }
+
+    // Si NO existe (404), lo creamos con valor "false"
+    if (res.status === 404) {
+      await saveMasterStatus(false);
+      log(`master<${room}> creado por primera vez (false).`, 'INFO');
+      return;
+    }
+
+    // Para otros errores, solo logueamos advertencia
+    console.warn(`[ENSURE MASTER ERROR] status=${res.status}`);
+  } catch (e) {
+    console.error('[ENSURE MASTER EXCEPTION]', e);
+  }
+}
+
+/**
+ * Lee master<room>.json y devuelve true/false.
+ * Si algo falla, devolvemos false (seguro).
+ */
+async function loadMasterStatus() {
+  try {
+    if (!room) return false;
+
+    await ensureGhToken();
+
+    const res = await fetch(ghMasterUrl(room), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `Bearer ${GH_TOKEN}`
+      }
+    });
+
+    if (res.status === 404) {
+      // Si por alguna razón no existe, lo creamos en segundo plano
+      await saveMasterStatus(false);
+      return false;
+    }
+
+    if (!res.ok) {
+      console.warn(`[MASTER LOAD WARNING] status=${res.status}`);
+      return false;
+    }
+
+    const data       = await res.json();
+    const contentB64 = (data.content || '').replace(/\n/g,'');
+    const content    = atob(contentB64).trim();
+
+    return (content.toLowerCase() === 'true');
+  } catch (e) {
+    console.error('[MASTER LOAD EXCEPTION]', e);
+    // No logueamos cada vez como ERROR para evitar spam visual.
+    return false;
+  }
+}
+
+/**
+ * Escribe "true" o "false" en master<room>.json (texto plano).
+ */
+async function saveMasterStatus(value) {
+  try {
+    if (!room) return;
+
+    await ensureGhToken();
+
+    const text = value ? 'true' : 'false';
+    const b64  = btoa(unescape(encodeURIComponent(text)));
+
+    // Intentamos leer SHA existente (si lo hay)
+    let sha = null;
+    try {
+      const resGet = await fetch(ghMasterUrl(room), {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/vnd.github+json',
+          'Authorization': `Bearer ${GH_TOKEN}`
+        }
+      });
+      if (resGet.ok) {
+        const dataGet = await resGet.json();
+        sha = dataGet.sha || null;
+      }
+    } catch (e) {
+      // Si falla, simplemente seguimos como si no existiera
+    }
+
+    const body = {
+      message: `set master<${room}> = ${text} ${new Date().toISOString()}`,
+      content: b64,
+      branch:  GH_BRANCH
+    };
+
+    if (sha) body.sha = sha;
+
+    const resPut = await fetch(ghMasterUrl(room), {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `Bearer ${GH_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!resPut.ok) {
+      console.warn(`[MASTER SAVE WARNING] status=${resPut.status}`);
+    }
+  } catch (e) {
+    console.error('[MASTER SAVE EXCEPTION]', e);
+  }
+}
+
+/**
+ * Marca master<room>.json = "true" para avisar a otros clientes.
+ */
+async function notifyMasterChange() {
+  try {
+    await saveMasterStatus(true);
+  } catch (e) {
+    console.error('[NOTIFY MASTER CHANGE ERROR]', e);
+  }
+}
+
+/**
+ * Loop principal de polling contra master<room>.json.
+ * - Si master == false => nada que hacer.
+ * - Si master == true  => recargamos rooms/<room>.json y actualizamos UI,
+ *                        luego ponemos master = false (tras un delay).
+ */
+async function masterLoop() {
+  try {
+    if (!running || !room) return;
+
+    if (masterProcessing) {
+      masterPollTimer = setTimeout(masterLoop, masterPollMs);
+      return;
+    }
+
+    const masterValue = await loadMasterStatus();
+
+    if (!masterValue) {
+      masterPollTimer = setTimeout(masterLoop, masterPollMs);
+      return;
+    }
+
+    masterProcessing = true;
+
+    const msgs = await loadRoomMessages();
+    fullRerender(msgs);
+
+    await sleep(MASTER_RESET_DELAY_MS);
+    await saveMasterStatus(false);
+
+    masterProcessing = false;
+  } catch (e) {
+    console.error('[MASTER LOOP ERROR]', e);
+    masterProcessing = false;
+  } finally {
+    if (running && room) {
+      masterPollTimer = setTimeout(masterLoop, masterPollMs);
+    }
+  }
+}
+
+/**
+ * Arranca el sistema de master para el room actual.
+ */
+async function startMasterSystemForCurrentRoom() {
+  try {
+    masterProcessing = false;
+    if (masterPollTimer) {
+      clearTimeout(masterPollTimer);
+      masterPollTimer = null;
+    }
+
+    // Tomamos el intervalo desde el input (si es válido)
+    const raw = parseInt(intervalEl.value, 10);
+    if (!Number.isNaN(raw) && raw > 0) {
+      masterPollMs = raw;
+    } else {
+      masterPollMs = MASTER_POLL_MS_DEFAULT;
+      if (intervalEl) intervalEl.value = String(masterPollMs);
+    }
+
+    // Nos aseguramos de que master exista antes de iniciar el loop
+    await ensureMasterExistsForRoom();
+
+    // Lanzamos el loop (no esperamos la promesa)
+    masterLoop();
+  } catch (e) {
+    console.error('[START MASTER SYSTEM ERROR]', e);
+  }
+}
+
+/**
+ * Detiene el sistema de master (por ejemplo, al salir del room).
+ */
+function stopMasterSystem() {
+  try {
+    if (masterPollTimer) {
+      clearTimeout(masterPollTimer);
+      masterPollTimer = null;
+    }
+    masterProcessing = false;
+  } catch (e) {
+    console.error('[STOP MASTER SYSTEM ERROR]', e);
+  }
+}
+
+/* ============================================================
+   METADATOS DEL ROOM  (rooms-meta/<room>.json)
+   ============================================================ */
+
+/**
+ * URL de rooms-meta/<room>.json en la API de GitHub.
+ */
+function ghRoomMetaUrl(roomName) {
+  return ghFileUrl(`rooms-meta/${roomName}.json`);
+}
+
+/**
+ * Crea o carga los metadatos del room actual.
+ * - Si no existe: se crea con info de creador actual y fecha de creación.
+ * - Si existe: se carga y se muestra en la UI.
+ */
+async function ensureRoomMetaExists() {
+  try {
+    if (!room) return;
+
+    await ensureGhToken();
+
+    const res = await fetch(ghRoomMetaUrl(room), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `Bearer ${GH_TOKEN}`
+      }
+    });
+
+    const now = Date.now();
+
+    if (res.status === 404) {
+      // Creamos metadatos nuevos
+      const meta = {
+        room,
+        roomId: `room-${room}-${now}-${Math.random().toString(36).slice(2,8)}`,
+        createdAt: now,
+        createdAtIso: new Date(now).toISOString(),
+        createdBy: {
+          userId:      currentUser.userId,
+          name:        sender || 'Anon',
+          fingerprint: currentUser.fingerprint
+        },
+        lastActivity: now,
+        lastActivityIso: new Date(now).toISOString(),
+        description: '',
+        tags: []
+      };
+
+      await saveRoomMeta(meta);
+      roomMeta = meta;
+      renderRoomMeta();
+      log(`🆕 Sala "${room}" creada por ${meta.createdBy.name}.`, 'INFO');
+      return;
+    }
+
+    if (!res.ok) {
+      console.warn(`[ROOM META LOAD WARNING] status=${res.status}`);
+      return;
+    }
+
+    const data       = await res.json();
+    roomMetaSha      = data.sha || null;
+    const contentStr = atob((data.content || '').replace(/\n/g,''));
+    const metaObj    = contentStr.trim() ? JSON.parse(contentStr) : null;
+
+    if (metaObj) {
+      roomMeta = metaObj;
+      renderRoomMeta();
+    }
+  } catch (e) {
+    console.error('[ROOM META LOAD EXCEPTION]', e);
+  }
+}
+
+/**
+ * Guarda rooms-meta/<room>.json en GitHub con el objeto meta dado.
+ */
+async function saveRoomMeta(meta) {
+  try {
+    if (!room || !meta) return;
+
+    await ensureGhToken();
+
+    const json = JSON.stringify(meta, null, 2);
+    const b64  = btoa(unescape(encodeURIComponent(json)));
+
+    const body = {
+      message: `update rooms-meta/${room}.json ${new Date().toISOString()}`,
+      content: b64,
+      branch:  GH_BRANCH
+    };
+
+    if (roomMetaSha) body.sha = roomMetaSha;
+
+    const res = await fetch(ghRoomMetaUrl(room), {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `Bearer ${GH_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      console.warn(`[ROOM META SAVE WARNING] status=${res.status}`);
+      return;
+    }
+
+    const data = await res.json();
+    if (data.content && data.content.sha) {
+      roomMetaSha = data.content.sha;
+    }
+  } catch (e) {
+    console.error('[ROOM META SAVE EXCEPTION]', e);
+  }
+}
+
+/**
+ * Actualiza el pequeño panel de info de sala en la UI.
+ */
+function renderRoomMeta() {
+  try {
+    if (!roomInfoEl || !roomMeta) return;
+
+    const created = new Date(roomMeta.createdAt || Date.now());
+    const ca = `${created.getFullYear()}-${String(created.getMonth()+1).padStart(2,'0')}-${String(created.getDate()).padStart(2,'0')} ${String(created.getHours()).padStart(2,'0')}:${String(created.getMinutes()).padStart(2,'0')}`;
+
+    const lastTs = roomMeta.lastActivity || roomMeta.createdAt || Date.now();
+    const last   = new Date(lastTs);
+    const la = `${last.getFullYear()}-${String(last.getMonth()+1).padStart(2,'0')}-${String(last.getDate()).padStart(2,'0')} ${String(last.getHours()).padStart(2,'0')}:${String(last.getMinutes()).padStart(2,'0')}`;
+
+    const creatorName = roomMeta.createdBy && roomMeta.createdBy.name ? roomMeta.createdBy.name : 'Desconocido';
+
+    roomInfoEl.innerHTML = `
+      ID: <code>${roomMeta.roomId}</code><br/>
+      Creador: <strong>${creatorName}</strong><br/>
+      Creado: ${ca}<br/>
+      Última actividad: ${la}
+    `;
+  } catch (e) {
+    console.error('[RENDER ROOM META ERROR]', e);
+  }
+}
+
+/* ============================================================
+   MENSAJES EN rooms/<room>.json
+   ============================================================ */
+
+/**
+ * Normaliza un mensaje asegurando todos los metadatos.
+ */
+function normalizeMessage(raw) {
+  try {
+    if (!raw || typeof raw !== 'object') return null;
+
+    const ts = typeof raw.ts === 'number' ? raw.ts : Date.now();
+    const id = raw.id || `m-${ts}-${Math.random().toString(36).slice(2,8)}`;
+
+    const readBy = (raw.readBy && typeof raw.readBy === 'object') ? raw.readBy : {};
+
+    return {
+      id,
+      room:        raw.room || room || 'unknown',
+      sender:      raw.sender || 'Anon',
+      userId:      raw.userId || 'legacy',
+      fingerprint: raw.fingerprint || null,
+      ts,
+      text:        raw.text || '',
+      edited:      !!raw.edited,
+      editedAt:    raw.editedAt || null,
+      deleted:     !!raw.deleted,
+      createdAt:   raw.createdAt || ts,
+      readBy
+    };
+  } catch (e) {
+    console.error('[NORMALIZE MESSAGE ERROR]', e, raw);
+    return null;
+  }
+}
+
+/**
+ * Carga y normaliza todos los mensajes de rooms/<room>.json.
+ */
+async function loadRoomMessages() {
+  try {
+    if (!room) return [];
+
+    await ensureGhToken();
+
+    const path = `rooms/${room}.json`;
+    const res  = await fetch(ghFileUrl(path), {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `Bearer ${GH_TOKEN}`
+      }
+    });
+
+    if (res.status === 404) {
+      lastSha       = null;
+      messagesCache = [];
+      return [];
+    }
+
+    if (!res.ok) {
+      throw new Error(`GitHub GET ${res.status}`);
+    }
+
+    const data       = await res.json();
+    lastSha          = data.sha || null;
+    const contentStr = atob((data.content || '').replace(/\n/g,''));
+
+    let rawArr = [];
+    if (contentStr.trim()) {
+      rawArr = JSON.parse(contentStr);
+    }
+
+    if (!Array.isArray(rawArr)) rawArr = [];
+
+    const normalized = [];
+    for (const r of rawArr) {
+      const msg = normalizeMessage(r);
+      if (msg) normalized.push(msg);
+    }
+
+    normalized.sort((a,b) => a.ts - b.ts);
+    messagesCache = normalized.slice(-MAX_ROOM_MESSAGES);
+    return messagesCache;
+  } catch (e) {
+    console.error('[LOAD ROOM MESSAGES ERROR]', e);
+    log('⚠️ No se pudo cargar el historial de la sala.', 'ERROR');
+    return messagesCache || [];
+  }
+}
+
+/**
+ * Guarda todos los mensajes normalizados en rooms/<room>.json.
+ */
+async function saveRoomMessages(messages) {
+  try {
+    if (!room) return;
+
+    await ensureGhToken();
+
+    const path = `rooms/${room}.json`;
+
+    const trimmed = Array.isArray(messages)
+      ? messages.slice(-MAX_ROOM_MESSAGES)
+      : [];
+
+    const json = JSON.stringify(trimmed, null, 2);
+    const b64  = btoa(unescape(encodeURIComponent(json)));
+
+    const body = {
+      message: `update room ${room} ${new Date().toISOString()}`,
+      content: b64,
+      branch:  GH_BRANCH
+    };
+
+    if (lastSha) body.sha = lastSha;
+
+    const res = await fetch(ghFileUrl(path), {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `Bearer ${GH_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) {
+      throw new Error(`GitHub PUT ${res.status}`);
+    }
+
+    const data = await res.json();
+    if (data.content && data.content.sha) {
+      lastSha = data.content.sha;
+    }
+
+    messagesCache = trimmed;
+  } catch (e) {
+    console.error('[SAVE ROOM MESSAGES ERROR]', e);
+    log('No se pudo guardar mensajes del room en GitHub.', 'ERROR');
+    throw e;
+  }
+}
+
+/* ============================================================
+   RENDER DEL CHAT
+   ============================================================ */
+
+/**
+ * Añade al DOM una lista de mensajes al final.
+ */
+function renderMessages(messages) {
+  try {
+    if (!messagesEl) return;
+    if (!Array.isArray(messages) || messages.length === 0) return;
+
+    for (const msg of messages) {
+      const wrapper = document.createElement('div');
+      wrapper.classList.add('msg');
+
+      const isMine = (msg.userId === currentUser.userId);
+      wrapper.classList.add(isMine ? 'me' : 'other');
+      wrapper.dataset.msgId = msg.id;
+
+      const body = document.createElement('div');
+      body.textContent = msg.deleted ? '[mensaje eliminado]' : msg.text;
+
+      const meta = document.createElement('div');
+      meta.style.fontSize  = '10px';
+      meta.style.opacity   = '0.8';
+      meta.style.marginTop = '2px';
+
+      const d  = new Date(msg.ts);
+      const hh = String(d.getHours()).padStart(2,'0');
+      const mm = String(d.getMinutes()).padStart(2,'0');
+
+      let metaText = `${hh}:${mm} · ${msg.sender}`;
+      if (msg.edited && !msg.deleted) metaText += ' · editado';
+      if (msg.deleted) metaText += ' · eliminado';
+
+      meta.textContent = metaText;
+
+      wrapper.appendChild(body);
+      wrapper.appendChild(meta);
+
+      messagesEl.appendChild(wrapper);
+      lastSeenTs = Math.max(lastSeenTs, msg.ts);
+    }
+
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  } catch (e) {
+    console.error('[RENDER MESSAGES ERROR]', e);
+  }
+}
+
+/**
+ * Vacía el chat visible y vuelve a renderizar todo el historial.
+ */
+function fullRerender(messages) {
+  try {
+    if (!messagesEl) return;
+    messagesEl.innerHTML = '';
+    lastSeenTs = 0;
+    if (Array.isArray(messages) && messages.length > 0) {
+      renderMessages(messages);
+    }
+  } catch (e) {
+    console.error('[FULL RERENDER ERROR]', e);
+  }
+}
+
+/* ============================================================
+   paste.rs  (sólo referencia / debug)
+   ============================================================ */
+
+/**
+ * Crea un paste en paste.rs con el texto del mensaje.
+ * No es requerido para el chat, pero sirve como copia externa.
+ */
+async function createPaste(text) {
+  try {
+    const proxyUrl = buildProxyUrl(PASTE_BASE);
+
+    const res = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: text
+    });
+
+    if (!res.ok) {
+      throw new Error(`No se pudo crear paste (${res.status}).`);
+    }
+
+    const raw = (await res.text()).trim();
+    const url = raw.startsWith('http') ? raw : `${PASTE_BASE}/${raw.replace(/^\//,'')}`;
+
+    if (lastPasteEl) {
+      lastPasteEl.textContent = url;
+    }
+
+    return url;
+  } catch (e) {
+    console.warn('[PASTE WARNING]', e);
+    return null;
+  }
+}
+
+/* ============================================================
+   ENVÍO DE MENSAJES
+   ============================================================ */
+
+/**
+ * Envía un mensaje nuevo:
+ *  - crea el objeto con metadatos
+ *  - opcionalmente lo sube a paste.rs
+ *  - lo guarda en rooms/<room>.json
+ *  - actualiza metadatos del room
+ *  - dispara master<room> = "true"
+ */
+async function sendMessage() {
+  try {
+    if (!running || !room) {
+      log('Debes unirte a una sala antes de enviar mensajes.', 'WARN');
+      return;
+    }
+
+    const text = (inputEl.value || '').trim();
+    if (!text) return;
+
+    const now = Date.now();
+
+    const msg = {
+      id:          `m-${now}-${Math.random().toString(36).slice(2,8)}`,
+      room,
+      sender:      sender || 'Anon',
+      userId:      currentUser.userId,
+      fingerprint: currentUser.fingerprint,
+      ts:          now,
+      text,
+      edited:      false,
+      editedAt:    null,
+      deleted:     false,
+      createdAt:   now,
+      readBy:      {}
+    };
+
+    // Paste opcional
+    await createPaste(text);
+
+    const msgs = await loadRoomMessages();
+    msgs.push(msg);
+    await saveRoomMessages(msgs);
+    renderMessages([msg]);
+    inputEl.value = '';
+
+    // Actualizamos metadatos del room (última actividad)
+    if (roomMeta) {
+      roomMeta.lastActivity    = now;
+      roomMeta.lastActivityIso = new Date(now).toISOString();
+      roomMeta.lastMessageBy   = {
+        userId: currentUser.userId,
+        name:   sender || 'Anon'
+      };
+      await saveRoomMeta(roomMeta);
+      renderRoomMeta();
+    }
+
+    await notifyMasterChange();
+  } catch (e) {
+    console.error('[SEND MESSAGE ERROR]', e);
+    log('⚠️ No se pudo enviar el mensaje.', 'ERROR');
+  }
+}
+
+/* ============================================================
+   EVENTOS DE UI
+   ============================================================ */
+
+/**
+ * Configura manejadores de botones y teclado.
+ */
+function initUiEvents() {
+  // Unirse / crear room
+  joinBtnEl.onclick = async () => {
+    try {
+      const wantedRoom   = (roomInputEl.value   || '').trim();
+      const wantedSender = (senderInputEl.value || '').trim() || 'Anon';
+
+      if (!wantedRoom) {
+        log('Escribe un nombre de sala antes de unirte.', 'WARN');
+        return;
+      }
+
+      room    = wantedRoom;
+      sender  = wantedSender;
+      running = true;
+
+      messagesCache = [];
+      lastSha       = null;
+      roomMeta      = null;
+      roomMetaSha   = null;
+
+      logEl.textContent = '';
+      log(`✨ Sala actual: "${room}"`, 'INFO');
+      log('Escribe un mensaje para comenzar.', 'INFO');
+
+      // Aseguramos metadatos del room (creación si no existía)
+      await ensureRoomMetaExists();
+      renderRoomMeta();
+
+      // Cargamos historial
+      const initial = await loadRoomMessages();
+      if (initial.length === 0) {
+        log('No hay mensajes previos en esta sala.', 'INFO');
+      } else {
+        log(`Historial cargado (${initial.length} mensajes).`, 'INFO');
+      }
+      fullRerender(initial);
+
+      // Arrancamos sistema del master
+      await startMasterSystemForCurrentRoom();
+    } catch (e) {
+      console.error('[JOIN ROOM ERROR]', e);
+      log('Error al unirse a la sala.', 'ERROR');
+    }
+  };
+
+  // Enviar mensaje
+  sendBtnEl.onclick = () => {
+    sendMessage();
+  };
+
+  // Limpiar vista de mensajes localmente
+  clearBtnEl.onclick = () => {
+    if (messagesEl) {
+      messagesEl.innerHTML = '';
+      lastSeenTs = 0;
+      log('🧹 Vista de mensajes limpiada (no se borran del historial).', 'INFO');
+    }
+  };
+
+  // Ctrl+Enter o Cmd+Enter para enviar
+  inputEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      sendMessage();
+    }
+  });
+
+  // Cambio manual del intervalo de polling
+  intervalEl.addEventListener('change', () => {
+    try {
+      const raw = parseInt(intervalEl.value, 10);
+      if (!Number.isNaN(raw) && raw > 0) {
+        masterPollMs = raw;
+        log(`⏱️ Intervalo de polling actualizado a ${masterPollMs} ms.`, 'INFO');
+      } else {
+        intervalEl.value = String(masterPollMs);
+      }
+    } catch (e) {
+      console.error('[INTERVAL CHANGE ERROR]', e);
+    }
+  });
+}
+
+/* ============================================================
+   ARRANQUE GLOBAL
+   ============================================================ */
+
+window.addEventListener('load', async () => {
+  try {
+    initDom();
+    initUserIdentity();
+
+    log('⏳ Cargando token de GitHub desde paste.rs...', 'INFO');
+    await ensureGhToken();
+    log('✅ Listo. Puedes unirte a una sala.', 'INFO');
+
+    initUiEvents();
+  } catch (e) {
+    console.error('[GLOBAL INIT ERROR]', e);
+    log('❌ Error al inicializar la app. Revisa conexión/token.', 'ERROR');
+  }
+});
+</script>
+</body>
+</html>
