@@ -459,6 +459,11 @@ const GH_OWNER  = 'Sotravil';        // Dueño del repositorio
 const GH_REPO   = 'chat-db';         // Nombre del repositorio
 const GH_BRANCH = 'main';            // Rama a utilizar
 
+/* ---------- Intervalos por defecto ---------- */
+const MASTER_POLL_MS_DEFAULT = 100;   // ms entre polls al master<room>
+const MASTER_RESET_DELAY_MS  = 900;   // ms antes de poner master=false tras aplicar cambios
+const MAX_ROOM_MESSAGES      = 5000;  // límite de mensajes en memoria
+
 /* ---------- Token desde paste.rs ---------- */
 /*  IMPORTANTE:
     No guardamos el token en el código. En su lugar, se lee
@@ -470,10 +475,7 @@ const TOKEN_PASTE_URL = 'https://paste.rs/4UElW.txt';
 const PASTE_BASE = 'https://paste.rs';              // Base de paste.rs
 const CORS_PROXY = 'https://corsproxy.io/?';        // Proxy para evitar CORS
 
-/* ---------- Intervalos por defecto ---------- */
-const MASTER_POLL_MS_DEFAULT = 100;   // ms entre polls al master<room>
-const MASTER_RESET_DELAY_MS  = 900;   // ms antes de poner master=false tras aplicar cambios
-const MAX_ROOM_MESSAGES      = 5000;  // límite de mensajes en memoria
+
 
 /* ============================================================
    ESTADO GLOBAL EN EL CLIENTE
@@ -525,6 +527,12 @@ let clearBtnEl    = null;            // Botón para limpiar vista de mensajes
 let lastPasteEl   = null;            // Texto donde se muestra el último paste
 let roomInfoEl    = null;            // Donde mostraremos información del room
 
+let chatEl        = null;            // Contenedor principal del chat (tarjeta)
+let headerStatusEl = null;           // Span en el header que indica estado
+let chatRoomNameEl = null;           // Label con el nombre de la sala en la tarjeta de chat
+let chatSenderNameEl = null;         // Label con el nombre del usuario en la cabecera del chat
+let chatStatusEl  = null;            // Indicador de estado en la cabecera del chat
+
 /* ============================================================
    UTILIDADES GENERALES
    ============================================================ */
@@ -553,6 +561,13 @@ function initDom() {
 
     // Intentamos encontrar (o crear) un contenedor para info de sala
     roomInfoEl     = document.getElementById('roomInfo');
+
+    // Otros elementos del layout de chat (cabecera, estados, etc.)
+    chatEl         = document.getElementById('chat');
+    headerStatusEl = document.getElementById('headerStatus');
+    chatRoomNameEl = document.getElementById('chatRoomName');
+    chatSenderNameEl = document.getElementById('chatSenderName');
+    chatStatusEl   = document.getElementById('chatStatus');
 
     // Si no existe en el HTML, lo creamos dinámicamente en la columna derecha
     if (!roomInfoEl) {
@@ -629,8 +644,45 @@ function ghFileUrl(path) {
 /**
  * Construye una URL pasando por el proxy CORS.
  */
+// ================== BUILD PROXY URL (NUEVA VERSIÓN) ==================
+// Construye una URL pasando por el proxy CORS.
+// - Si la URL viene url-encoded (https%3A%2F%2F...), la intentamos decodificar.
+// - Para corsproxy.io el formato correcto es:
+//     https://corsproxy.io/?https://paste.rs/4UElW.txt
 function buildProxyUrl(url) {
-  return `${CORS_PROXY}${encodeURIComponent(url)}`;
+  try {
+    // Guardamos la URL original en una variable temporal
+    let target = url;
+
+    try {
+      // Intentamos decodificar la URL por si viene en formato
+      // https%3A%2F%2Fpaste.rs%2F4UElW.txt
+      const decoded = decodeURIComponent(url);
+
+      // Si el resultado decodificado parece una URL http(s) válida,
+      // entonces usamos esa como destino real
+      if (decoded.startsWith('http://') || decoded.startsWith('https://')) {
+        target = decoded;
+      }
+    } catch (decodeError) {
+      // Si hay error al decodificar, lo registramos y seguimos usando la original
+      console.warn('[buildProxyUrl WARN] decodeURIComponent falló, usando url original');
+    }
+
+    // Para corsproxy.io el formato es:
+    //   https://corsproxy.io/?https://dominio.com/ruta
+    const finalUrl = `${CORS_PROXY}${target}`;
+
+    // Devolvemos la URL final ya lista para usar con fetch
+    return finalUrl;
+
+  } catch (error) {
+    // Si algo muy raro pasa, mostramos el error en consola
+    console.error('[buildProxyUrl ERROR]', error);
+
+    // Fallback de seguridad: devolvemos la URL original sin proxy
+    return url;
+  }
 }
 
 /* ============================================================
@@ -675,43 +727,140 @@ function initUserIdentity() {
    TOKEN DE GITHUB DESDE PASTE.RS
    ============================================================ */
 
+/* ============================================================
+   TOKEN DE GITHUB DESDE PASTE.RS
+   ============================================================ */
 /**
- * Lee el token desde TOKEN_PASTE_URL (texto plano) vía proxy CORS.
+ * Lee el token desde paste.rs usando el proxy CORS.
+ * - Lee todo el texto del paste
+ * - Lo separa por líneas
+ * - Busca la línea que empiece por "github_pat_"
+ * - Usa SOLO esa línea como token
+ */
+/* ============================================================
+   TOKEN DE GITHUB DESDE PASTE.RS
+   ============================================================ */
+/**
+ * Lee el token desde paste.rs usando el proxy CORS.
+ * - paste.rs nos devuelve HTML con el código dentro de <pre><span>github_pat_...</span>
+ * - Buscamos el PAT en TODO el HTML con una expresión regular.
  */
 async function loadGhTokenFromPaste() {
-  const proxyUrl = buildProxyUrl(TOKEN_PASTE_URL);
+  try {
+    // 1) Construimos la URL usando el proxy CORS
+    //    Esto soporta tanto URLs normales como ya-encodeadas.
+    const proxyUrl = buildProxyUrl(TOKEN_PASTE_URL);
 
-  const res = await fetch(proxyUrl, {
-    method: 'GET',
-    headers: { 'Accept': 'text/plain' }
-  });
+    // 2) Hacemos la petición al proxy
+    const res = await fetch(proxyUrl, {
+      method: 'GET',
+      headers: {
+        // Pedimos texto; aunque el servidor devuelva text/html,
+        // fetch nos lo dará como string.
+        'Accept': 'text/plain'
+      }
+    });
 
-  if (!res.ok) {
-    throw new Error(`No se pudo leer el token desde paste (${res.status}).`);
+    // 3) Si la respuesta no es OK, lanzamos error con el status
+    if (!res.ok) {
+      throw new Error(`No se pudo leer el token desde paste (status=${res.status}).`);
+    }
+
+    // 4) Leemos TODO el cuerpo como texto (HTML completo de paste.rs)
+    let html = await res.text();
+
+    // Normalizamos saltos de línea por limpieza (no es estrictamente necesario)
+    html = html.replace(/\r\n/g, '\n');
+
+    // 5) Intentamos extraer el PAT buscando el patrón "github_pat_..."
+    //    - Empieza en "github_pat_"
+    //    - Continúa hasta antes de un espacio, salto, comilla o "<"
+    //
+    //    Esto captura cosas como:
+    //      <span>github_pat_XXXXXXXXX...</span>
+    const patRegex = /github_pat_[^<\s"]+/;
+    const match    = html.match(patRegex);
+
+    // Variable donde guardaremos el token encontrado
+    let token = null;
+
+    if (match && match[0]) {
+      // Caso normal: encontramos el PAT directamente en el HTML
+      token = match[0].trim();
+    } else {
+      // ⚠️ Fallback: por si algún día pegas el token como texto plano sin HTML
+      //    Separamos por líneas y buscamos una que contenga "github_pat_"
+      const lines = html
+        .split('\n')            // Separamos por líneas
+        .map(l => l.trim())     // Quitamos espacios al inicio/fin
+        .filter(l => l.length); // Filtramos líneas vacías
+
+      // Buscamos la primera línea que contenga "github_pat_"
+      const lineWithPat = lines.find(l => l.includes('github_pat_'));
+
+      if (lineWithPat) {
+        // Posición donde empieza "github_pat_"
+        const idx  = lineWithPat.indexOf('github_pat_');
+
+        // Tomamos desde ahí hasta el final de la línea
+        const tail = lineWithPat.slice(idx);
+
+        // Cortamos en el primer espacio, "<" o comilla
+        const cut  = tail.split(/[<\s"]/)[0];
+
+        // Y lo limpiamos
+        token = cut.trim();
+      }
+    }
+
+    // 6) Si después de todo esto seguimos sin token, lanzamos un error claro
+    if (!token) {
+      throw new Error('No se encontró ningún "github_pat_" en el HTML del paste.');
+    }
+
+    // 7) Guardamos el token en las variables globales
+    GH_TOKEN     = token;
+    ghTokenReady = true;
+
+    // 8) DEBUG SEGURO:
+    //    Solo mostramos la longitud del token, nunca el valor real.
+    console.log('[TOKEN DEBUG] GH_TOKEN length:', GH_TOKEN.length);
+
+    // 9) Mensaje amigable en el panel de log del chat
+    log('✅ Token de GitHub cargado desde paste.rs.', 'INFO');
+
+  } catch (error) {
+    // Si algo falla:
+    // - Lo mostramos en consola para depurar
+    // - Lo mostramos también en el panel de log
+    console.error('[loadGhTokenFromPaste ERROR]', error);
+    log('❌ Error al leer el token desde paste.rs.', 'ERROR');
+
+    // Re-lanzamos el error para que quien llame pueda reaccionar
+    throw error;
   }
-
-  const text = (await res.text()).trim();
-  if (!text) {
-    throw new Error('El paste de token está vacío.');
-  }
-
-  GH_TOKEN     = text;
-  ghTokenReady = true;
-  log('✅ Token de GitHub cargado desde paste.rs.', 'INFO');
 }
 
 /**
- * Asegura que el token esté disponible antes de usar la API de GitHub.
+ * Asegura que el token esté cargado antes de usar la API de GitHub.
+ * - Si ya está en memoria, no hace nada.
+ * - Si ya hay una promesa de carga en curso, sólo la espera.
+ * - Si no, dispara la carga por primera vez.
  */
 async function ensureGhToken() {
+  // Si el token ya está listo y definido, no hacemos nada
   if (ghTokenReady && GH_TOKEN) return;
 
+  // Si ya hay una promesa en curso (carga previa), la esperamos
   if (ghTokenPromise) {
     await ghTokenPromise;
     return;
   }
 
+  // Si aún no hemos iniciado la carga, la creamos y la guardamos
   ghTokenPromise = loadGhTokenFromPaste();
+
+  // Esperamos a que termine (éxito o error)
   await ghTokenPromise;
 }
 
@@ -1441,6 +1590,20 @@ function initUiEvents() {
       room    = wantedRoom;
       sender  = wantedSender;
       running = true;
+
+      // --- Mostrar tarjeta de chat al usuario cuando se una a una sala ---
+      if (chatEl) {
+        // Quitamos posibles clases de oculto (como "hidden") para evitar conflictos
+        chatEl.classList.remove('hidden');
+        // Forzamos display:flex para que respete el layout del CSS existente
+        chatEl.style.display = 'flex';
+      }
+
+      // Actualizamos textos de header/cabecera del chat si existen
+      if (headerStatusEl) headerStatusEl.textContent = 'Conectado';
+      if (chatRoomNameEl) chatRoomNameEl.textContent = room;
+      if (chatSenderNameEl) chatSenderNameEl.textContent = sender;
+      if (chatStatusEl) chatStatusEl.textContent = '● Conectado';
 
       messagesCache = [];
       lastSha       = null;
