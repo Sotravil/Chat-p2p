@@ -1,0 +1,2882 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <title>Chat: paste.rs ➜ GitHub DB (V2 - sin lag)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+  <style>
+    /* =================================================================================
+       UI (tu diseño original, con pequeños upgrades)
+       - Mantengo tu layout para que no se sienta “otro proyecto”
+       - Agrego botones edit/delete por mensaje (ligeros, sin filtros pesados)
+    ================================================================================= */
+
+    /* ====== RESET BÁSICO Y LAYOUT GLOBAL ====== */
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    html,body{
+      height:100%;
+    }
+
+    body{
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      background:#020617;
+      color:#e5e7eb;
+      display:flex;
+      justify-content:center;
+    }
+
+    #app{
+      width:100%;
+      max-width:960px;
+      padding:12px 10px 16px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    /* ====== ENCABEZADO ====== */
+    .app-header{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+    }
+
+    .app-title{
+      font-size:18px;
+      font-weight:700;
+    }
+
+    .app-subtitle{
+      font-size:12px;
+      color:#9ca3af;
+    }
+
+    /* ====== CONTROLES SUPERIORES (ROOM / SENDER) ====== */
+    #top{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      align-items:center;
+      padding:8px;
+      border-radius:12px;
+      background:#020617;
+      border:1px solid #1f2937;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+      font-size:11px;
+      color:#9ca3af;
+    }
+
+    .field-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      align-items:center;
+    }
+
+    input[type="text"]{
+      padding:6px 8px;
+      border-radius:999px;
+      border:1px solid #374151;
+      background:#020617;
+      color:#f9fafb;
+      font-size:13px;
+      min-width:120px;
+    }
+
+    input[type="text"]::placeholder{
+      color:#6b7280;
+    }
+
+    button{
+      padding:7px 14px;
+      border-radius:999px;
+      border:none;
+      background:#16a34a;
+      color:#f9fafb;
+      cursor:pointer;
+      font-size:13px;
+      font-weight:600;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      transition:transform .12s,box-shadow .12s,opacity .12s;
+      white-space:nowrap;
+    }
+
+    button:hover{
+      transform:translateY(-1px);
+      box-shadow:0 4px 12px rgba(34,197,94,.3);
+    }
+
+    button:disabled{
+      opacity:.35;
+      cursor:not-allowed;
+      box-shadow:none;
+      transform:none;
+    }
+
+    .btn-dark{
+      background:#111827;
+    }
+
+    .small{
+      font-size:11px;
+      color:#9ca3af;
+    }
+
+    /* ====== LAYOUT PRINCIPAL: CHAT + LADO DERECHO ====== */
+    #layout{
+      flex:1;
+      display:flex;
+      gap:10px;
+      min-height:0;
+    }
+
+    #leftColumn{
+      flex:1.6;
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-width:0;
+    }
+
+    #side{
+      flex:0.8;
+      max-width:260px;
+      font-size:11px;
+      color:#9ca3af;
+      border-radius:12px;
+      border:1px solid #1f2937;
+      background:#020617;
+      padding:10px;
+    }
+
+    /* ====== PANEL DE LOG DEL SISTEMA ====== */
+    #log{
+      background:#020617;
+      color:#e5e7eb;
+      padding:8px 10px;
+      border-radius:12px;
+      font-size:11px;
+      height:90px;
+      overflow-y:auto;
+      white-space:pre-wrap;
+      border:1px solid #1f2937;
+    }
+
+    /* ====== TARJETA DE CHAT ====== */
+    #chat{
+      margin-top:2px;
+      padding:0;
+      background:#020617;
+      border-radius:16px;
+      border:1px solid #1f2937;
+      display:none;
+      flex-direction:column;
+      min-height:260px;
+      max-height:calc(100vh - 230px);
+      overflow:hidden;
+    }
+
+    #chatHeader{
+      padding:8px 12px;
+      border-bottom:1px solid #111827;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:6px;
+    }
+
+    #chatHeader-left{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+
+    #chatRoomName{
+      font-size:14px;
+      font-weight:600;
+    }
+
+    #chatHeader-meta{
+      font-size:11px;
+      color:#9ca3af;
+    }
+
+    #chatStatus{
+      font-size:11px;
+      color:#22c55e;
+    }
+
+    /* ====== MENSAJES ====== */
+    #messages{
+      flex:1;
+      overflow-y:auto;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      padding:10px 10px 6px;
+      background:radial-gradient(circle at top,#111827 0,#020617 55%);
+    }
+
+    .msg{
+      padding:6px 9px;
+      border-radius:14px;
+      font-size:13px;
+      max-width:85%;
+      word-wrap:break-word;
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      position:relative;
+    }
+
+    .msg.me{
+      align-self:flex-end;
+      background:#16a34a;
+      color:#ecfdf5;
+      border-bottom-right-radius:4px;
+    }
+
+    .msg.other{
+      align-self:flex-start;
+      background:#111827;
+      color:#f9fafb;
+      border-bottom-left-radius:4px;
+    }
+
+    .msg .msg-meta{
+      font-size:10px;
+      opacity:.85;
+    }
+
+    .msg .msg-text{
+      white-space:pre-wrap;
+    }
+
+    /* ====== ACCIONES POR MENSAJE (EDIT / DELETE) ======
+       - Se muestran siempre en móvil (porque no hay hover)
+       - En desktop se ven al hover para no ensuciar
+    */
+    .msg-actions{
+      display:flex;
+      gap:6px;
+      margin-top:2px;
+      align-self:flex-end;
+      opacity:.92;
+    }
+
+    .msg-actions button{
+      padding:3px 8px;
+      font-size:11px;
+      border-radius:999px;
+      box-shadow:none !important;
+      transform:none !important;
+      background:rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.14);
+    }
+
+    .msg-actions button:hover{
+      filter:brightness(1.08);
+    }
+
+    .msg-actions .danger{
+      border-color:rgba(255,255,255,.18);
+      background:rgba(185,28,28,.25);
+    }
+
+    @media (hover:hover){
+      .msg-actions{ display:none; }
+      .msg:hover .msg-actions{ display:flex; }
+    }
+
+    /* ====== INPUT (CAJA DE MENSAJE) ====== */
+    #bottomRow{
+      border-top:1px solid #111827;
+      padding:8px;
+      display:flex;
+      gap:6px;
+      align-items:flex-end;
+      background:#020617;
+    }
+
+    textarea{
+      flex:1;
+      width:100%;
+      box-sizing:border-box;
+      padding:7px 9px;
+      border-radius:12px;
+      border:1px solid #374151;
+      background:#020617;
+      color:#f9fafb;
+      resize:none;
+      font-size:13px;
+      max-height:96px;
+      min-height:40px;
+    }
+
+    textarea::placeholder{
+      color:#6b7280;
+    }
+
+    #sendBtn{
+      background:#16a34a;
+    }
+
+    #clearBtn{
+      background:#111827;
+    }
+
+    /* ====== LADO DERECHO (INFO REPO / PASTE) ====== */
+    #side strong{
+      color:#e5e7eb;
+    }
+
+    #lastPasteUrl{
+      margin-top:4px;
+      word-break:break-all;
+    }
+
+    code{
+      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+      font-size:11px;
+      background:#0b1120;
+      padding:1px 4px;
+      border-radius:4px;
+    }
+
+    /* ====== RESPONSIVE ====== */
+    @media (max-width:768px){
+      #layout{
+        flex-direction:column;
+      }
+
+      #side{
+        max-width:none;
+        width:100%;
+        order:-1;
+      }
+
+      #top{
+        padding:6px;
+      }
+
+      #chat{
+        max-height:calc(100vh - 260px);
+      }
+
+      .app-title{
+        font-size:16px;
+      }
+    }
+  
+
+/* ============================
+   MODALES (sin alert/prompt)
+   ============================ */
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+.modal-hidden{ display: none !important; }
+
+.modal{
+  width: min(560px, 100%);
+  background: rgba(12,16,26,.95);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(0,0,0,.55);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+.modal-header{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.modal-title{
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+.modal-close{
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.85);
+  cursor: pointer;
+}
+.modal-body{ padding: 14px 16px; }
+.modal-body p{ margin: 0 0 10px 0; color: rgba(255,255,255,.80); }
+.modal-body textarea{
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.28);
+  color: rgba(255,255,255,.92);
+  padding: 12px;
+  outline: none;
+}
+.modal-footer{
+  display:flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.btn-ghost{
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.88);
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- HEADER PRINCIPAL -->
+  <header class="app-header">
+    <div>
+      <div class="app-title">Chat paste.rs ➜ GitHub (V2)</div>
+      <div class="app-subtitle">Sin backend propio · multi-plataforma · sin freeze</div>
+    </div>
+    <div class="app-subtitle">Status: <span id="headerStatus">Desconectado</span></div>
+  </header>
+
+  <!-- CONTROLES DE ROOM / SENDER -->
+  <section id="top">
+    <div class="field">
+      <span>Room</span>
+      <input id="room" type="text" value="mainroom">
+    </div>
+
+    <div class="field">
+      <span>Nombre</span>
+      <input id="sender" type="text" placeholder="Tu nick">
+    </div>
+
+    <div class="field">
+      <span>&nbsp;</span>
+      <button id="joinBtn">Unirse / Crear</button>
+    </div>
+
+    <div class="field">
+      <span>Intervalo de actualización</span>
+      <div class="field-row">
+        <input id="interval" type="text" value="1200" style="width:70px">
+        <span class="small">ms</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <span>Vista local</span>
+      <div class="field-row">
+        <button id="trimBtn" class="btn-dark" title="Deja solo los últimos 4 mensajes en tu pantalla">Trim (últimos 4)</button>
+        <button id="resetBtn" class="btn-dark" title="Recarga la página (reset visual)">Reset</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTENIDO PRINCIPAL: CHAT + INFO -->
+  <main id="layout">
+    <div id="leftColumn">
+      <div id="log">💬 Elige una sala, pon tu nombre y pulsa "Unirse / Crear".</div>
+
+      <section id="chat">
+        <div id="chatHeader">
+          <div id="chatHeader-left">
+            <div id="chatRoomName">Sala</div>
+            <div id="chatHeader-meta" class="small">Conectado como <span id="chatSenderName">—</span></div>
+          </div>
+          <div id="chatStatus">● Conectado</div>
+        </div>
+
+        <div id="messages"></div>
+
+        <div id="bottomRow">
+          <textarea id="input" rows="2" placeholder="Escribe un mensaje (Ctrl+Enter para enviar)"></textarea>
+          <button id="sendBtn">Enviar</button>
+          <button id="clearBtn">Clear local</button>
+        </div>
+      </section>
+    </div>
+
+    <aside id="side">
+      <div><strong>Último paste URL:</strong></div>
+      <div id="lastPasteUrl" class="small">—</div>
+
+      <div style="margin-top:10px;">
+        <strong>Repo:</strong><br/>
+        Sotravil/chat-db<br/>
+        <span class="small">
+          Manifest por room (pequeño):<br/>
+          <code>rooms/&lt;room&gt;.json</code><br/>
+          Celdas (chunks):<br/>
+          <code>rooms-cells/&lt;room&gt;/cells/cell-000001.json</code>
+        </span>
+      </div>
+
+      <div style="margin-top:10px;">
+        <strong>Cómo funciona (V2 anti-lag):</strong>
+        <p class="small" style="margin-top:4px;">
+          ✅ Ya NO descargamos ni renderizamos todo el chat en cada poll.<br/>
+          Leemos un <b>manifest</b> pequeño + <b>celdas</b> pequeñas.<br/>
+          El <b>master</b> ahora es un timestamp, no un boolean (sin reset).</p>
+      </div>
+
+      <div style="margin-top:10px;">
+        <strong>Info sala:</strong><br/>
+        <div id="roomInfo" class="small">—</div>
+      </div>
+    </aside>
+  </main>
+</div>
+
+<script defer>
+/* =====================================================================================
+   ✅ REPARACIONES PRINCIPALES (lo que te estaba dando lag)
+   1) YA NO hacemos fullRerender cada vez que master cambia
+      -> Ahora hacemos “delta apply”: append / update por msg.id
+   2) YA NO guardamos/recargamos el archivo entero rooms/<room>.json (arrays gigantes)
+      -> rooms/<room>.json ahora es un MANIFEST pequeño (V2)
+      -> Los mensajes viven en celdas: rooms-cells/<room>/cells/cell-xxxxx.json
+   3) YA NO usamos master boolean true/false (race conditions y writes extra)
+      -> master<room>.json ahora es un timestamp (número)
+      -> Los clientes SOLO leen; NO resetean master
+   4) “Clear” ya NO borra para todos:
+      -> Clear local: limpia solo TU pantalla (y mantiene caches)
+      -> Trim: deja solo últimos 4 mensajes en tu pantalla
+      -> Reset: recarga la página (anti-bug visual)
+===================================================================================== */
+
+/* ---------- Datos del repo ---------- */
+const GH_OWNER  = 'Sotravil';
+const GH_REPO   = 'chat-db';
+const GH_BRANCH = 'main';
+
+// Cache de sha por path (GitHub requiere sha al actualizar archivos existentes)
+const GH_SHA_CACHE = new Map();
+
+
+/* ---------- Carpeta para celdas (chunks) ---------- */
+const CELLS_BASE_DIR = 'rooms-cells';            // NO choca con rooms/<room>.json
+const CELLS_DIR_NAME = 'cells';                 // subcarpeta
+
+/* ---------- Tamaño de celda (mensajes por archivo) ---------- */
+// Micro-segmentation: very small cells, grouped into boxes
+const CELL_MAX_MESSAGES = 4;                    // mensajes por celda (muy pequeño)
+// Boxes group a number of MESSAGES (not cells). BOX_MAX_MESSAGES controls how many messages
+// are stored per box file. We compute cells-per-box dynamically from CELL_MAX_MESSAGES.
+const BOX_MAX_MESSAGES = 100;                   // mensajes por box (approx)
+const CELLS_PER_BOX = Math.ceil(BOX_MAX_MESSAGES / CELL_MAX_MESSAGES); // computed cells per box
+// Boxes live inside the cells tree so paths look like:
+// rooms-cells/<room>/boxes/box-000001.json
+const BOXES_BASE_DIR = `${CELLS_BASE_DIR}`;     // base for boxes: rooms-cells
+const DOM_MAX_MESSAGES  = 220;                  // cap para scroll fluido en móvil
+
+/* ---------- Polling ---------- */
+const POLL_MS_DEFAULT   = 1200;                 // estable (100ms era demasiado agresivo)
+const POLL_MS_MIN       = 350;
+const POLL_MS_MAX       = 10000;
+const IDLE_TIMEOUT_MS   = 60 * 1000;            // si no hay interacción, reducir polling
+
+/* ---------- Token desde paste.rs ---------- */
+const TOKEN_PASTE_URL = 'https://paste.rs/4UElW.txt';
+
+/* ---------- paste.rs + proxy ---------- */
+const PASTE_BASE = 'https://paste.rs';
+const CORS_PROXY = 'https://corsproxy.io/?';
+
+/* =====================================================================================
+   ESTADO GLOBAL
+===================================================================================== */
+let GH_TOKEN        = null;      // PAT actual
+let ghTokenReady    = false;
+let ghTokenPromise  = null;
+
+let room            = null;
+let sender          = null;
+let running         = false;
+
+let currentUser = {
+  userId:      null,
+  fingerprint: null,
+  createdAt:   null
+};
+
+/* ---------- Caches de lectura (anti-lag) ---------- */
+const cache = {
+  // ETag para master y manifest (evita re-parsing cuando no cambia)
+  masterEtag: null,
+  manifestEtag: null,
+
+  // Último valor master (timestamp)
+  lastMasterStamp: 0,
+
+  // Manifest actual
+  manifest: null,      // {v:2, latestCell, totalMessages, ...}
+
+  // Qué celda cargamos y hasta qué cantidad
+  lastLoadedCell: 0,   // número
+  lastLoadedCountInCell: 0, // cantidad de mensajes en esa celda ya aplicados
+
+  // msgId -> DOM element, para UPDATE (edit/delete) sin rerender
+  msgElById: new Map(),
+  // msgId -> message object (in-memory index)
+  msgById: new Map(),
+
+  // Protección anti-overlap de polling
+  pollInFlight: false
+};
+
+/* =====================================================================================
+   DOM refs
+===================================================================================== */
+let messagesEl, logEl, inputEl, roomInputEl, senderInputEl, intervalEl;
+let joinBtnEl, sendBtnEl, clearBtnEl, lastPasteEl, roomInfoEl;
+let chatEl, headerStatusEl, chatRoomNameEl, chatSenderNameEl, chatStatusEl;
+let trimBtnEl, resetBtnEl;
+
+/* =====================================================================================
+   UTILIDADES
+===================================================================================== */
+
+/** Inicializa elementos del DOM */
+function initDom(){
+  messagesEl     = document.getElementById('messages');
+  logEl          = document.getElementById('log');
+  inputEl        = document.getElementById('input');
+  roomInputEl    = document.getElementById('room');
+  senderInputEl  = document.getElementById('sender');
+  intervalEl     = document.getElementById('interval');
+
+  joinBtnEl      = document.getElementById('joinBtn');
+  sendBtnEl      = document.getElementById('sendBtn');
+  clearBtnEl     = document.getElementById('clearBtn');
+  lastPasteEl    = document.getElementById('lastPasteUrl');
+  roomInfoEl     = document.getElementById('roomInfo');
+
+  chatEl         = document.getElementById('chat');
+  headerStatusEl = document.getElementById('headerStatus');
+  chatRoomNameEl = document.getElementById('chatRoomName');
+  chatSenderNameEl = document.getElementById('chatSenderName');
+  chatStatusEl   = document.getElementById('chatStatus');
+
+  trimBtnEl      = document.getElementById('trimBtn');
+  resetBtnEl     = document.getElementById('resetBtn');
+
+  // Modal elements (initialized here so DOM nodes exist)
+  modalOverlay = document.getElementById('modalOverlay');
+  modalTitleEl = document.getElementById('modalTitle');
+  modalBodyEl  = document.getElementById('modalBody');
+  modalBtnOk   = document.getElementById('modalOk');
+  modalBtnCancel = document.getElementById('modalCancel');
+  modalBtnClose  = document.getElementById('modalClose');
+
+  if(modalOverlay){
+    modalOverlay.addEventListener('click', (e) => {
+      if(e.target === modalOverlay) closeModal(false);
+    });
+  }
+  if(modalBtnClose) modalBtnClose.addEventListener('click', () => closeModal(false));
+  if(modalBtnCancel) modalBtnCancel.addEventListener('click', () => closeModal(false));
+  if(modalBtnOk) modalBtnOk.addEventListener('click', () => closeModal(true));
+
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && modalOverlay && !modalOverlay.classList.contains('modal-hidden')){
+      closeModal(false);
+    }
+  });
+
+  // Interaction tracking (to avoid polling when user is idle)
+  window._chat_lastInteraction = Date.now();
+  const _touchOrMove = () => { window._chat_lastInteraction = Date.now(); };
+  ['mousemove','mousedown','wheel','touchstart','touchmove','keydown'].forEach(ev => {
+    document.addEventListener(ev, _touchOrMove, { passive:true });
+  });
+
+  // Setup scroll-based lazy loader for older messages
+  try{ if(typeof setupScrollLoader === 'function') setupScrollLoader(); }catch(e){}
+}
+
+
+/* ---------- Device/IP helpers (para metadata de mensajes) ---------- */
+function getDeviceInfoString(){
+  const ua = navigator.userAgent || '';
+  const plat = navigator.platform || '';
+  const lang = navigator.language || '';
+  const touch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const w = (screen && screen.width) ? screen.width : 0;
+  const h = (screen && screen.height) ? screen.height : 0;
+  const dpr = window.devicePixelRatio || 1;
+
+  const bits = [
+    plat || 'unknown-platform',
+    touch ? 'touch' : 'no-touch',
+    `${w}x${h}@${dpr}`,
+    lang || 'no-lang'
+  ];
+
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
+  bits.unshift(isMobile ? 'mobile' : 'desktop');
+
+  return bits.join(' | ');
+}
+
+async function getCachedPublicIP(){
+  try{
+    const key = 'p2pchat_public_ip_v1';
+    const ttlMs = 6 * 60 * 60 * 1000;
+    const raw = localStorage.getItem(key);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed && parsed.ip && parsed.ts && (Date.now() - parsed.ts) < ttlMs){
+        return parsed.ip;
+      }
+    }
+
+    const r = await fetch('https://api.ipify.org?format=json', { cache: 'no-store' });
+    if(!r.ok) return null;
+    const j = await r.json();
+    const ip = j && j.ip ? String(j.ip) : null;
+
+    if(ip){
+      localStorage.setItem(key, JSON.stringify({ ip, ts: Date.now() }));
+    }
+
+    return ip || null;
+  }catch(_e){
+    return null;
+  }
+}
+
+/** Log con cap para evitar que el panel de log crezca infinito */
+function log(text, level='INFO'){
+  try{
+    if(!logEl) return;
+
+    const p = document.createElement('p');
+    p.style.color = (level==='ERROR') ? '#b91c1c'
+                  : (level==='WARN')  ? '#92400e'
+                  : '#4b5563';
+
+    const now = new Date();
+    const hh  = String(now.getHours()).padStart(2,'0');
+    const mm  = String(now.getMinutes()).padStart(2,'0');
+    const ss  = String(now.getSeconds()).padStart(2,'0');
+
+    p.textContent = `[${hh}:${mm}:${ss}] [${level}] ${text}`;
+    logEl.appendChild(p);
+
+    // Cap de logs (200 líneas)
+    while(logEl.children.length > 200){
+      logEl.removeChild(logEl.firstChild);
+    }
+
+    logEl.scrollTop = logEl.scrollHeight;
+  }catch(e){
+    console.error('[LOG ERROR]', e);
+  }
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+/** Base64 encode (UTF-8 safe) - used by ghPutJson and others */
+function b64(input){
+  try{
+    // encodeURIComponent + unescape ensures UTF-8 safety for btoa
+    return btoa(unescape(encodeURIComponent(String(input))));
+  }catch(e){
+    try{ return btoa(String(input)); }catch(_){ return '' + input; }
+  }
+}
+/** URL GitHub contents API */
+function ghFileUrl(path){
+  const encoded = encodeURIComponent(path).replace(/%2F/g,'/');
+  return `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${encoded}`;
+}
+
+/** URL RAW (para lectura rápida + ETag + sin token) */
+function ghRawUrl(path){
+  // Nota: raw.githubusercontent.com manda ETag útil para 304
+  return `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${path}`;
+}
+
+/** Proxy CORS */
+function buildProxyUrl(url){
+  try{
+    let target = url;
+    try{
+      const decoded = decodeURIComponent(url);
+      if(decoded.startsWith('http://') || decoded.startsWith('https://')) target = decoded;
+    }catch(_){}
+    return `${CORS_PROXY}${target}`;
+  }catch(e){
+    console.error('[buildProxyUrl ERROR]', e);
+    return url;
+  }
+}
+
+/** Sanitiza room para paths */
+function safeRoomName(s){
+  return String(s||'')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g,'-')
+    .slice(0,60);
+}
+
+/** Genera id único */
+function makeMsgId(){
+  return `m-${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
+}
+
+/** Limita DOM para evitar scroll lag */
+function enforceDomCap(){
+  if(!messagesEl) return;
+  while(messagesEl.children.length > DOM_MAX_MESSAGES){
+    const first = messagesEl.firstChild;
+    if(first && first.dataset && first.dataset.msgId){
+      cache.msgElById.delete(first.dataset.msgId);
+    }
+    messagesEl.removeChild(first);
+  }
+}
+
+/** Scroll suave al final (sin forzar layout demasiado) */
+function scrollToBottomSoon(){
+  requestAnimationFrame(()=>{
+    if(messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight;
+  });
+}
+
+/* =====================================================================================
+   IDENTIDAD LOCAL (persistente)
+===================================================================================== */
+async function initUserIdentity(){
+  try{
+    const stored = localStorage.getItem('p2pChatUserIdentity');
+    if(stored){
+      currentUser = JSON.parse(stored);
+      return;
+    }
+    const now  = Date.now();
+    const rand = Math.random().toString(36).slice(2,10);
+    const ua   = navigator.userAgent || 'unknown';
+
+    const newUser = {
+      userId:      `u-${now}-${rand}`,
+      fingerprint: `fp-${btoa(ua).slice(0,16)}-${rand}`,
+      createdAt:   now
+    };
+
+    currentUser = newUser;
+    localStorage.setItem('p2pChatUserIdentity', JSON.stringify(newUser));
+  }catch(e){
+    console.error('[IDENTITY ERROR]', e);
+    currentUser = { userId:'u-unknown', fingerprint:'fp-unknown', createdAt:Date.now() };
+  }
+}
+
+/* =====================================================================================
+   TOKEN GitHub desde paste.rs (carga 1 vez)
+===================================================================================== */
+async function loadGhTokenFromPaste(){
+  // Nota: tu versión estaba bien, pero la dejo más “barata” y directa
+  const proxyUrl = buildProxyUrl(TOKEN_PASTE_URL);
+
+  const res = await fetch(proxyUrl, { method:'GET', headers:{ 'Accept':'text/plain' } });
+  if(!res.ok) throw new Error(`No se pudo leer token (status=${res.status})`);
+
+  let html = await res.text();
+  html = html.replace(/\r\n/g,'\n');
+
+  // Extrae github_pat_... incluso si viene en HTML <pre>
+  const match = html.match(/github_pat_[^<\s"]+/);
+  if(!match || !match[0]) throw new Error('No se encontró github_pat_ en el paste.');
+
+  GH_TOKEN = match[0].trim();
+  ghTokenReady = true;
+
+  // Debug: indicate token loaded without printing its value
+  console.log('[TOKEN DEBUG] token loaded');
+  log('✅ Token de GitHub cargado desde paste.rs.', 'INFO');
+}
+
+async function ensureGhToken(){
+  if(ghTokenReady && GH_TOKEN) return;
+  if(ghTokenPromise){
+    await ghTokenPromise;
+    return;
+  }
+  ghTokenPromise = loadGhTokenFromPaste();
+  await ghTokenPromise;
+}
+
+/* =====================================================================================
+   ESTRUCTURA V2: MANIFEST + CELLS
+   - Manifest: rooms/<room>.json (objeto pequeño)
+   - Cells: rooms-cells/<room>/cells/cell-000001.json, etc.
+===================================================================================== */
+
+/** Path del manifest */
+function manifestPath(roomName){
+  return `rooms/${roomName}.json`;
+}
+
+/** Path del index/cells folder (solo referencia) */
+function cellPath(roomName, cellNumber){
+  const num = String(cellNumber).padStart(6,'0');
+  return `${CELLS_BASE_DIR}/${roomName}/${CELLS_DIR_NAME}/cell-${num}.json`;
+}
+
+/** Normaliza mensaje (asegura campos + compatibilidad) */
+function normalizeMessage(raw, cellNumber){
+  if(!raw || typeof raw !== 'object') return null;
+
+  const ts = (typeof raw.ts === 'number') ? raw.ts : Date.now();
+  const id = raw.id || makeMsgId();
+
+  return {
+    // ids
+    id,
+    room: raw.room || roomNameSafe(room),
+    cell: (typeof raw.cell === 'number') ? raw.cell : (cellNumber || 1),
+
+    // author
+    sender: raw.sender || raw.name || 'Anon',
+    userId: raw.userId || raw.uid || 'legacy',
+    fingerprint: raw.fingerprint || null,
+
+    // content
+    ts,
+    text: raw.text || '',
+
+    // moderation
+    edited: !!raw.edited,
+    editedAt: raw.editedAt || null,
+    editedBy: raw.editedBy || null,
+
+    deleted: !!raw.deleted,
+    deletedAt: raw.deletedAt || null,
+    deletedBy: raw.deletedBy || null,
+
+    // extra
+    pasteUrl: raw.pasteUrl || raw.paste || null
+  };
+}
+
+/** Pequeño helper: room name normalizada para mensajes */
+function roomNameSafe(v){ return safeRoomName(v||''); }
+
+/** Lee un archivo por contents API (para obtener sha + contenido) */
+async function ghGetJsonWithSha(path){
+  await ensureGhToken();
+
+  const res = await fetch(ghFileUrl(path), {
+    method:'GET',
+    headers:{
+      'Accept':'application/vnd.github+json',
+      'Authorization': `Bearer ${GH_TOKEN}`
+    }
+  });
+
+  if(res.status === 404) return { exists:false, sha:null, json:null };
+  if(!res.ok) throw new Error(`GitHub GET failed ${res.status}`);
+
+  const data = await res.json();
+  const sha = data.sha || null;
+
+  
+  // Cacheamos sha para futuros PUT
+  if(sha) GH_SHA_CACHE.set(path, sha);
+const b64 = (data.content || '').replace(/\n/g,'');
+  const txt = b64 ? atob(b64) : '';
+  const json = txt.trim() ? JSON.parse(txt) : null;
+
+  return { exists:true, sha, json };
+}
+
+/** Escribe JSON por contents API */
+async function ghPutJson(path, obj, sha, commitMsg){
+  // ============================
+  //  GitHub PUT (JSON) con retry
+  //  - Si el archivo ya existe, GitHub exige `sha`
+  //  - Si no tenemos sha, intentamos PUT y si devuelve 422/409, hacemos GET sha y reintentamos
+  // ============================
+
+  await ensureGhToken();
+  const token = GH_TOKEN;
+
+  // Convertimos el objeto a JSON + base64
+  const jsonStr = JSON.stringify(obj, null, 2);
+  const contentB64 = b64(jsonStr);
+
+  // Helper: hace 1 PUT con sha opcional y devuelve {res, txt, data}
+  const putOnce = async (useSha) => {
+    const body = {
+      message: commitMsg || `update ${path}`,
+      content: contentB64,
+      branch: GH_BRANCH,
+      ...(useSha ? { sha: useSha } : {})
+    };
+
+    const res = await fetch(ghFileUrl(path), {
+      method: 'PUT',
+      headers: {
+        'Accept': 'application/vnd.github+json',
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    const txt = await res.text().catch(() => '');
+    let data = null;
+    try { data = txt ? JSON.parse(txt) : null; } catch(_e){ /* ignore */ }
+
+    return { res, txt, data };
+  };
+
+  // Preferimos sha pasado por parámetro; si no, el cache
+  let useSha = sha || GH_SHA_CACHE.get(path) || null;
+
+  // Intento 1
+  let out = await putOnce(useSha);
+  if(out.res.ok){
+    const newSha = out.data?.content?.sha || null;
+    if(newSha) GH_SHA_CACHE.set(path, newSha);
+    return out.data;
+  }
+
+  // Detectamos si falló por falta de sha o conflicto
+  const status1 = out.res.status;
+  const msg1 = (out.data && (out.data.message || JSON.stringify(out.data))) || out.txt || '';
+  // GitHub sometimes returns variations like '"sha" wasn't supplied.'
+  // Treat any 422 that mentions sha as a signal to fetch current sha and retry.
+  const needsSha = status1 === 422 && /sha/i.test(msg1);
+  const conflict = status1 === 409;
+
+  if(needsSha || conflict){
+    // Pedimos el sha actual y reintentamos 1 vez
+    const got = await ghGetJsonWithSha(path).catch(() => null);
+    const gotSha = got?.sha || null;
+
+    if(gotSha){
+      GH_SHA_CACHE.set(path, gotSha);
+      out = await putOnce(gotSha);
+
+      if(out.res.ok){
+        const newSha = out.data?.content?.sha || null;
+        if(newSha) GH_SHA_CACHE.set(path, newSha);
+        return out.data;
+      }
+
+      const status2 = out.res.status;
+      const msg2 = (out.data && (out.data.message || JSON.stringify(out.data))) || out.txt || '';
+      throw new Error(`PUT ${path} failed after retry (${status2}): ${msg2}`);
+    }
+  }
+
+  // Log full response for debugging
+  console.error('[ghPutJson PUT ERROR]', { path, status: status1, message: msg1, data: out.data, txt: out.txt });
+
+  // If the token lacks write permissions, surface a clearer message
+  const permsIssue = (status1 === 401) || (status1 === 403) || (status1 === 422 && /permission|scope|access|not accessible/i.test(msg1));
+  if(permsIssue){
+    throw new Error(`GitHub PUT failed (${status1}): ${msg1 || 'Permission or scope error'}. Ensure your PAT has write permissions (repo or contents: write).`);
+  }
+
+  // Generic failure fallback
+  throw new Error(`PUT ${path} failed (${status1}): ${msg1}`);
+}
+
+/** Asegura V2: si rooms/<room>.json era array (legacy), lo migra a cells */
+async function ensureRoomV2(roomName){
+  // 1) leer manifest actual (puede ser 404, array legacy, o objeto v2)
+  const mPath = manifestPath(roomName);
+  const m = await ghGetJsonWithSha(mPath);
+
+  // Caso A: no existe -> crear manifest v2 + cell 1 vacío
+  if(!m.exists){
+    const manifest = {
+      v: 2,
+      room: roomName,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      latestCell: 1,
+      totalMessages: 0,
+      cellMax: CELL_MAX_MESSAGES,
+      note: "V2 manifest (anti-lag). Mensajes en rooms-cells/<room>/cells/..."
+    };
+
+    await ghPutJson(cellPath(roomName, 1), [], null, `init cell 1 for ${roomName}`);
+    const newSha = await ghPutJson(mPath, manifest, null, `init manifest for ${roomName}`);
+
+    cache.manifest = manifest;
+    cache.manifestSha = newSha;
+
+    return;
+  }
+
+  // Caso B: existe pero es array -> migración
+  if(Array.isArray(m.json)){
+    log('🛠️ Migrando sala a V2 (celdas)…', 'INFO');
+
+    const legacyArr = m.json;
+
+    // Partimos en chunks
+    let cellNum = 1;
+    let total = 0;
+
+    for(let i=0; i<legacyArr.length; i += CELL_MAX_MESSAGES){
+      const slice = legacyArr.slice(i, i + CELL_MAX_MESSAGES);
+
+      const normalized = slice
+        .map(x => normalizeMessage(x, cellNum))
+        .filter(Boolean);
+
+      total += normalized.length;
+
+      await ghPutJson(cellPath(roomName, cellNum), normalized, null, `migrate cell ${cellNum} ${roomName}`);
+      cellNum++;
+    }
+
+    // Si no había nada, igual creamos cell 1 vacía
+    if(cellNum === 1){
+      await ghPutJson(cellPath(roomName, 1), [], null, `init empty cell 1 ${roomName}`);
+      cellNum = 2;
+    }
+
+    const manifest = {
+      v: 2,
+      room: roomName,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      latestCell: cellNum - 1,
+      totalMessages: total,
+      cellMax: CELL_MAX_MESSAGES,
+      migratedFromLegacyArray: true
+    };
+
+    // Sobrescribimos rooms/<room>.json con manifest (pequeño)
+    const newSha = await ghPutJson(mPath, manifest, m.sha, `migrate manifest V2 for ${roomName}`);
+
+    cache.manifest = manifest;
+    cache.manifestSha = newSha;
+
+    log('✅ Migración completada. (Ahora debería ir MUCHO más suave)', 'INFO');
+    return;
+  }
+
+  // Caso C: ya es objeto v2 (o algo)
+  if(m.json && typeof m.json === 'object'){
+    // Si no trae v, lo consideramos legacy raro y lo “empaquetamos”
+    if(m.json.v !== 2){
+      log('⚠️ Manifest raro detectado; intentando normalizar a V2…', 'WARN');
+
+      const manifest = {
+        v: 2,
+        room: roomName,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        latestCell: 1,
+        totalMessages: 0,
+        cellMax: CELL_MAX_MESSAGES,
+        note: "Recreado por normalización (archivo no era array ni v2)."
+      };
+
+      await ghPutJson(cellPath(roomName, 1), [], null, `normalize cell 1 ${roomName}`);
+      const newSha = await ghPutJson(mPath, manifest, m.sha, `normalize manifest V2 for ${roomName}`);
+
+      cache.manifest = manifest;
+      cache.manifestSha = newSha;
+      return;
+    }
+
+    cache.manifest = m.json;
+    cache.manifestSha = m.sha;
+    return;
+  }
+
+  // Fallback total: recrear V2
+  log('⚠️ Manifest inválido; recreando V2 vacío…', 'WARN');
+  const manifest = {
+    v: 2,
+    room: roomName,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    latestCell: 1,
+    totalMessages: 0,
+    cellMax: CELL_MAX_MESSAGES
+  };
+  await ghPutJson(cellPath(roomName, 1), [], null, `fallback init cell 1 ${roomName}`);
+  const newSha = await ghPutJson(mPath, manifest, m.sha, `fallback init manifest ${roomName}`);
+  cache.manifest = manifest;
+  cache.manifestSha = newSha;
+}
+
+/* =====================================================================================
+   MASTER V2 (timestamp)
+   - master<room>.json contiene un número (Date.now())
+   - Los clientes SOLO leen; el emisor escribe al cambiar algo
+===================================================================================== */
+
+/** path master */
+function masterPath(roomName){
+  return `master${roomName}.json`;
+}
+
+/** Escribe master con timestamp actual (sin reset) */
+async function bumpMaster(roomName){
+  try{
+    const path = masterPath(roomName);
+
+    // Para PUT necesitas sha si existe
+    const existing = await ghGetJsonWithSha(path).catch(()=>({exists:false, sha:null, json:null}));
+    const stamp = Date.now();
+
+    // Guardamos como texto, pero usando JSON put (string) simplifica
+    // -> lo escribimos como número (JSON), así parse es trivial
+    const sha = await ghPutJson(path, stamp, existing.sha, `master bump ${roomName} ${stamp}`);
+
+    // Actualizamos cache local para no auto-dispararnos
+    cache.lastMasterStamp = stamp;
+    return sha;
+  }catch(e){
+    console.warn('[bumpMaster WARN]', e);
+  }
+}
+
+/** Lee master por RAW con ETag y devuelve stamp (number) */
+async function readMasterStampRaw(roomName){
+  const url = ghRawUrl(masterPath(roomName));
+
+  const headers = {};
+  if(cache.masterEtag) headers['If-None-Match'] = cache.masterEtag;
+
+  try{
+    const res = await fetch(url, { headers, cache:'no-store' });
+
+    if(res.status === 304){
+      return { unchanged:true, stamp: cache.lastMasterStamp };
+    }
+
+    // If raw returns 404, try the GitHub Contents API as a fallback
+    if(res.status === 404){
+      try{
+        const got = await ghGetJsonWithSha(masterPath(roomName)).catch(()=>null);
+        if(got && got.exists && got.json != null){
+          const stamp = Number(got.json || 0) || 0;
+          return { unchanged:false, stamp };
+        }
+        return { unchanged:false, stamp: cache.lastMasterStamp, error: `HTTP 404` };
+      }catch(e){
+        return { unchanged:false, stamp: cache.lastMasterStamp, error: `HTTP 404` };
+      }
+    }
+
+    if(!res.ok){
+      return { unchanged:false, stamp: cache.lastMasterStamp, error:`HTTP ${res.status}` };
+    }
+
+    const etag = res.headers.get('ETag') || res.headers.get('etag') || null;
+    if(etag) cache.masterEtag = etag;
+
+    // Puede ser número JSON (ej: 1700000000) o texto
+    const txt = (await res.text()).trim();
+    let stamp = 0;
+
+    try{
+      stamp = Number(JSON.parse(txt));
+    }catch(_){
+      stamp = Number(txt);
+    }
+
+    if(Number.isNaN(stamp)) stamp = 0;
+
+    return { unchanged:false, stamp };
+  }catch(e){
+    return { unchanged:false, stamp: cache.lastMasterStamp, error: e && e.message ? e.message : String(e) };
+  }
+}
+
+/* =====================================================================================
+   LECTURA: manifest + cells (RAW con ETag)
+===================================================================================== */
+
+/** Lee manifest por RAW y cachea ETag */
+async function readManifestRaw(roomName){
+  const url = ghRawUrl(manifestPath(roomName));
+
+  const headers = {};
+  if(cache.manifestEtag) headers['If-None-Match'] = cache.manifestEtag;
+
+  const res = await fetch(url, { headers, cache:'no-store' });
+
+  if(res.status === 304){
+    return { unchanged:true, manifest: cache.manifest };
+  }
+
+  if(!res.ok){
+    return { unchanged:false, manifest: cache.manifest, error:`HTTP ${res.status}` };
+  }
+
+  const etag = res.headers.get('ETag') || res.headers.get('etag') || null;
+  if(etag) cache.manifestEtag = etag;
+
+  const manifest = await res.json();
+  cache.manifest = manifest;
+
+  return { unchanged:false, manifest };
+}
+
+/** Lee cell por RAW (sin ETag individual para mantener simple) */
+async function readCellRaw(roomName, cellNumber){
+  const url = ghRawUrl(cellPath(roomName, cellNumber));
+  const res = await fetch(url, { cache:'no-store' });
+
+  if(!res.ok){
+    return { ok:false, messages:[], error:`HTTP ${res.status}` };
+  }
+
+  const arr = await res.json().catch(()=>[]);
+  if(!Array.isArray(arr)) return { ok:true, messages:[] };
+
+  // Normalizamos con cellNumber para que msg.cell exista
+  const normalized = arr.map(x => normalizeMessage(x, cellNumber)).filter(Boolean);
+
+  return { ok:true, messages: normalized };
+}
+
+/* =====================================================================================
+   RENDER: append + update (sin full rerender)
+===================================================================================== */
+
+/** Crea DOM de un mensaje */
+function buildMessageElement(msg){
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('msg');
+
+  const isMine = (msg.userId === currentUser.userId);
+  wrapper.classList.add(isMine ? 'me' : 'other');
+
+  wrapper.dataset.msgId = msg.id;
+  wrapper.dataset.cell  = String(msg.cell || 1);
+
+  const textEl = document.createElement('div');
+  textEl.className = 'msg-text';
+
+  const metaEl = document.createElement('div');
+  metaEl.className = 'msg-meta';
+  // Click en la barra meta => abre detalles del mensaje
+  metaEl.title = 'Toca para ver detalles';
+  metaEl.style.cursor = 'pointer';
+  metaEl.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    openMessageDetailsById(msg.id);
+  });
+
+
+  const actions = document.createElement('div');
+  actions.className = 'msg-actions';
+
+  // Botón editar (solo para mis mensajes)
+  const editBtn = document.createElement('button');
+  editBtn.textContent = '✏️ Edit';
+  editBtn.dataset.action = 'edit';
+  editBtn.dataset.msgId = msg.id;
+
+  // Botón delete (para todos, “delete for everyone”)
+  const delBtn = document.createElement('button');
+  delBtn.textContent = '🗑️ Delete';
+  delBtn.classList.add('danger');
+  delBtn.dataset.action = 'delete';
+  delBtn.dataset.msgId = msg.id;
+
+  // En mensajes ajenos, ocultamos edit y delete (solo puedes tocar tus mensajes)
+  if(!isMine){
+    editBtn.style.display = 'none';
+    delBtn.style.display = 'none';
+  }
+
+  actions.appendChild(editBtn);
+  actions.appendChild(delBtn);
+
+  wrapper.appendChild(textEl);
+  wrapper.appendChild(metaEl);
+  wrapper.appendChild(actions);
+
+  // Inicializamos contenido
+  updateMessageElement(wrapper, msg);
+
+  return wrapper;
+}
+
+/** Actualiza un mensaje ya existente en DOM (edit/delete) */
+function updateMessageElement(wrapper, msg){
+  const textEl = wrapper.querySelector('.msg-text');
+  const metaEl = wrapper.querySelector('.msg-meta');
+
+  // Texto (si está eliminado, mostramos placeholder)
+  if(textEl){
+    textEl.textContent = msg.deleted ? '[mensaje eliminado]' : (msg.text || '');
+  }
+
+  // Meta: hora + nombre + flags
+  if(metaEl){
+    const d  = new Date(msg.ts || Date.now());
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+
+    let metaText = `${hh}:${mm} · ${msg.sender || 'Anon'}`;
+
+    if(msg.edited && !msg.deleted) metaText += ' · editado';
+    if(msg.deleted) metaText += ' · eliminado';
+
+    metaEl.textContent = metaText;
+  }
+
+  // Si es mío, edit visible; si no, edit oculto
+  const editBtn = wrapper.querySelector('button[data-action="edit"]');
+  if(editBtn){
+    editBtn.style.display = (msg.userId === currentUser.userId) ? '' : 'none';
+  }
+}
+
+/** Aplica una lista de mensajes: append si no existe, update si ya existe */
+function applyMessagesDelta(messages){
+  if(!messagesEl) return;
+  if(!Array.isArray(messages) || messages.length === 0) return;
+
+  for(const msg of messages){
+    const existingEl = cache.msgElById.get(msg.id);
+
+    if(existingEl){
+      // Update (edit/delete, etc.)
+      updateMessageElement(existingEl, msg);
+      cache.msgById.set(msg.id, msg);
+      continue;
+    }
+
+    // Append nuevo
+    const elMsg = buildMessageElement(msg);
+    cache.msgElById.set(msg.id, elMsg);
+    cache.msgById.set(msg.id, msg);
+    messagesEl.appendChild(elMsg);
+  }
+
+  enforceDomCap();
+  scrollToBottomSoon();
+}
+
+/** Trim local view: deja últimos N mensajes en DOM (no toca GitHub) */
+function trimLocalView(n){
+  try{
+    if(!messagesEl) return;
+
+    // Si ya está corto, no hace nada
+    if(messagesEl.children.length <= n) return;
+
+    const keep = [];
+    const children = Array.from(messagesEl.children);
+    for(let i = Math.max(0, children.length - n); i < children.length; i++){
+      keep.push(children[i]);
+    }
+
+    // Limpiamos
+    messagesEl.innerHTML = '';
+    cache.msgElById.clear();
+
+    // Reinsertamos
+    for(const node of keep){
+      messagesEl.appendChild(node);
+      if(node.dataset && node.dataset.msgId){
+        cache.msgElById.set(node.dataset.msgId, node);
+      }
+    }
+
+    scrollToBottomSoon();
+    log(`🧹 Vista local recortada a últimos ${n} mensajes (solo tu pantalla).`, 'INFO');
+  }catch(e){
+    console.error('[trimLocalView ERROR]', e);
+  }
+}
+
+/* =====================================================================================
+   ESCRITURA: enviar, editar, borrar (solo celdas pequeñas)
+===================================================================================== */
+
+/** Lee cell por API (sha + contenido) para poder editar/append */
+async function ghGetCellWithSha(roomName, cellNumber){
+  const p = cellPath(roomName, cellNumber);
+  const c = await ghGetJsonWithSha(p);
+  const arr = Array.isArray(c.json) ? c.json : [];
+  return { path:p, sha:c.sha, arr };
+}
+
+/** Lee manifest por API (sha + contenido) para poder actualizar counters */
+async function ghGetManifestWithSha(roomName){
+  const p = manifestPath(roomName);
+  const m = await ghGetJsonWithSha(p);
+  const obj = (m.json && typeof m.json === 'object') ? m.json : null;
+  return { path:p, sha:m.sha, obj };
+}
+
+/** Envía mensaje (optimistic UI + write chunk pequeño) */
+async function sendMessage(){
+  try{
+    if(!running || !room){
+      log('Debes unirte a una sala antes de enviar.', 'WARN');
+      return;
+    }
+
+    const text = (inputEl.value || '').trim();
+    if(!text) return;
+
+    // UX: limpiamos input inmediatamente (se siente instantáneo)
+    inputEl.value = '';
+
+    const now = Date.now();
+    const msg = {
+      id: makeMsgId(),
+      room: roomNameSafe(room),
+      sender: sender || 'Anon',
+      userId: currentUser.userId,
+    userCreatedAt: currentUser.createdAt,
+    ip: currentUser.ip,
+    device: currentUser.device,
+    ua: currentUser.ua,
+    lang: currentUser.lang,
+    tz: currentUser.tz,
+    screen: currentUser.screen,
+
+      fingerprint: currentUser.fingerprint,
+      ts: now,
+      text,
+      edited:false,
+      editedAt:null,
+      editedBy:null,
+      deleted:false,
+      deletedAt:null,
+      deletedBy:null,
+      pasteUrl:null
+    };
+
+    // ✅ Render optimista (cero lag visual)
+    applyMessagesDelta([normalizeMessage(msg, cache.manifest?.latestCell || 1)]);
+
+    // (Opcional) paste.rs: NO lo esperamos para no meter lag
+    createPasteAsync(text).then(url=>{
+      if(url && lastPasteEl) lastPasteEl.textContent = url;
+    });
+
+    // Guardamos en GitHub (celdas)
+    await appendMessageToCells(room, msg);
+
+    // Avisamos a todos (master bump)
+    await bumpMaster(room);
+
+  }catch(e){
+    console.error('[sendMessage ERROR]', e);
+    log('⚠️ No se pudo enviar el mensaje.', 'ERROR');
+  }
+}
+
+/** Append en celdas (lee SOLO la última celda, no todo el chat) */
+async function appendMessageToCells(roomName, msg){
+  // 1) Asegura manifest/celdas v2 (si usuario entró a sala nueva)
+  await ensureRoomV2(roomName);
+
+  // 2) Lee manifest actual por API (sha), porque vamos a actualizar contadores
+  const m = await ghGetManifestWithSha(roomName);
+  const manifest = (m.obj && m.obj.v === 2) ? m.obj : cache.manifest;
+
+  let latestCell = Number(manifest?.latestCell || 1);
+  if(Number.isNaN(latestCell) || latestCell < 1) latestCell = 1;
+
+  // 3) Lee celda actual (pequeña)
+  const cell = await ghGetCellWithSha(roomName, latestCell);
+
+  let arr = Array.isArray(cell.arr) ? cell.arr : [];
+
+  // 4) Si celda llena, crear nueva
+  if(arr.length >= (manifest.cellMax || CELL_MAX_MESSAGES)){
+    latestCell += 1;
+
+    // Crear celda nueva vacía
+    await ghPutJson(cellPath(roomName, latestCell), [], null, `new cell ${latestCell} ${roomName}`);
+
+    // Si corresponde, registra inicio de nueva "box" (grupo de celdas)
+    try{
+      await updateBoxIndexIfNeeded(roomName, latestCell);
+      // compact and rebuild room index in background (best-effort)
+      (async()=>{
+        await compactBoxForStartCell(roomName, latestCell).catch(()=>null);
+        await rebuildRoomCellsIndex(roomName).catch(()=>null);
+      })();
+    }catch(e){}
+
+    // Actualizamos referencia para escribir ahí
+    arr = [];
+  }
+
+  // 5) Guardamos msg con campo cell correcto
+  msg.cell = latestCell;
+  arr.push(msg);
+
+  // 6) PUT celda
+  const targetCellPath = cellPath(roomName, latestCell);
+
+  // Si es la misma celda que leímos, usamos su sha; si es nueva, sha = null
+  const shaToUse = (latestCell === Number(manifest.latestCell)) ? cell.sha : null;
+  await ghPutJson(targetCellPath, arr, shaToUse, `append msg ${msg.id} ${roomName}`);
+
+  // 7) Actualizamos manifest pequeño
+  const newManifest = {
+    ...(manifest || {}),
+    v: 2,
+    room: roomName,
+    latestCell,
+    updatedAt: Date.now(),
+    totalMessages: Number(manifest?.totalMessages || 0) + 1,
+    cellMax: Number(manifest?.cellMax || CELL_MAX_MESSAGES)
+  };
+
+  const newSha = await ghPutJson(manifestPath(roomName), newManifest, m.sha, `update manifest ${roomName}`);
+  cache.manifest = newManifest;
+  cache.manifestSha = newSha;
+}
+
+/** Edita un mensaje (solo si es mío) */
+/* ============================
+   MODALES (sin alert/prompt)
+   ============================ */
+let modalOverlay;
+let modalTitleEl;
+let modalBodyEl;
+let modalBtnOk;
+let modalBtnCancel;
+let modalBtnClose;
+
+let _modalResolve = null;
+
+function closeModal(result){
+  try{
+    if(_modalResolve) _modalResolve(result);
+  } finally {
+    _modalResolve = null;
+    modalOverlay.classList.add('modal-hidden');
+    modalBodyEl.innerHTML = '';
+    modalTitleEl.textContent = 'Modal';
+    modalBtnOk.textContent = 'OK';
+    modalBtnCancel.textContent = 'Cancelar';
+    modalBtnCancel.style.display = '';
+    modalBtnOk.disabled = false;
+  }
+}
+
+function openModal({ title, bodyNode, okText='OK', cancelText='Cancelar', showCancel=true }){
+  // Cerramos cualquier modal anterior (por si acaso)
+  if(_modalResolve) closeModal(false);
+
+  modalTitleEl.textContent = title || 'Modal';
+  modalBodyEl.innerHTML = '';
+  if(bodyNode) modalBodyEl.appendChild(bodyNode);
+
+  modalBtnOk.textContent = okText;
+  modalBtnCancel.textContent = cancelText;
+  modalBtnCancel.style.display = showCancel ? '' : 'none';
+
+  modalOverlay.classList.remove('modal-hidden');
+
+  return new Promise((resolve) => {
+    _modalResolve = resolve;
+  });
+}
+
+
+async function showEditModal(oldText){
+  const wrap = document.createElement('div');
+
+  const p = document.createElement('p');
+  p.textContent = 'Edita tu mensaje:';
+  wrap.appendChild(p);
+
+  const ta = document.createElement('textarea');
+  ta.value = oldText || '';
+  wrap.appendChild(ta);
+
+  // Abrimos modal y esperamos OK/Cancel
+  const ok = await openModal({
+    title: 'Editar mensaje',
+    bodyNode: wrap,
+    okText: 'Guardar',
+    cancelText: 'Cancelar',
+    showCancel: true
+  });
+
+  if(!ok) return null;
+
+  const newText = (ta.value || '').trim();
+  return newText.length ? newText : null;
+}
+
+async function showConfirmModal(text){
+  const wrap = document.createElement('div');
+  const p = document.createElement('p');
+  p.textContent = text || '¿Confirmas?';
+  wrap.appendChild(p);
+
+  const ok = await openModal({
+    title: 'Confirmar',
+    bodyNode: wrap,
+    okText: 'Sí',
+    cancelText: 'No',
+    showCancel: true
+  });
+
+  return !!ok;
+}
+
+
+function openMessageDetailsById(msgId){
+  try{
+    const msg = cache.msgById.get(msgId);
+    if(!msg){
+      log('warn', `No encontré mensaje ${msgId} en memoria.`);
+      return;
+    }
+
+    const pre = document.createElement('pre');
+    pre.style.whiteSpace = 'pre-wrap';
+    pre.style.wordBreak = 'break-word';
+    pre.textContent = JSON.stringify(msg, null, 2);
+
+    openModal({
+      title: 'Detalles del mensaje',
+      bodyNode: pre,
+      okText: 'Cerrar',
+      cancelText: null
+    });
+  }catch(e){
+    log('error', `Detalles fallaron: ${e}`);
+  }
+}
+
+async function editMessageById(msgId){
+  try{
+    const msg = cache.msgById.get(msgId);
+
+    if(!msg){
+      log('warn', `No encontré el mensaje ${msgId} en cache local.`);
+      return;
+    }
+
+    // Seguridad: bloqueamos aunque el botón esté oculto
+    const mine = (msg.userId && msg.userId === currentUser.userId);
+    if(!mine){
+      openModal({
+        title: 'Sin permiso',
+        bodyText: 'Solo puedes modificar tus propios mensajes.',
+        okText: 'OK',
+        cancelText: null
+      });
+      return;
+    }
+
+    // Seguridad: solo puedes editar tus mensajes
+    if(msg.userId !== currentUser.userId){
+      log('warn', 'No puedes editar mensajes de otros usuarios.');
+      await openModal({
+        title: 'Acción bloqueada',
+        bodyNode: (() => {
+          const p = document.createElement('p');
+          p.textContent = 'Solo puedes editar tus propios mensajes.';
+          return p;
+        })(),
+        okText: 'OK',
+        showCancel: false
+      });
+      return;
+    }
+
+    // Modal (sin prompt)
+    const newText = await showEditModal(msg.text || '');
+
+    if(newText === null){
+      // Cancel o vacío
+      return;
+    }
+
+    if((newText || '').trim() === (msg.text || '').trim()){
+      log('info', 'Sin cambios (mismo texto).');
+      return;
+    }
+
+    // Actualizamos en storage (GitHub)
+    await updateMessageInStorage(msgId, (m) => {
+      // Doble seguridad (por si el cache estaba raro)
+      if(m.userId !== currentUser.userId) return m;
+
+      return normalizeMessage({
+        ...m,
+        text: newText,
+        edited: true,
+        editedAt: Date.now(),
+        editedBy: currentUser.userId
+      });
+    });
+
+    log('ok', `Mensaje editado: ${msgId}`);
+  } catch(err){
+    log('error', `Edit error: ${err?.message || err}`);
+  }
+}
+
+/** Delete for everyone (marca deleted=true) */
+async function deleteMessageById(msgId){
+  try{
+    const msg = cache.msgById.get(msgId);
+
+    if(!msg){
+      log('warn', `No encontré el mensaje ${msgId} en cache local.`);
+      return;
+    }
+
+    // Seguridad: bloqueamos aunque el botón esté oculto
+    const mine = (msg.userId && msg.userId === currentUser.userId);
+    if(!mine){
+      openModal({
+        title: 'Sin permiso',
+        bodyText: 'Solo puedes modificar tus propios mensajes.',
+        okText: 'OK',
+        cancelText: null
+      });
+      return;
+    }
+
+    // Seguridad: solo puedes borrar tus mensajes (para todos)
+    if(msg.userId !== currentUser.userId){
+      log('warn', 'No puedes borrar mensajes de otros usuarios.');
+      await openModal({
+        title: 'Acción bloqueada',
+        bodyNode: (() => {
+          const p = document.createElement('p');
+          p.textContent = 'Solo puedes borrar tus propios mensajes.';
+          return p;
+        })(),
+        okText: 'OK',
+        showCancel: false
+      });
+      return;
+    }
+
+    const ok = await showConfirmModal('¿Borrar este mensaje para todos?');
+    if(!ok) return;
+
+    await updateMessageInStorage(msgId, (m) => {
+      if(m.userId !== currentUser.userId) return m;
+
+      return normalizeMessage({
+        ...m,
+        deleted: true,
+        deletedAt: Date.now(),
+        deletedBy: currentUser.userId
+      });
+    });
+
+    log('ok', `Mensaje eliminado: ${msgId}`);
+  } catch(err){
+    log('error', `Delete error: ${err?.message || err}`);
+  }
+}
+
+/** Actualiza un mensaje en su celda (sin leer todo el chat) */
+async function updateMessageInStorage(msgId, updaterFn){
+  if(!room) return;
+
+  // Intento rápido: sacamos cell desde el DOM
+  const elMsg = cache.msgElById.get(msgId);
+  const cellNumber = elMsg && elMsg.dataset && elMsg.dataset.cell ? Number(elMsg.dataset.cell) : null;
+
+  // Si no sabemos celda, caemos a escaneo de pocas celdas (solo cerca del final)
+  const manifest = cache.manifest;
+  const latestCell = Number(manifest?.latestCell || 1);
+
+  const candidates = [];
+
+  if(cellNumber && !Number.isNaN(cellNumber)){
+    candidates.push(cellNumber);
+  }else{
+    // Escaneamos: última celda, y las 2 anteriores (esto es barato)
+    candidates.push(latestCell);
+    if(latestCell-1 >= 1) candidates.push(latestCell-1);
+    if(latestCell-2 >= 1) candidates.push(latestCell-2);
+  }
+
+  // Para no repetir
+  const uniq = Array.from(new Set(candidates));
+
+  for(const cnum of uniq){
+    const cell = await ghGetCellWithSha(room, cnum);
+
+    // Si la celda no existe, seguimos
+    if(!cell || !Array.isArray(cell.arr)) continue;
+
+    const idx = cell.arr.findIndex(m => m && m.id === msgId);
+    if(idx === -1) continue;
+
+    // Aplicamos updater
+    const updated = updaterFn({ ...cell.arr[idx] });
+    updated.cell = cnum;
+
+    cell.arr[idx] = updated;
+
+    // Guardamos celda
+    await ghPutJson(cellPath(room, cnum), cell.arr, cell.sha, `update msg ${msgId} ${room}`);
+
+    // Actualizamos UI local sin esperar al poll
+    const normalized = normalizeMessage(updated, cnum);
+    const domEl = cache.msgElById.get(msgId);
+    if(domEl){
+      updateMessageElement(domEl, normalized);
+    }
+
+    return;
+  }
+
+  throw new Error('No se encontró el mensaje en celdas cercanas (quizá es muy viejo).');
+}
+
+/* =====================================================================================
+   paste.rs (async)
+===================================================================================== */
+async function createPasteAsync(text){
+  try{
+    const proxyUrl = buildProxyUrl(PASTE_BASE);
+    const res = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: text
+    });
+    if(!res.ok) return null;
+
+    const raw = (await res.text()).trim();
+    const url = raw.startsWith('http') ? raw : `${PASTE_BASE}/${raw.replace(/^\//,'')}`;
+    return url;
+  }catch(e){
+    return null;
+  }
+}
+
+/* =====================================================================================
+   ROOM META (tu sistema original, sin cambios grandes)
+===================================================================================== */
+function ghRoomMetaUrl(roomName){
+  return ghFileUrl(`rooms-meta/${roomName}.json`);
+}
+
+let roomMeta = null;
+let roomMetaSha = null;
+
+async function ensureRoomMetaExists(){
+  try{
+    if(!room) return;
+
+    await ensureGhToken();
+
+    const res = await fetch(ghRoomMetaUrl(room), {
+      method:'GET',
+      headers:{
+        'Accept':'application/vnd.github+json',
+        'Authorization': `Bearer ${GH_TOKEN}`
+      }
+    });
+
+    const now = Date.now();
+
+    if(res.status === 404){
+      const meta = {
+        room,
+        roomId: `room-${room}-${now}-${Math.random().toString(36).slice(2,8)}`,
+        createdAt: now,
+        createdAtIso: new Date(now).toISOString(),
+        createdBy: {
+          userId: currentUser.userId,
+          name: sender || 'Anon',
+          fingerprint: currentUser.fingerprint
+        },
+        lastActivity: now,
+        lastActivityIso: new Date(now).toISOString(),
+        description: '',
+        tags: []
+      };
+
+      await saveRoomMeta(meta);
+      roomMeta = meta;
+      renderRoomMeta();
+      log(`🆕 Sala "${room}" creada por ${meta.createdBy.name}.`, 'INFO');
+      return;
+    }
+
+    if(!res.ok){
+      console.warn(`[ROOM META LOAD WARNING] status=${res.status}`);
+      return;
+    }
+
+    const data = await res.json();
+    roomMetaSha = data.sha || null;
+    const contentStr = atob((data.content || '').replace(/\n/g,''));
+    const metaObj = contentStr.trim() ? JSON.parse(contentStr) : null;
+
+    if(metaObj){
+      roomMeta = metaObj;
+      renderRoomMeta();
+    }
+  }catch(e){
+    console.error('[ROOM META LOAD EXCEPTION]', e);
+  }
+}
+
+async function saveRoomMeta(meta){
+  try{
+    if(!room || !meta) return;
+
+    await ensureGhToken();
+
+    const json = JSON.stringify(meta, null, 2);
+    const b64  = btoa(unescape(encodeURIComponent(json)));
+
+    const body = {
+      message: `update rooms-meta/${room}.json ${new Date().toISOString()}`,
+      content: b64,
+      branch: GH_BRANCH,
+      ...(roomMetaSha ? { sha: roomMetaSha } : {})
+    };
+
+    const res = await fetch(ghRoomMetaUrl(room), {
+      method:'PUT',
+      headers:{
+        'Accept':'application/vnd.github+json',
+        'Authorization': `Bearer ${GH_TOKEN}`,
+        'Content-Type':'application/json'
+      },
+      body: JSON.stringify(body)
+    });
+
+    if(!res.ok){
+      console.warn(`[ROOM META SAVE WARNING] status=${res.status}`);
+      return;
+    }
+
+    const data = await res.json();
+    if(data.content && data.content.sha) roomMetaSha = data.content.sha;
+  }catch(e){
+    console.error('[ROOM META SAVE EXCEPTION]', e);
+  }
+}
+
+function renderRoomMeta(){
+  try{
+    if(!roomInfoEl || !roomMeta) return;
+
+    const created = new Date(roomMeta.createdAt || Date.now());
+    const ca = `${created.getFullYear()}-${String(created.getMonth()+1).padStart(2,'0')}-${String(created.getDate()).padStart(2,'0')} ${String(created.getHours()).padStart(2,'0')}:${String(created.getMinutes()).padStart(2,'0')}`;
+
+    const lastTs = roomMeta.lastActivity || roomMeta.createdAt || Date.now();
+    const last = new Date(lastTs);
+    const la = `${last.getFullYear()}-${String(last.getMonth()+1).padStart(2,'0')}-${String(last.getDate()).padStart(2,'0')} ${String(last.getHours()).padStart(2,'0')}:${String(last.getMinutes()).padStart(2,'0')}`;
+
+    const creatorName = roomMeta.createdBy && roomMeta.createdBy.name ? roomMeta.createdBy.name : 'Desconocido';
+
+    roomInfoEl.innerHTML = `
+      ID: <code>${roomMeta.roomId}</code><br/>
+      Creador: <strong>${creatorName}</strong><br/>
+      Creado: ${ca}<br/>
+      Última actividad: ${la}
+    `;
+  }catch(e){
+    console.error('[RENDER ROOM META ERROR]', e);
+  }
+}
+
+/* =====================================================================================
+   POLLING LOOP (anti-overlap)
+   - Revisa master stamp
+   - Si cambió -> lee manifest -> trae solo lo nuevo
+===================================================================================== */
+let pollTimer = null;
+let pollMs = POLL_MS_DEFAULT;
+
+async function pollLoop(){
+  try{
+    if(!running || !room) return;
+
+    // Pause/slow polling when user is idle
+    try{
+      const last = window._chat_lastInteraction || 0;
+      if(Date.now() - last > IDLE_TIMEOUT_MS){
+        // back off: schedule a much later poll and skip work
+        pollTimer = setTimeout(pollLoop, POLL_MS_MAX);
+        return;
+      }
+    }catch(e){}
+
+    if(cache.pollInFlight){
+      pollTimer = setTimeout(pollLoop, pollMs);
+      return;
+    }
+
+    cache.pollInFlight = true;
+
+    // 1) leer master stamp
+    const ms = await readMasterStampRaw(room);
+
+    if(ms.error){
+      // Reflect disconnected state and back off polling to avoid tight 404 loops
+      if(chatStatusEl) chatStatusEl.textContent = '● Desconectado';
+      if(headerStatusEl) headerStatusEl.textContent = 'Desconectado';
+
+      // Increase poll interval progressively (capped)
+      try{ pollMs = Math.min(POLL_MS_MAX, Math.max(POLL_MS_DEFAULT, (pollMs || POLL_MS_DEFAULT) * 4)); }catch(e){}
+
+      return;
+    }
+
+    // Si no cambió, nada que hacer
+    const stamp = Number(ms.stamp || 0);
+    if(stamp <= (cache.lastMasterStamp || 0)){
+      if(chatStatusEl) chatStatusEl.textContent = '● Conectado';
+      if(headerStatusEl) headerStatusEl.textContent = 'Conectado';
+      // successful read -> restore normal poll cadence
+      pollMs = POLL_MS_DEFAULT;
+      return;
+    }
+
+    // Actualizamos local
+    cache.lastMasterStamp = stamp;
+
+    // 2) leer manifest pequeño
+    const mf = await readManifestRaw(room);
+    if(mf.error){
+      return;
+    }
+
+    const manifest = mf.manifest || cache.manifest;
+    if(!manifest || manifest.v !== 2) return;
+
+    // 3) Traer deltas
+    await fetchAndApplyDeltas(room, manifest);
+
+    if(chatStatusEl) chatStatusEl.textContent = '● Conectado';
+    if(headerStatusEl) headerStatusEl.textContent = 'Conectado';
+    // successful sync -> restore normal poll cadence
+    pollMs = POLL_MS_DEFAULT;
+
+  }catch(e){
+    console.error('[pollLoop ERROR]', e);
+  }finally{
+    cache.pollInFlight = false;
+
+    if(running && room){
+      pollTimer = setTimeout(pollLoop, pollMs);
+    }
+  }
+}
+
+/** Trae solo lo nuevo (sin full rerender) */
+async function fetchAndApplyDeltas(roomName, manifest){
+  const latestCell = Number(manifest.latestCell || 1);
+
+  // Si es la primera vez, cargamos solo la última celda (rápido)
+  if(cache.lastLoadedCell === 0){
+    // Cargamos última celda y mostramos (no todo el historial)
+    const cell = await readCellRaw(roomName, latestCell);
+    if(cell.ok){
+      // Para que no te tire 120 de golpe si no quieres:
+      // mostramos últimos 50 de esa celda, así es súper rápido
+      const tail = cell.messages.slice(-50);
+      applyMessagesDelta(tail);
+
+      cache.lastLoadedCell = latestCell;
+      cache.lastLoadedCountInCell = cell.messages.length;
+    }
+    return;
+  }
+
+  // Si avanzó a nueva celda, cargamos celdas nuevas completas (son pequeñas)
+  if(latestCell > cache.lastLoadedCell){
+    for(let c = cache.lastLoadedCell + 1; c <= latestCell; c++){
+      const cell = await readCellRaw(roomName, c);
+      if(!cell.ok) continue;
+
+      applyMessagesDelta(cell.messages);
+
+      cache.lastLoadedCell = c;
+      cache.lastLoadedCountInCell = cell.messages.length;
+    }
+    return;
+  }
+
+  // Si seguimos en la misma celda, solo traemos la celda actual y aplicamos el delta por índice
+  const cell = await readCellRaw(roomName, latestCell);
+  if(!cell.ok) return;
+
+  const start = Math.min(cache.lastLoadedCountInCell || 0, cell.messages.length);
+  const delta = cell.messages.slice(start);
+
+  // También revisamos updates (edit/delete) para mensajes que ya estaban:
+  // -> aplicamos todos, pero solo hace UPDATE si existe (muy ligero)
+  applyMessagesDelta(cell.messages);
+
+  cache.lastLoadedCell = latestCell;
+  cache.lastLoadedCountInCell = cell.messages.length;
+
+  // Delta extra (si había nuevos) ya quedó aplicado
+}
+
+/* =====================================================================================
+   Boxes / Lazy-load helpers
+   - Boxes are metadata groups of CELLS_PER_BOX cells
+   - We keep an index per-room at rooms-boxes/<room>/boxes-index.json
+   - UI lazy-load listens to scroll / wheel and loads older messages on demand
+===================================================================================== */
+
+function boxesIndexPath(roomName){
+  return `${CELLS_BASE_DIR}/${roomName}/boxes/boxes-index.json`;
+}
+
+function boxPath(roomName, boxNumber){
+  return `${CELLS_BASE_DIR}/${roomName}/boxes/box-${String(boxNumber).padStart(6,'0')}.json`;
+}
+
+function roomCellsIndexPath(roomName){
+  return `${CELLS_BASE_DIR}/${roomName}/index.json`;
+}
+
+/** Compact a range of cells (startCell .. startCell+CELLS_PER_BOX-1) into a single box file. */
+async function compactBoxForStartCell(roomName, startCell){
+  try{
+    if(!roomName || !startCell) return null;
+    const cellsPerBox = CELLS_PER_BOX; // already computed from BOX_MAX_MESSAGES
+    const boxNumber = Math.ceil(startCell / cellsPerBox);
+    const pBox = `${CELLS_BASE_DIR}/${roomName}/boxes`;
+    const targetPath = boxPath(roomName, boxNumber);
+
+    // Gather messages from each cell in the box range
+    const merged = [];
+    for(let i=0;i<cellsPerBox;i++){
+      const cnum = startCell + i;
+      const cellPathRel = cellPath(roomName, cnum);
+      try{
+        const got = await ghGetJsonWithSha(cellPathRel).catch(()=>({ json:null, sha:null }));
+        if(got && Array.isArray(got.json) && got.json.length) merged.push(...got.json);
+      }catch(e){
+        // ignore missing cells
+      }
+    }
+
+    if(merged.length === 0){
+      // nothing to compact
+      return null;
+    }
+
+    // Write box file (best-effort). Use null sha to create/overwrite.
+    try{
+      const sha = await ghPutJson(targetPath, merged, null, `compact box ${boxNumber} ${roomName}`);
+      console.log('[BOX COMPACTED]', roomName, boxNumber, 'msgs=', merged.length);
+      return { boxNumber, path: targetPath, sha };
+    }catch(e){
+      console.warn('[BOX COMPACT FAILED]', roomName, boxNumber, e);
+      return null;
+    }
+  }catch(e){
+    console.error('[compactBoxForStartCell ERROR]', e);
+    return null;
+  }
+}
+
+/** Rebuild room-level index (rooms-cells/<room>/index.json) from boxes-index.json entries. */
+async function rebuildRoomCellsIndex(roomName){
+  try{
+    const p = boxesIndexPath(roomName).replace(/^/,'');
+    const gi = await ghGetJsonWithSha(p).catch(()=>({ json:null, sha:null }));
+    const boxes = Array.isArray(gi.json) ? gi.json : [];
+
+    const index = { room: roomName, boxes: [], totalMessages: 0, lastUpdated: Date.now() };
+    for(const b of boxes){
+      const boxNum = b.box;
+      const bp = boxPath(roomName, boxNum);
+      // Try to read box to compute size
+      const got = await ghGetJsonWithSha(bp).catch(()=>({ json:null, sha:null }));
+      const count = Array.isArray(got.json) ? got.json.length : 0;
+      index.boxes.push({ box: boxNum, startCell: b.startCell, endCell: b.endCell, path: bp, msgs: count });
+      index.totalMessages += count;
+    }
+
+    // write room index
+    const idxPath = roomCellsIndexPath(roomName);
+    await ghPutJson(idxPath, index, null, `update room index ${roomName}`);
+    console.log('[ROOM INDEX WRITTEN]', roomName, 'boxes=', index.boxes.length);
+    return index;
+  }catch(e){
+    console.warn('[rebuildRoomCellsIndex ERROR]', e);
+    return null;
+  }
+}
+
+/**
+ * Migrate a room to V3 storage layout (cells of CELL_MAX_MESSAGES, boxes of BOX_MAX_MESSAGES)
+ * - dryRun=true only reports counts without writing
+ * - Idempotent: if manifest.v >= 3 it will skip
+ */
+async function migrateRoomToV3(roomName, opts = { dryRun: false }){
+  try{
+    if(!roomName) throw new Error('roomName required');
+    const dryRun = !!opts.dryRun;
+
+    const m = await ghGetManifestWithSha(roomName);
+    if(!m.obj) throw new Error('manifest not found');
+    if(Number(m.obj.v || 0) >= 3){
+      console.log('[MIGRATE] room already v3 or newer:', roomName);
+      return { ok:true, reason:'already v3' };
+    }
+
+    const latestCell = Number(m.obj.latestCell || 1);
+    const allMsgs = [];
+
+    // Read all existing cells sequentially
+    for(let i=1;i<=latestCell;i++){
+      try{
+        const c = await ghGetCellWithSha(roomName, i).catch(()=>({ arr:[] }));
+        if(Array.isArray(c.arr) && c.arr.length) allMsgs.push(...c.arr);
+      }catch(e){ /* ignore missing cells */ }
+    }
+
+    // Normalize and sort by timestamp to be safe
+    const normalized = allMsgs.map((x,idx)=> normalizeMessage(x) ).filter(Boolean);
+    normalized.sort((a,b)=> (a.ts||0) - (b.ts||0));
+
+    const totalMsgs = normalized.length;
+    const perCell = CELL_MAX_MESSAGES || 1;
+    const perBox = BOX_MAX_MESSAGES || (perCell * 25);
+    const cells = [];
+    for(let i=0;i<normalized.length;i += perCell){
+      const slice = normalized.slice(i, i+perCell);
+      // assign provisional cell number (1-based)
+      const cnum = Math.floor(i / perCell) + 1;
+      slice.forEach(mf=>{ if(mf) mf.cell = cnum; });
+      cells.push(slice);
+    }
+
+    const newLatestCell = cells.length || 1;
+
+    // Dry-run: report counts
+    if(dryRun){
+      console.log('[MIGRATE DRY RUN]', { room: roomName, totalMsgs, perCell, perBox, newCells: cells.length, boxes: Math.ceil(totalMsgs / perBox) });
+      return { ok:true, dryRun:true, totalMsgs, newCells: cells.length };
+    }
+
+    log(`🔁 Migrating room ${roomName} → V3: ${totalMsgs} messages, ${cells.length} cells`, 'INFO');
+
+    // Write new cells (overwrite existing names). Do sequentially to avoid rate issues.
+    for(let i=0;i<cells.length;i++){
+      const idx = i+1;
+      const path = cellPath(roomName, idx);
+      try{
+        await ghPutJson(path, cells[i], null, `v3 migrate cell ${idx} ${roomName}`);
+      }catch(e){
+        console.warn('[MIGRATE WRITE CELL FAILED]', path, e);
+      }
+    }
+
+    // Update manifest to v3
+    const newManifest = {
+      ...(m.obj || {}),
+      v: 3,
+      room: roomName,
+      createdAt: m.obj.createdAt || Date.now(),
+      updatedAt: Date.now(),
+      latestCell: newLatestCell,
+      totalMessages: totalMsgs,
+      cellMax: CELL_MAX_MESSAGES,
+      migratedToV3At: Date.now()
+    };
+
+    await ghPutJson(manifestPath(roomName), newManifest, m.sha, `migrate manifest v3 ${roomName}`);
+    cache.manifest = newManifest;
+
+    // Build boxes (group messages by perBox count)
+    const boxes = [];
+    for(let i=0;i<normalized.length;i += perBox){
+      const startMsgIdx = i; // 0-based
+      const slice = normalized.slice(i, i+perBox);
+      const boxIdx = Math.floor(i / perBox) + 1;
+      const startCell = Math.floor(startMsgIdx / perCell) + 1;
+      const endMsgIdx = i + slice.length - 1;
+      const endCell = Math.floor(endMsgIdx / perCell) + 1;
+
+      // write box file
+      const bp = boxPath(roomName, boxIdx);
+      try{
+        await ghPutJson(bp, slice, null, `v3 box ${boxIdx} ${roomName}`);
+        boxes.push({ box: boxIdx, startCell, endCell, startMsg: startMsgIdx, endMsg: endMsgIdx, createdAt: Date.now() });
+      }catch(e){
+        console.warn('[MIGRATE WRITE BOX FAILED]', bp, e);
+      }
+    }
+
+    // Write boxes index
+    try{
+      const bix = boxes.map(b=>({ box:b.box, startCell:b.startCell, endCell:b.endCell, createdAt:b.createdAt }));
+      await ghPutJson(boxesIndexPath(roomName), bix, null, `v3 boxes-index ${roomName}`);
+    }catch(e){ console.warn('[MIGRATE WRITE BOXES INDEX FAILED]', e); }
+
+    // Rebuild room index
+    await rebuildRoomCellsIndex(roomName).catch(()=>null);
+
+    log(`✅ Migración a V3 completada para ${roomName}: ${totalMsgs} mensajes en ${cells.length} celdas, ${boxes.length} cajas.`, 'INFO');
+    return { ok:true, migrated:true, totalMsgs, cells: cells.length, boxes: boxes.length };
+
+  }catch(e){
+    console.error('[migrateRoomToV3 ERROR]', e);
+    return { ok:false, error: e && e.message ? e.message : String(e) };
+  }
+}
+
+// Expose migration helper to console
+window.migrateRoomToV3 = migrateRoomToV3;
+
+// --- Migration UI helpers -------------------------------------------------
+function createMigrationPanel(){
+  try{
+    if(document.getElementById('migration-panel')) return;
+    const panel = document.createElement('div');
+    panel.id = 'migration-panel';
+    panel.style.cssText = 'position:fixed;right:12px;top:60px;z-index:9999;padding:10px;background:#111;color:#fff;border-radius:6px;font-family:Arial, sans-serif;box-shadow:0 4px 14px rgba(0,0,0,0.4)';
+    panel.innerHTML = `
+      <div style="font-weight:600;margin-bottom:6px">Migration (V3)</div>
+      <div style="margin-bottom:6px"><input id="migration-room" placeholder="room name" style="width:180px;padding:6px;border-radius:4px;border:1px solid #333;background:#000;color:#fff"></div>
+      <div style="display:flex;gap:6px">
+        <button id="migration-dry" style="padding:6px;border-radius:4px">Dry Run</button>
+        <button id="migration-run" style="padding:6px;border-radius:4px">Run</button>
+        <button id="migration-verify" style="padding:6px;border-radius:4px">Verify</button>
+      </div>
+      <div id="migration-log" style="margin-top:8px;max-height:160px;overflow:auto;background:#060606;padding:6px;border-radius:4px;font-size:12px"></div>
+    `;
+    document.body.appendChild(panel);
+
+    const roomInput = panel.querySelector('#migration-room');
+    panel.querySelector('#migration-dry').addEventListener('click', async ()=>{
+      const room = roomInput.value.trim();
+      if(!room) return alert('enter room name');
+      appendLog('Running dry-run...');
+      const r = await migrateRoomToV3(room, { dryRun: true });
+      appendLog(JSON.stringify(r, null, 2));
+    });
+    panel.querySelector('#migration-run').addEventListener('click', async ()=>{
+      const room = roomInput.value.trim();
+      if(!room) return alert('enter room name');
+      if(!confirm('Run full migration for room: '+room+'? This will attempt GitHub writes. Continue?')) return;
+      appendLog('Running migration...');
+      const r = await migrateRoomToV3(room, { dryRun: false });
+      appendLog(JSON.stringify(r, null, 2));
+    });
+    panel.querySelector('#migration-verify').addEventListener('click', async ()=>{
+      const room = roomInput.value.trim();
+      if(!room) return alert('enter room name');
+      appendLog('Verifying manifest and boxes index...');
+      try{
+        const m = await ghGetManifestWithSha(room).catch(e=>({obj:null}));
+        appendLog('manifest: '+(m && m.obj ? JSON.stringify(m.obj) : 'missing'));
+        const bix = await ghGetJson(boxesIndexPath(room)).catch(()=>null);
+        appendLog('boxes-index: '+(bix ? JSON.stringify(bix) : 'missing'));
+      }catch(e){ appendLog('verify error: '+String(e)); }
+    });
+
+    function appendLog(s){
+      const el = panel.querySelector('#migration-log');
+      const pre = document.createElement('pre');
+      pre.style.margin='0';
+      pre.style.whiteSpace='pre-wrap';
+      pre.textContent = (new Date()).toISOString() + ' ' + s;
+      el.insertBefore(pre, el.firstChild);
+    }
+  }catch(e){ console.warn('migration panel failed', e); }
+}
+
+// Auto-create the panel when page loads
+if(document && document.readyState !== 'loading') createMigrationPanel(); else document.addEventListener('DOMContentLoaded', createMigrationPanel);
+
+// Convenience full flow callable from console: run dry-run then prompt then migrate then verify
+async function runMigrationFlow(roomName){
+  if(!roomName) throw new Error('roomName required');
+  const dry = await migrateRoomToV3(roomName, { dryRun: true });
+  console.log('dry-run:', dry);
+  if(!confirm('Dry-run completed. Proceed with full migration for '+roomName+'?')) return { ok:false, reason:'aborted' };
+  const r = await migrateRoomToV3(roomName, { dryRun: false });
+  console.log('migration result:', r);
+  try{ await rebuildRoomCellsIndex(roomName); }catch(e){}
+  return r;
+}
+window.runMigrationFlow = runMigrationFlow;
+
+async function updateBoxIndexIfNeeded(roomName, cellNumber){
+  try{
+    if(!roomName || !cellNumber) return;
+    const cellsPerBox = CELLS_PER_BOX;
+    const boxNumber = Math.ceil(cellNumber / cellsPerBox);
+    // If this cell is the first in a box, register a new box entry
+    const firstInBox = ((cellNumber - 1) % cellsPerBox) === 0;
+    if(!firstInBox) return;
+
+    // Try to fetch existing index
+    const p = boxesIndexPath(roomName);
+    const g = await ghGetJsonWithSha(p).catch(()=>({ json:null, sha:null }));
+    const idx = Array.isArray(g.json) ? g.json : [];
+    const now = Date.now();
+    idx.push({ box: boxNumber, startCell: cellNumber, endCell: cellNumber + CELLS_PER_BOX - 1, createdAt: now });
+
+    try{
+      await ghPutJson(p, idx, g.sha, `add box ${boxNumber} ${roomName}`);
+    }catch(e){
+      // best-effort, ignore failures
+      console.warn('[BOX INDEX UPDATE FAILED]', e);
+    }
+  }catch(e){
+    console.warn('[updateBoxIndexIfNeeded ERROR]', e);
+  }
+}
+
+/** Prepend messages to the top of the messages DOM (older messages) */
+function prependMessages(messages){
+  if(!messagesEl || !Array.isArray(messages) || messages.length === 0) return;
+  const firstChild = messagesEl.firstChild;
+  // Insert older messages preserving chronological order
+  for(let i = messages.length - 1; i >= 0; i--){
+    const msg = messages[i];
+    const el = buildMessageElement(msg);
+    cache.msgElById.set(msg.id, el);
+    cache.msgById.set(msg.id, msg);
+    if(firstChild) messagesEl.insertBefore(el, firstChild);
+    else messagesEl.appendChild(el);
+  }
+}
+
+/** Load older messages on demand (count = number of messages desired) */
+async function loadOlderByMessages(count){
+  try{
+    if(!room) return;
+    const want = Math.max(1, Number(count || 20));
+    const perCell = CELL_MAX_MESSAGES || 1;
+    let needCells = Math.ceil(want / perCell);
+
+    let cnum = (cache.lastLoadedCell || 1) - 1;
+    const toFetch = [];
+    while(needCells > 0 && cnum >= 1){
+      toFetch.push(cnum);
+      needCells -= 1;
+      cnum -= 1;
+    }
+
+    if(toFetch.length === 0) return;
+
+    // Fetch older cells in descending order and prepend their messages
+    for(const cn of toFetch){
+      const cell = await readCellRaw(room, cn);
+      if(!cell.ok) continue;
+      // prepend oldest-first (so messages appear in correct order)
+      prependMessages(cell.messages);
+      cache.lastLoadedCell = Math.max(1, cn);
+      cache.lastLoadedCountInCell = cell.messages.length;
+    }
+  }catch(e){
+    console.error('[loadOlderByMessages ERROR]', e);
+  }
+}
+
+/** Setup scroll and wheel listeners to infer user intent and load older messages */
+function setupScrollLoader(){
+  try{
+    if(!messagesEl) return;
+    let lastY = 0, lastT = Date.now();
+    let wheelAccum = 0;
+
+    messagesEl.addEventListener('scroll', (ev) => {
+      const st = messagesEl.scrollTop || 0;
+      const now = Date.now();
+      const dt = Math.max(1, now - lastT);
+      const dy = Math.abs(st - lastY);
+      const speed = (dy / dt) * 1000; // px/s
+      lastY = st; lastT = now;
+
+      // If user scrolled near top, load older messages based on speed
+      if(st < 120){
+        const pack = (speed > 2000) ? 100 : (speed > 800 ? 50 : 20);
+        loadOlderByMessages(pack);
+      }
+    }, { passive:true });
+
+    messagesEl.addEventListener('wheel', (ev) => {
+      wheelAccum += Math.abs(ev.deltaY);
+      const now = Date.now();
+      if(wheelAccum > 800){
+        // aggressive wheel -> load more
+        loadOlderByMessages(100);
+        wheelAccum = 0;
+      }
+    }, { passive:true });
+  }catch(e){
+    console.warn('[setupScrollLoader ERROR]', e);
+  }
+}
+
+/* =====================================================================================
+   UI EVENTS
+===================================================================================== */
+function stopPolling(){
+  if(pollTimer){
+    clearTimeout(pollTimer);
+    pollTimer = null;
+  }
+  cache.pollInFlight = false;
+}
+
+function updatePollMsFromInput(){
+  const raw = parseInt(intervalEl.value, 10);
+  if(!Number.isNaN(raw)){
+    pollMs = Math.max(POLL_MS_MIN, Math.min(POLL_MS_MAX, raw));
+    intervalEl.value = String(pollMs);
+  }else{
+    pollMs = POLL_MS_DEFAULT;
+    intervalEl.value = String(pollMs);
+  }
+}
+
+function showChatUI(){
+  if(chatEl){
+    chatEl.style.display = 'flex';
+  }
+  if(headerStatusEl) headerStatusEl.textContent = 'Conectado';
+  if(chatRoomNameEl) chatRoomNameEl.textContent = room;
+  if(chatSenderNameEl) chatSenderNameEl.textContent = sender;
+  if(chatStatusEl) chatStatusEl.textContent = '● Conectado';
+}
+
+/** Manejador: click en acciones de mensajes */
+function setupMessageActionDelegation(){
+  if(!messagesEl) return;
+
+  messagesEl.addEventListener('click', async (e)=>{
+    const btn = e.target && e.target.closest ? e.target.closest('button[data-action]') : null;
+    if(!btn) return;
+
+    const action = btn.dataset.action;
+    const msgId  = btn.dataset.msgId;
+
+    if(!action || !msgId) return;
+
+    // Evita doble click spam
+    btn.disabled = true;
+
+    try{
+      if(action === 'edit'){
+        await editMessageById(msgId);
+      }else if(action === 'delete'){
+        await deleteMessageById(msgId);
+      }
+    }finally{
+      btn.disabled = false;
+    }
+  });
+}
+
+function initUiEvents(){
+  joinBtnEl.onclick = async ()=>{
+    try{
+      const wantedRoom = safeRoomName(roomInputEl.value || '');
+      const wantedSender = (senderInputEl.value || '').trim() || 'Anon';
+
+      if(!wantedRoom){
+        log('Escribe un nombre de sala antes de unirte.', 'WARN');
+        return;
+      }
+
+      // Estado
+      room = wantedRoom;
+      sender = wantedSender;
+      running = true;
+
+      // UI
+      showChatUI();
+
+      // Reset caches para la sala
+      messagesEl.innerHTML = '';
+      cache.msgElById.clear();
+      cache.masterEtag = null;
+      cache.manifestEtag = null;
+      cache.lastMasterStamp = 0;
+      cache.lastLoadedCell = 0;
+      cache.lastLoadedCountInCell = 0;
+
+      logEl.textContent = '';
+      log(`✨ Sala actual: "${room}"`, 'INFO');
+      log('Cargando…', 'INFO');
+
+      // Poll interval
+      updatePollMsFromInput();
+
+      // Asegura meta + V2 storage (migración si hacía falta)
+      await ensureRoomMetaExists();
+      renderRoomMeta();
+
+      await ensureRoomV2(room);
+
+      // Primera carga rápida (sin esperar a master)
+      const mf = await readManifestRaw(room);
+      const manifest = mf.manifest || cache.manifest;
+      if(manifest && manifest.v === 2){
+        await fetchAndApplyDeltas(room, manifest);
+      }
+
+      // Para que el poll reaccione incluso si master estaba 0:
+      // leemos master actual y lo guardamos
+      const ms = await readMasterStampRaw(room);
+      cache.lastMasterStamp = Number(ms.stamp || 0);
+
+      // Arrancamos polling
+      stopPolling();
+      pollLoop();
+
+      log('✅ Listo. (V2: sin full reload en cada update)', 'INFO');
+
+    }catch(e){
+      console.error('[JOIN ERROR]', e);
+      log('Error al unirse a la sala (token/repo/paths).', 'ERROR');
+    }
+  };
+
+  sendBtnEl.onclick = ()=> sendMessage();
+
+  // Enter behavior:
+  // - Ctrl/Cmd+Enter: send
+  // - Enter (no Shift) on non-touch devices: send
+  // - Shift+Enter: newline
+  inputEl.addEventListener('keydown', (e)=>{
+    try{
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      if(e.key === 'Enter'){
+        // Ctrl/Cmd+Enter -> send
+        if(e.ctrlKey || e.metaKey){
+          e.preventDefault();
+          sendMessage();
+          return;
+        }
+
+        // If composing IME, ignore
+        if(e.isComposing) return;
+
+        // Plain Enter (no Shift) on desktop -> send
+        if(!e.shiftKey && !isTouch){
+          e.preventDefault();
+          sendMessage();
+          return;
+        }
+        // Otherwise (Shift+Enter or touch), allow default (newline or virtual keyboard behavior)
+      }
+    }catch(err){
+      // Fallback: do nothing
+    }
+  });
+
+  // Clear local: limpia pantalla sin tocar GitHub
+  clearBtnEl.onclick = ()=>{
+    // Si hay muchos mensajes, hacemos “trim” fuerte para aliviar el UI
+    if(messagesEl.children.length > 4){
+      trimLocalView(4);
+      return;
+    }
+    // Si ya está corto, usamos como “mini reset” (pide el usuario)
+    location.reload();
+  };
+
+  // Trim explícito
+  trimBtnEl.onclick = ()=> trimLocalView(4);
+
+  // Reset explícito
+  resetBtnEl.onclick = ()=> location.reload();
+
+  // Cambiar intervalo
+  intervalEl.addEventListener('change', ()=>{
+    updatePollMsFromInput();
+    log(`⏱️ Poll actualizado a ${pollMs} ms.`, 'INFO');
+  });
+}
+
+/* =====================================================================================
+   ARRANQUE GLOBAL
+===================================================================================== */
+window.addEventListener('load', async ()=>{
+  try{
+    initDom();
+    await initUserIdentity();
+    setupMessageActionDelegation();
+
+    log('⏳ Cargando token de GitHub desde paste.rs...', 'INFO');
+    await ensureGhToken();
+    log('✅ Token listo. Puedes unirte a una sala.', 'INFO');
+
+    initUiEvents();
+
+  }catch(e){
+    console.error('[INIT ERROR]', e);
+    log('❌ Error al inicializar. Revisa conexión/token.', 'ERROR');
+  }
+});
+</script>
+
+
+<!-- ============================
+     MODAL (sin alert/prompt)
+     ============================ -->
+<div id="modalOverlay" class="modal-overlay modal-hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal" tabindex="-1">
+    <div class="modal-header">
+      <div id="modalTitle" class="modal-title">Modal</div>
+      <button id="modalClose" class="modal-close" title="Cerrar">✕</button>
+    </div>
+    <div id="modalBody" class="modal-body"></div>
+    <div class="modal-footer">
+      <button id="modalCancel" class="btn btn-ghost">Cancelar</button>
+      <button id="modalOk" class="btn">OK</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>
