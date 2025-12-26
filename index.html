@@ -2,10 +2,16 @@
 <html lang="es">
 <head>
   <meta charset="utf-8"/>
-  <title>Chat: paste.rs ➜ GitHub DB</title>
+  <title>Chat: paste.rs ➜ GitHub DB (V2 - sin lag)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
   <style>
+    /* =================================================================================
+       UI (tu diseño original, con pequeños upgrades)
+       - Mantengo tu layout para que no se sienta “otro proyecto”
+       - Agrego botones edit/delete por mensaje (ligeros, sin filtros pesados)
+    ================================================================================= */
+
     /* ====== RESET BÁSICO Y LAYOUT GLOBAL ====== */
     *{
       box-sizing:border-box;
@@ -19,7 +25,7 @@
 
     body{
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:#020617;                 /* fondo oscuro tipo app de chat */
+      background:#020617;
       color:#e5e7eb;
       display:flex;
       justify-content:center;
@@ -27,7 +33,7 @@
 
     #app{
       width:100%;
-      max-width:960px;                    /* se ve bien en desktop sin ser gigante */
+      max-width:960px;
       padding:12px 10px 16px;
       display:flex;
       flex-direction:column;
@@ -105,7 +111,7 @@
       font-weight:600;
       display:inline-flex;
       align-items:center;
-      gap:4px;
+      gap:6px;
       transition:transform .12s,box-shadow .12s,opacity .12s;
       white-space:nowrap;
     }
@@ -122,6 +128,10 @@
       transform:none;
     }
 
+    .btn-dark{
+      background:#111827;
+    }
+
     .small{
       font-size:11px;
       color:#9ca3af;
@@ -132,7 +142,7 @@
       flex:1;
       display:flex;
       gap:10px;
-      min-height:0;           /* para que flex + overflow funcione bien */
+      min-height:0;
     }
 
     #leftColumn{
@@ -167,13 +177,6 @@
       border:1px solid #1f2937;
     }
 
-    #logTitle{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      margin-bottom:4px;
-    }
-
     /* ====== TARJETA DE CHAT ====== */
     #chat{
       margin-top:2px;
@@ -181,10 +184,10 @@
       background:#020617;
       border-radius:16px;
       border:1px solid #1f2937;
-      display:none;                 /* se activa al unirse */
+      display:none;
       flex-direction:column;
       min-height:260px;
-      max-height:calc(100vh - 230px);  /* para que no tape toda la pantalla en móvil */
+      max-height:calc(100vh - 230px);
       overflow:hidden;
     }
 
@@ -233,11 +236,12 @@
       padding:6px 9px;
       border-radius:14px;
       font-size:13px;
-      max-width:80%;
+      max-width:85%;
       word-wrap:break-word;
       display:flex;
       flex-direction:column;
       gap:2px;
+      position:relative;
     }
 
     .msg.me{
@@ -256,12 +260,47 @@
 
     .msg .msg-meta{
       font-size:10px;
-      color:#e5e7eb;
-      opacity:.8;
+      opacity:.85;
     }
 
     .msg .msg-text{
       white-space:pre-wrap;
+    }
+
+    /* ====== ACCIONES POR MENSAJE (EDIT / DELETE) ======
+       - Se muestran siempre en móvil (porque no hay hover)
+       - En desktop se ven al hover para no ensuciar
+    */
+    .msg-actions{
+      display:flex;
+      gap:6px;
+      margin-top:2px;
+      align-self:flex-end;
+      opacity:.92;
+    }
+
+    .msg-actions button{
+      padding:3px 8px;
+      font-size:11px;
+      border-radius:999px;
+      box-shadow:none !important;
+      transform:none !important;
+      background:rgba(0,0,0,.25);
+      border:1px solid rgba(255,255,255,.14);
+    }
+
+    .msg-actions button:hover{
+      filter:brightness(1.08);
+    }
+
+    .msg-actions .danger{
+      border-color:rgba(255,255,255,.18);
+      background:rgba(185,28,28,.25);
+    }
+
+    @media (hover:hover){
+      .msg-actions{ display:none; }
+      .msg:hover .msg-actions{ display:flex; }
     }
 
     /* ====== INPUT (CAJA DE MENSAJE) ====== */
@@ -328,7 +367,7 @@
       #side{
         max-width:none;
         width:100%;
-        order:-1;         /* metadata arriba del chat en móvil */
+        order:-1;
       }
 
       #top{
@@ -343,15 +382,88 @@
         font-size:16px;
       }
     }
-  </style>
+  
+
+/* ============================
+   MODALES (sin alert/prompt)
+   ============================ */
+.modal-overlay{
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+}
+.modal-hidden{ display: none !important; }
+
+.modal{
+  width: min(560px, 100%);
+  background: rgba(12,16,26,.95);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 16px;
+  box-shadow: 0 24px 70px rgba(0,0,0,.55);
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+}
+.modal-header{
+  display:flex;
+  align-items:center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.modal-title{
+  font-weight: 700;
+  letter-spacing: .2px;
+}
+.modal-close{
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.85);
+  cursor: pointer;
+}
+.modal-body{ padding: 14px 16px; }
+.modal-body p{ margin: 0 0 10px 0; color: rgba(255,255,255,.80); }
+.modal-body textarea{
+  width: 100%;
+  min-height: 120px;
+  resize: vertical;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(0,0,0,.28);
+  color: rgba(255,255,255,.92);
+  padding: 12px;
+  outline: none;
+}
+.modal-footer{
+  display:flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+.btn-ghost{
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  color: rgba(255,255,255,.88);
+}
+</style>
 </head>
 <body>
 <div id="app">
+
   <!-- HEADER PRINCIPAL -->
   <header class="app-header">
     <div>
-      <div class="app-title">Chat paste.rs ➜ GitHub</div>
-      <div class="app-subtitle">Sin backend propio · multi-plataforma</div>
+      <div class="app-title">Chat paste.rs ➜ GitHub (V2)</div>
+      <div class="app-subtitle">Sin backend propio · multi-plataforma · sin freeze</div>
     </div>
     <div class="app-subtitle">Status: <span id="headerStatus">Desconectado</span></div>
   </header>
@@ -376,22 +488,25 @@
     <div class="field">
       <span>Intervalo de actualización</span>
       <div class="field-row">
-        <input id="interval" type="text" value="2000" style="width:70px">
+        <input id="interval" type="text" value="1200" style="width:70px">
         <span class="small">ms</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <span>Vista local</span>
+      <div class="field-row">
+        <button id="trimBtn" class="btn-dark" title="Deja solo los últimos 4 mensajes en tu pantalla">Trim (últimos 4)</button>
+        <button id="resetBtn" class="btn-dark" title="Recarga la página (reset visual)">Reset</button>
       </div>
     </div>
   </section>
 
   <!-- CONTENIDO PRINCIPAL: CHAT + INFO -->
   <main id="layout">
-    <!-- Columna izquierda: log + chat -->
     <div id="leftColumn">
-      <!-- LOG DEL SISTEMA -->
-      <div id="log">
-        💬 Elige una sala, pon tu nombre y pulsa "Unirse / Crear".
-      </div>
+      <div id="log">💬 Elige una sala, pon tu nombre y pulsa "Unirse / Crear".</div>
 
-      <!-- TARJETA DE CHAT -->
       <section id="chat">
         <div id="chatHeader">
           <div id="chatHeader-left">
@@ -401,20 +516,16 @@
           <div id="chatStatus">● Conectado</div>
         </div>
 
-        <!-- Mensajes -->
         <div id="messages"></div>
 
-        <!-- Input -->
         <div id="bottomRow">
-          <textarea id="input" rows="2"
-                    placeholder="Escribe un mensaje (Ctrl+Enter para enviar)"></textarea>
+          <textarea id="input" rows="2" placeholder="Escribe un mensaje (Ctrl+Enter para enviar)"></textarea>
           <button id="sendBtn">Enviar</button>
-          <button id="clearBtn">Limpiar</button>
+          <button id="clearBtn">Clear local</button>
         </div>
       </section>
     </div>
 
-    <!-- Columna derecha: info repo / último paste -->
     <aside id="side">
       <div><strong>Último paste URL:</strong></div>
       <div id="lastPasteUrl" class="small">—</div>
@@ -423,194 +534,256 @@
         <strong>Repo:</strong><br/>
         Sotravil/chat-db<br/>
         <span class="small">
-          Archivo por room:<br/>
-          <code>rooms/&lt;room&gt;.json</code>
+          Manifest por room (pequeño):<br/>
+          <code>rooms/&lt;room&gt;.json</code><br/>
+          Celdas (chunks):<br/>
+          <code>rooms-cells/&lt;room&gt;/cells/cell-000001.json</code>
         </span>
       </div>
 
       <div style="margin-top:10px;">
-        <strong>Cómo funciona:</strong>
+        <strong>Cómo funciona (V2 anti-lag):</strong>
         <p class="small" style="margin-top:4px;">
-          Cada mensaje se sube como JSON a <code>paste.rs</code> (vía
-          <code>corsproxy.io</code>).<br/>
-          Luego se agrega a <code>rooms/&lt;room&gt;.json</code> en
-          <code>Sotravil/chat-db</code>. Si el archivo no existe, se crea
-          automáticamente.
-        </p>
+          ✅ Ya NO descargamos ni renderizamos todo el chat en cada poll.<br/>
+          Leemos un <b>manifest</b> pequeño + <b>celdas</b> pequeñas.<br/>
+          El <b>master</b> ahora es un timestamp, no un boolean (sin reset).</p>
+      </div>
+
+      <div style="margin-top:10px;">
+        <strong>Info sala:</strong><br/>
+        <div id="roomInfo" class="small">—</div>
       </div>
     </aside>
   </main>
 </div>
 
-<script>
-/* ============================================================
-   CONFIGURACIÓN GENERAL
-   - Chat P2P usando paste.rs + GitHub (sin backend propio)
-   - Versión con:
-       • master<room>.json que se CREA si no existe
-       • rooms/<room>.json con metadatos completos de mensajes
-       • rooms-meta/<room>.json con metadatos del room
-         (ID, creador, fecha de creación, última actividad)
-       • Token de GitHub leído dinámicamente desde paste.rs
-   ============================================================ */
+<script defer>
+/* =====================================================================================
+   ✅ REPARACIONES PRINCIPALES (lo que te estaba dando lag)
+   1) YA NO hacemos fullRerender cada vez que master cambia
+      -> Ahora hacemos “delta apply”: append / update por msg.id
+   2) YA NO guardamos/recargamos el archivo entero rooms/<room>.json (arrays gigantes)
+      -> rooms/<room>.json ahora es un MANIFEST pequeño (V2)
+      -> Los mensajes viven en celdas: rooms-cells/<room>/cells/cell-xxxxx.json
+   3) YA NO usamos master boolean true/false (race conditions y writes extra)
+      -> master<room>.json ahora es un timestamp (número)
+      -> Los clientes SOLO leen; NO resetean master
+   4) “Clear” ya NO borra para todos:
+      -> Clear local: limpia solo TU pantalla (y mantiene caches)
+      -> Trim: deja solo últimos 4 mensajes en tu pantalla
+      -> Reset: recarga la página (anti-bug visual)
+===================================================================================== */
 
 /* ---------- Datos del repo ---------- */
-const GH_OWNER  = 'Sotravil';        // Dueño del repositorio
-const GH_REPO   = 'chat-db';         // Nombre del repositorio
-const GH_BRANCH = 'main';            // Rama a utilizar
+const GH_OWNER  = 'Sotravil';
+const GH_REPO   = 'chat-db';
+const GH_BRANCH = 'main';
 
-/* ---------- Intervalos por defecto ---------- */
-const MASTER_POLL_MS_DEFAULT = 100;   // ms entre polls al master<room>
-const MASTER_RESET_DELAY_MS  = 900;   // ms antes de poner master=false tras aplicar cambios
-const MAX_ROOM_MESSAGES      = 5000;  // límite de mensajes en memoria
+// Cache de sha por path (GitHub requiere sha al actualizar archivos existentes)
+const GH_SHA_CACHE = new Map();
+
+
+/* ---------- Carpeta para celdas (chunks) ---------- */
+const CELLS_BASE_DIR = 'rooms-cells';            // NO choca con rooms/<room>.json
+const CELLS_DIR_NAME = 'cells';                 // subcarpeta
+
+/* ---------- Tamaño de celda (mensajes por archivo) ---------- */
+// Micro-segmentation: very small cells, grouped into boxes
+const CELL_MAX_MESSAGES = 4;                    // mensajes por celda (muy pequeño)
+// Boxes group a number of MESSAGES (not cells). BOX_MAX_MESSAGES controls how many messages
+// are stored per box file. We compute cells-per-box dynamically from CELL_MAX_MESSAGES.
+const BOX_MAX_MESSAGES = 100;                   // mensajes por box (approx)
+const CELLS_PER_BOX = Math.ceil(BOX_MAX_MESSAGES / CELL_MAX_MESSAGES); // computed cells per box
+// Boxes live inside the cells tree so paths look like:
+// rooms-cells/<room>/boxes/box-000001.json
+const BOXES_BASE_DIR = `${CELLS_BASE_DIR}`;     // base for boxes: rooms-cells
+const DOM_MAX_MESSAGES  = 220;                  // cap para scroll fluido en móvil
+
+/* ---------- Polling ---------- */
+const POLL_MS_DEFAULT   = 1200;                 // estable (100ms era demasiado agresivo)
+const POLL_MS_MIN       = 350;
+const POLL_MS_MAX       = 10000;
+const IDLE_TIMEOUT_MS   = 60 * 1000;            // si no hay interacción, reducir polling
 
 /* ---------- Token desde paste.rs ---------- */
-/*  IMPORTANTE:
-    No guardamos el token en el código. En su lugar, se lee
-    desde este paste de texto plano (vía proxy CORS).
-*/
 const TOKEN_PASTE_URL = 'https://paste.rs/4UElW.txt';
 
 /* ---------- paste.rs + proxy ---------- */
-const PASTE_BASE = 'https://paste.rs';              // Base de paste.rs
-const CORS_PROXY = 'https://corsproxy.io/?';        // Proxy para evitar CORS
+const PASTE_BASE = 'https://paste.rs';
+const CORS_PROXY = 'https://corsproxy.io/?';
 
+/* =====================================================================================
+   ESTADO GLOBAL
+===================================================================================== */
+let GH_TOKEN        = null;      // PAT actual
+let ghTokenReady    = false;
+let ghTokenPromise  = null;
 
+let room            = null;
+let sender          = null;
+let running         = false;
 
-/* ============================================================
-   ESTADO GLOBAL EN EL CLIENTE
-   ============================================================ */
-
-/* ---------- Token de GitHub ---------- */
-// El token real se cargará dinámicamente desde el paste.
-let GH_TOKEN        = null;          // Token actual
-let ghTokenReady    = false;         // Flag: token listo
-let ghTokenPromise  = null;          // Promesa compartida para evitar cargas duplicadas
-
-/* ---------- Estado del room / usuario ---------- */
-let room    = null;                  // Nombre del room unido actualmente
-let sender  = null;                  // Nombre visible del usuario
-let running = false;                 // Flag: hay un room activo
-
-/* ---------- Estado de archivo rooms/<room>.json ---------- */
-let lastSha        = null;           // SHA del archivo rooms/<room>.json en GitHub
-let messagesCache  = [];             // Cache local de los mensajes del room
-let lastSeenTs     = 0;              // Último timestamp de mensaje renderizado
-
-/* ---------- Estado del master<room>.json ---------- */
-let masterPollTimer   = null;        // Timer del loop del master
-let masterProcessing  = false;       // Flag: se está procesando una actualización
-let masterPollMs      = MASTER_POLL_MS_DEFAULT;  // Intervalo actual de polling
-
-/* ---------- Metadatos del room ---------- */
-let roomMeta    = null;              // Objeto con metadatos del room
-let roomMetaSha = null;              // SHA de rooms-meta/<room>.json en GitHub
-
-/* ---------- Identidad del usuario local ---------- */
-// No podemos obtener IP real sin backend, así que usamos un ID persistente local.
 let currentUser = {
-  userId:      null,                 // ID único pseudo-UUID
-  fingerprint: null,                 // Huella simple (userAgent + random)
-  createdAt:   null                  // Fecha de creación de la identidad
+  userId:      null,
+  fingerprint: null,
+  createdAt:   null
 };
 
-/* ---------- Referencias a elementos del DOM ---------- */
-let messagesEl    = null;            // Contenedor de mensajes del chat
-let logEl         = null;            // Contenedor de logs
-let inputEl       = null;            // Input de mensaje
-let roomInputEl   = null;            // Input de room
-let senderInputEl = null;            // Input de nombre visible
-let intervalEl    = null;            // Input de intervalo de polling
-let joinBtnEl     = null;            // Botón para unirse al room
-let sendBtnEl     = null;            // Botón para enviar mensaje
-let clearBtnEl    = null;            // Botón para limpiar vista de mensajes
-let lastPasteEl   = null;            // Texto donde se muestra el último paste
-let roomInfoEl    = null;            // Donde mostraremos información del room
+/* ---------- Caches de lectura (anti-lag) ---------- */
+const cache = {
+  // ETag para master y manifest (evita re-parsing cuando no cambia)
+  masterEtag: null,
+  manifestEtag: null,
 
-let chatEl        = null;            // Contenedor principal del chat (tarjeta)
-let headerStatusEl = null;           // Span en el header que indica estado
-let chatRoomNameEl = null;           // Label con el nombre de la sala en la tarjeta de chat
-let chatSenderNameEl = null;         // Label con el nombre del usuario en la cabecera del chat
-let chatStatusEl  = null;            // Indicador de estado en la cabecera del chat
+  // Último valor master (timestamp)
+  lastMasterStamp: 0,
 
-/* ============================================================
-   UTILIDADES GENERALES
-   ============================================================ */
+  // Manifest actual
+  manifest: null,      // {v:2, latestCell, totalMessages, ...}
 
-/**
- * Inicializa las referencias a los elementos del DOM.
- * Si falta alguna, se loguea para facilitar debug.
- */
-function initDom() {
-  try {
-    // Inputs principales
-    roomInputEl    = document.getElementById('room');
-    senderInputEl  = document.getElementById('sender');
-    intervalEl     = document.getElementById('interval');
+  // Qué celda cargamos y hasta qué cantidad
+  lastLoadedCell: 0,   // número
+  lastLoadedCountInCell: 0, // cantidad de mensajes en esa celda ya aplicados
 
-    // Botones
-    joinBtnEl      = document.getElementById('joinBtn');
-    sendBtnEl      = document.getElementById('sendBtn');
-    clearBtnEl     = document.getElementById('clearBtn');
+  // msgId -> DOM element, para UPDATE (edit/delete) sin rerender
+  msgElById: new Map(),
+  // msgId -> message object (in-memory index)
+  msgById: new Map(),
 
-    // Contenedores de UI
-    logEl          = document.getElementById('log');
-    messagesEl     = document.getElementById('messages');
-    inputEl        = document.getElementById('input');
-    lastPasteEl    = document.getElementById('lastPasteUrl');
+  // Protección anti-overlap de polling
+  pollInFlight: false
+};
 
-    // Intentamos encontrar (o crear) un contenedor para info de sala
-    roomInfoEl     = document.getElementById('roomInfo');
+/* =====================================================================================
+   DOM refs
+===================================================================================== */
+let messagesEl, logEl, inputEl, roomInputEl, senderInputEl, intervalEl;
+let joinBtnEl, sendBtnEl, clearBtnEl, lastPasteEl, roomInfoEl;
+let chatEl, headerStatusEl, chatRoomNameEl, chatSenderNameEl, chatStatusEl;
+let trimBtnEl, resetBtnEl;
 
-    // Otros elementos del layout de chat (cabecera, estados, etc.)
-    chatEl         = document.getElementById('chat');
-    headerStatusEl = document.getElementById('headerStatus');
-    chatRoomNameEl = document.getElementById('chatRoomName');
-    chatSenderNameEl = document.getElementById('chatSenderName');
-    chatStatusEl   = document.getElementById('chatStatus');
+/* =====================================================================================
+   UTILIDADES
+===================================================================================== */
 
-    // Si no existe en el HTML, lo creamos dinámicamente en la columna derecha
-    if (!roomInfoEl) {
-      const layout = document.getElementById('layout');
-      if (layout && layout.lastElementChild) {
-        const sidebar = layout.lastElementChild;   // asumiendo: derecha es el último hijo
-        const box = document.createElement('div');
-        box.className = 'box small';
-        box.innerHTML = `
-          <strong>Info sala:</strong><br/>
-          <div id="roomInfo">—</div>
-        `;
-        sidebar.appendChild(box);
-        roomInfoEl = box.querySelector('#roomInfo');
+/** Inicializa elementos del DOM */
+function initDom(){
+  messagesEl     = document.getElementById('messages');
+  logEl          = document.getElementById('log');
+  inputEl        = document.getElementById('input');
+  roomInputEl    = document.getElementById('room');
+  senderInputEl  = document.getElementById('sender');
+  intervalEl     = document.getElementById('interval');
+
+  joinBtnEl      = document.getElementById('joinBtn');
+  sendBtnEl      = document.getElementById('sendBtn');
+  clearBtnEl     = document.getElementById('clearBtn');
+  lastPasteEl    = document.getElementById('lastPasteUrl');
+  roomInfoEl     = document.getElementById('roomInfo');
+
+  chatEl         = document.getElementById('chat');
+  headerStatusEl = document.getElementById('headerStatus');
+  chatRoomNameEl = document.getElementById('chatRoomName');
+  chatSenderNameEl = document.getElementById('chatSenderName');
+  chatStatusEl   = document.getElementById('chatStatus');
+
+  trimBtnEl      = document.getElementById('trimBtn');
+  resetBtnEl     = document.getElementById('resetBtn');
+
+  // Modal elements (initialized here so DOM nodes exist)
+  modalOverlay = document.getElementById('modalOverlay');
+  modalTitleEl = document.getElementById('modalTitle');
+  modalBodyEl  = document.getElementById('modalBody');
+  modalBtnOk   = document.getElementById('modalOk');
+  modalBtnCancel = document.getElementById('modalCancel');
+  modalBtnClose  = document.getElementById('modalClose');
+
+  if(modalOverlay){
+    modalOverlay.addEventListener('click', (e) => {
+      if(e.target === modalOverlay) closeModal(false);
+    });
+  }
+  if(modalBtnClose) modalBtnClose.addEventListener('click', () => closeModal(false));
+  if(modalBtnCancel) modalBtnCancel.addEventListener('click', () => closeModal(false));
+  if(modalBtnOk) modalBtnOk.addEventListener('click', () => closeModal(true));
+
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && modalOverlay && !modalOverlay.classList.contains('modal-hidden')){
+      closeModal(false);
+    }
+  });
+
+  // Interaction tracking (to avoid polling when user is idle)
+  window._chat_lastInteraction = Date.now();
+  const _touchOrMove = () => { window._chat_lastInteraction = Date.now(); };
+  ['mousemove','mousedown','wheel','touchstart','touchmove','keydown'].forEach(ev => {
+    document.addEventListener(ev, _touchOrMove, { passive:true });
+  });
+
+  // Setup scroll-based lazy loader for older messages
+  try{ if(typeof setupScrollLoader === 'function') setupScrollLoader(); }catch(e){}
+}
+
+
+/* ---------- Device/IP helpers (para metadata de mensajes) ---------- */
+function getDeviceInfoString(){
+  const ua = navigator.userAgent || '';
+  const plat = navigator.platform || '';
+  const lang = navigator.language || '';
+  const touch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  const w = (screen && screen.width) ? screen.width : 0;
+  const h = (screen && screen.height) ? screen.height : 0;
+  const dpr = window.devicePixelRatio || 1;
+
+  const bits = [
+    plat || 'unknown-platform',
+    touch ? 'touch' : 'no-touch',
+    `${w}x${h}@${dpr}`,
+    lang || 'no-lang'
+  ];
+
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
+  bits.unshift(isMobile ? 'mobile' : 'desktop');
+
+  return bits.join(' | ');
+}
+
+async function getCachedPublicIP(){
+  try{
+    const key = 'p2pchat_public_ip_v1';
+    const ttlMs = 6 * 60 * 60 * 1000;
+    const raw = localStorage.getItem(key);
+    if(raw){
+      const parsed = JSON.parse(raw);
+      if(parsed && parsed.ip && parsed.ts && (Date.now() - parsed.ts) < ttlMs){
+        return parsed.ip;
       }
     }
 
-    if (!messagesEl || !logEl || !inputEl || !roomInputEl || !senderInputEl || !intervalEl) {
-      console.warn('[INIT DOM WARNING] Falta algún elemento esperado en el HTML.');
+    const r = await fetch('https://api.ipify.org?format=json', { cache: 'no-store' });
+    if(!r.ok) return null;
+    const j = await r.json();
+    const ip = j && j.ip ? String(j.ip) : null;
+
+    if(ip){
+      localStorage.setItem(key, JSON.stringify({ ip, ts: Date.now() }));
     }
-  } catch (e) {
-    console.error('[INIT DOM ERROR]', e);
+
+    return ip || null;
+  }catch(_e){
+    return null;
   }
 }
 
-/**
- * Función para registrar mensajes en el panel de log del chat.
- * @param {string} text  Texto a mostrar.
- * @param {'INFO'|'ERROR'|'WARN'} level Nivel de severidad.
- */
-function log(text, level='INFO') {
-  try {
-    if (!logEl) return;
+/** Log con cap para evitar que el panel de log crezca infinito */
+function log(text, level='INFO'){
+  try{
+    if(!logEl) return;
 
     const p = document.createElement('p');
-
-    if (level === 'ERROR') {
-      p.style.color = '#b91c1c';
-    } else if (level === 'WARN') {
-      p.style.color = '#92400e';
-    } else {
-      p.style.color = '#4b5563';
-    }
+    p.style.color = (level==='ERROR') ? '#b91c1c'
+                  : (level==='WARN')  ? '#92400e'
+                  : '#4b5563';
 
     const now = new Date();
     const hh  = String(now.getHours()).padStart(2,'0');
@@ -618,89 +791,100 @@ function log(text, level='INFO') {
     const ss  = String(now.getSeconds()).padStart(2,'0');
 
     p.textContent = `[${hh}:${mm}:${ss}] [${level}] ${text}`;
-
     logEl.appendChild(p);
+
+    // Cap de logs (200 líneas)
+    while(logEl.children.length > 200){
+      logEl.removeChild(logEl.firstChild);
+    }
+
     logEl.scrollTop = logEl.scrollHeight;
-  } catch (e) {
+  }catch(e){
     console.error('[LOG ERROR]', e);
   }
 }
 
-/**
- * Pequeña utilidad para esperar X milisegundos.
- */
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
-/**
- * Construye una URL de la API de GitHub (contents endpoint).
- */
-function ghFileUrl(path) {
+/** Base64 encode (UTF-8 safe) - used by ghPutJson and others */
+function b64(input){
+  try{
+    // encodeURIComponent + unescape ensures UTF-8 safety for btoa
+    return btoa(unescape(encodeURIComponent(String(input))));
+  }catch(e){
+    try{ return btoa(String(input)); }catch(_){ return '' + input; }
+  }
+}
+/** URL GitHub contents API */
+function ghFileUrl(path){
   const encoded = encodeURIComponent(path).replace(/%2F/g,'/');
   return `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${encoded}`;
 }
 
-/**
- * Construye una URL pasando por el proxy CORS.
- */
-// ================== BUILD PROXY URL (NUEVA VERSIÓN) ==================
-// Construye una URL pasando por el proxy CORS.
-// - Si la URL viene url-encoded (https%3A%2F%2F...), la intentamos decodificar.
-// - Para corsproxy.io el formato correcto es:
-//     https://corsproxy.io/?https://paste.rs/4UElW.txt
-function buildProxyUrl(url) {
-  try {
-    // Guardamos la URL original en una variable temporal
+/** URL RAW (para lectura rápida + ETag + sin token) */
+function ghRawUrl(path){
+  // Nota: raw.githubusercontent.com manda ETag útil para 304
+  return `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${path}`;
+}
+
+/** Proxy CORS */
+function buildProxyUrl(url){
+  try{
     let target = url;
-
-    try {
-      // Intentamos decodificar la URL por si viene en formato
-      // https%3A%2F%2Fpaste.rs%2F4UElW.txt
+    try{
       const decoded = decodeURIComponent(url);
-
-      // Si el resultado decodificado parece una URL http(s) válida,
-      // entonces usamos esa como destino real
-      if (decoded.startsWith('http://') || decoded.startsWith('https://')) {
-        target = decoded;
-      }
-    } catch (decodeError) {
-      // Si hay error al decodificar, lo registramos y seguimos usando la original
-      console.warn('[buildProxyUrl WARN] decodeURIComponent falló, usando url original');
-    }
-
-    // Para corsproxy.io el formato es:
-    //   https://corsproxy.io/?https://dominio.com/ruta
-    const finalUrl = `${CORS_PROXY}${target}`;
-
-    // Devolvemos la URL final ya lista para usar con fetch
-    return finalUrl;
-
-  } catch (error) {
-    // Si algo muy raro pasa, mostramos el error en consola
-    console.error('[buildProxyUrl ERROR]', error);
-
-    // Fallback de seguridad: devolvemos la URL original sin proxy
+      if(decoded.startsWith('http://') || decoded.startsWith('https://')) target = decoded;
+    }catch(_){}
+    return `${CORS_PROXY}${target}`;
+  }catch(e){
+    console.error('[buildProxyUrl ERROR]', e);
     return url;
   }
 }
 
-/* ============================================================
-   IDENTIDAD LOCAL DEL USUARIO
-   ============================================================ */
+/** Sanitiza room para paths */
+function safeRoomName(s){
+  return String(s||'')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]/g,'-')
+    .slice(0,60);
+}
 
-/**
- * Crea o carga la identidad persistente del usuario (sin backend).
- * Usamos localStorage para conservar userId entre visitas.
- */
-function initUserIdentity() {
-  try {
+/** Genera id único */
+function makeMsgId(){
+  return `m-${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
+}
+
+/** Limita DOM para evitar scroll lag */
+function enforceDomCap(){
+  if(!messagesEl) return;
+  while(messagesEl.children.length > DOM_MAX_MESSAGES){
+    const first = messagesEl.firstChild;
+    if(first && first.dataset && first.dataset.msgId){
+      cache.msgElById.delete(first.dataset.msgId);
+    }
+    messagesEl.removeChild(first);
+  }
+}
+
+/** Scroll suave al final (sin forzar layout demasiado) */
+function scrollToBottomSoon(){
+  requestAnimationFrame(()=>{
+    if(messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight;
+  });
+}
+
+/* =====================================================================================
+   IDENTIDAD LOCAL (persistente)
+===================================================================================== */
+async function initUserIdentity(){
+  try{
     const stored = localStorage.getItem('p2pChatUserIdentity');
-    if (stored) {
+    if(stored){
       currentUser = JSON.parse(stored);
       return;
     }
-
     const now  = Date.now();
     const rand = Math.random().toString(36).slice(2,10);
     const ua   = navigator.userAgent || 'unknown';
@@ -713,442 +897,1139 @@ function initUserIdentity() {
 
     currentUser = newUser;
     localStorage.setItem('p2pChatUserIdentity', JSON.stringify(newUser));
-  } catch (e) {
+  }catch(e){
     console.error('[IDENTITY ERROR]', e);
-    currentUser = {
-      userId:      'u-unknown',
-      fingerprint: 'fp-unknown',
-      createdAt:   Date.now()
-    };
+    currentUser = { userId:'u-unknown', fingerprint:'fp-unknown', createdAt:Date.now() };
   }
 }
 
-/* ============================================================
-   TOKEN DE GITHUB DESDE PASTE.RS
-   ============================================================ */
+/* =====================================================================================
+   TOKEN GitHub desde paste.rs (carga 1 vez)
+===================================================================================== */
+async function loadGhTokenFromPaste(){
+  // Nota: tu versión estaba bien, pero la dejo más “barata” y directa
+  const proxyUrl = buildProxyUrl(TOKEN_PASTE_URL);
 
-/* ============================================================
-   TOKEN DE GITHUB DESDE PASTE.RS
-   ============================================================ */
-/**
- * Lee el token desde paste.rs usando el proxy CORS.
- * - Lee todo el texto del paste
- * - Lo separa por líneas
- * - Busca la línea que empiece por "github_pat_"
- * - Usa SOLO esa línea como token
- */
-/* ============================================================
-   TOKEN DE GITHUB DESDE PASTE.RS
-   ============================================================ */
-/**
- * Lee el token desde paste.rs usando el proxy CORS.
- * - paste.rs nos devuelve HTML con el código dentro de <pre><span>github_pat_...</span>
- * - Buscamos el PAT en TODO el HTML con una expresión regular.
- */
-async function loadGhTokenFromPaste() {
-  try {
-    // 1) Construimos la URL usando el proxy CORS
-    //    Esto soporta tanto URLs normales como ya-encodeadas.
-    const proxyUrl = buildProxyUrl(TOKEN_PASTE_URL);
+  const res = await fetch(proxyUrl, { method:'GET', headers:{ 'Accept':'text/plain' } });
+  if(!res.ok) throw new Error(`No se pudo leer token (status=${res.status})`);
 
-    // 2) Hacemos la petición al proxy
-    const res = await fetch(proxyUrl, {
-      method: 'GET',
-      headers: {
-        // Pedimos texto; aunque el servidor devuelva text/html,
-        // fetch nos lo dará como string.
-        'Accept': 'text/plain'
-      }
-    });
+  let html = await res.text();
+  html = html.replace(/\r\n/g,'\n');
 
-    // 3) Si la respuesta no es OK, lanzamos error con el status
-    if (!res.ok) {
-      throw new Error(`No se pudo leer el token desde paste (status=${res.status}).`);
-    }
+  // Extrae github_pat_... incluso si viene en HTML <pre>
+  const match = html.match(/github_pat_[^<\s"]+/);
+  if(!match || !match[0]) throw new Error('No se encontró github_pat_ en el paste.');
 
-    // 4) Leemos TODO el cuerpo como texto (HTML completo de paste.rs)
-    let html = await res.text();
+  GH_TOKEN = match[0].trim();
+  ghTokenReady = true;
 
-    // Normalizamos saltos de línea por limpieza (no es estrictamente necesario)
-    html = html.replace(/\r\n/g, '\n');
-
-    // 5) Intentamos extraer el PAT buscando el patrón "github_pat_..."
-    //    - Empieza en "github_pat_"
-    //    - Continúa hasta antes de un espacio, salto, comilla o "<"
-    //
-    //    Esto captura cosas como:
-    //      <span>github_pat_XXXXXXXXX...</span>
-    const patRegex = /github_pat_[^<\s"]+/;
-    const match    = html.match(patRegex);
-
-    // Variable donde guardaremos el token encontrado
-    let token = null;
-
-    if (match && match[0]) {
-      // Caso normal: encontramos el PAT directamente en el HTML
-      token = match[0].trim();
-    } else {
-      // ⚠️ Fallback: por si algún día pegas el token como texto plano sin HTML
-      //    Separamos por líneas y buscamos una que contenga "github_pat_"
-      const lines = html
-        .split('\n')            // Separamos por líneas
-        .map(l => l.trim())     // Quitamos espacios al inicio/fin
-        .filter(l => l.length); // Filtramos líneas vacías
-
-      // Buscamos la primera línea que contenga "github_pat_"
-      const lineWithPat = lines.find(l => l.includes('github_pat_'));
-
-      if (lineWithPat) {
-        // Posición donde empieza "github_pat_"
-        const idx  = lineWithPat.indexOf('github_pat_');
-
-        // Tomamos desde ahí hasta el final de la línea
-        const tail = lineWithPat.slice(idx);
-
-        // Cortamos en el primer espacio, "<" o comilla
-        const cut  = tail.split(/[<\s"]/)[0];
-
-        // Y lo limpiamos
-        token = cut.trim();
-      }
-    }
-
-    // 6) Si después de todo esto seguimos sin token, lanzamos un error claro
-    if (!token) {
-      throw new Error('No se encontró ningún "github_pat_" en el HTML del paste.');
-    }
-
-    // 7) Guardamos el token en las variables globales
-    GH_TOKEN     = token;
-    ghTokenReady = true;
-
-    // 8) DEBUG SEGURO:
-    //    Solo mostramos la longitud del token, nunca el valor real.
-    console.log('[TOKEN DEBUG] GH_TOKEN length:', GH_TOKEN.length);
-
-    // 9) Mensaje amigable en el panel de log del chat
-    log('✅ Token de GitHub cargado desde paste.rs.', 'INFO');
-
-  } catch (error) {
-    // Si algo falla:
-    // - Lo mostramos en consola para depurar
-    // - Lo mostramos también en el panel de log
-    console.error('[loadGhTokenFromPaste ERROR]', error);
-    log('❌ Error al leer el token desde paste.rs.', 'ERROR');
-
-    // Re-lanzamos el error para que quien llame pueda reaccionar
-    throw error;
-  }
+  // Debug: indicate token loaded without printing its value
+  console.log('[TOKEN DEBUG] token loaded');
+  log('✅ Token de GitHub cargado desde paste.rs.', 'INFO');
 }
 
-/**
- * Asegura que el token esté cargado antes de usar la API de GitHub.
- * - Si ya está en memoria, no hace nada.
- * - Si ya hay una promesa de carga en curso, sólo la espera.
- * - Si no, dispara la carga por primera vez.
- */
-async function ensureGhToken() {
-  // Si el token ya está listo y definido, no hacemos nada
-  if (ghTokenReady && GH_TOKEN) return;
-
-  // Si ya hay una promesa en curso (carga previa), la esperamos
-  if (ghTokenPromise) {
+async function ensureGhToken(){
+  if(ghTokenReady && GH_TOKEN) return;
+  if(ghTokenPromise){
     await ghTokenPromise;
     return;
   }
-
-  // Si aún no hemos iniciado la carga, la creamos y la guardamos
   ghTokenPromise = loadGhTokenFromPaste();
-
-  // Esperamos a que termine (éxito o error)
   await ghTokenPromise;
 }
 
-/* ============================================================
-   MASTER<ROOM>.JSON  (BANDERA TRUE/FALSE POR ROOM)
-   ============================================================ */
+/* =====================================================================================
+   ESTRUCTURA V2: MANIFEST + CELLS
+   - Manifest: rooms/<room>.json (objeto pequeño)
+   - Cells: rooms-cells/<room>/cells/cell-000001.json, etc.
+===================================================================================== */
 
-/**
- * Devuelve la URL de la API para el archivo master<room>.json.
- * Ejemplo: mastermainroom.json
- */
-function ghMasterUrl(roomName) {
-  return ghFileUrl(`master${roomName}.json`);
+/** Path del manifest */
+function manifestPath(roomName){
+  return `rooms/${roomName}.json`;
 }
 
-/**
- * Crea el archivo master<room>.json en caso de que no exista.
- * El contenido será "false" (texto plano).
- */
-async function ensureMasterExistsForRoom() {
-  try {
-    if (!room) return;
-
-    await ensureGhToken();
-
-    const res = await fetch(ghMasterUrl(room), {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/vnd.github+json',
-        'Authorization': `Bearer ${GH_TOKEN}`
-      }
-    });
-
-    // Si existe, no hay nada que hacer
-    if (res.ok) {
-      return;
-    }
-
-    // Si NO existe (404), lo creamos con valor "false"
-    if (res.status === 404) {
-      await saveMasterStatus(false);
-      log(`master<${room}> creado por primera vez (false).`, 'INFO');
-      return;
-    }
-
-    // Para otros errores, solo logueamos advertencia
-    console.warn(`[ENSURE MASTER ERROR] status=${res.status}`);
-  } catch (e) {
-    console.error('[ENSURE MASTER EXCEPTION]', e);
-  }
+/** Path del index/cells folder (solo referencia) */
+function cellPath(roomName, cellNumber){
+  const num = String(cellNumber).padStart(6,'0');
+  return `${CELLS_BASE_DIR}/${roomName}/${CELLS_DIR_NAME}/cell-${num}.json`;
 }
 
-/**
- * Lee master<room>.json y devuelve true/false.
- * Si algo falla, devolvemos false (seguro).
- */
-async function loadMasterStatus() {
-  try {
-    if (!room) return false;
+/** Normaliza mensaje (asegura campos + compatibilidad) */
+function normalizeMessage(raw, cellNumber){
+  if(!raw || typeof raw !== 'object') return null;
 
-    await ensureGhToken();
+  const ts = (typeof raw.ts === 'number') ? raw.ts : Date.now();
+  const id = raw.id || makeMsgId();
 
-    const res = await fetch(ghMasterUrl(room), {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/vnd.github+json',
-        'Authorization': `Bearer ${GH_TOKEN}`
-      }
-    });
+  return {
+    // ids
+    id,
+    room: raw.room || roomNameSafe(room),
+    cell: (typeof raw.cell === 'number') ? raw.cell : (cellNumber || 1),
 
-    if (res.status === 404) {
-      // Si por alguna razón no existe, lo creamos en segundo plano
-      await saveMasterStatus(false);
-      return false;
-    }
+    // author
+    sender: raw.sender || raw.name || 'Anon',
+    userId: raw.userId || raw.uid || 'legacy',
+    fingerprint: raw.fingerprint || null,
 
-    if (!res.ok) {
-      console.warn(`[MASTER LOAD WARNING] status=${res.status}`);
-      return false;
-    }
+    // content
+    ts,
+    text: raw.text || '',
 
-    const data       = await res.json();
-    const contentB64 = (data.content || '').replace(/\n/g,'');
-    const content    = atob(contentB64).trim();
+    // moderation
+    edited: !!raw.edited,
+    editedAt: raw.editedAt || null,
+    editedBy: raw.editedBy || null,
 
-    return (content.toLowerCase() === 'true');
-  } catch (e) {
-    console.error('[MASTER LOAD EXCEPTION]', e);
-    // No logueamos cada vez como ERROR para evitar spam visual.
-    return false;
-  }
+    deleted: !!raw.deleted,
+    deletedAt: raw.deletedAt || null,
+    deletedBy: raw.deletedBy || null,
+
+    // extra
+    pasteUrl: raw.pasteUrl || raw.paste || null
+  };
 }
 
-/**
- * Escribe "true" o "false" en master<room>.json (texto plano).
- */
-async function saveMasterStatus(value) {
-  try {
-    if (!room) return;
+/** Pequeño helper: room name normalizada para mensajes */
+function roomNameSafe(v){ return safeRoomName(v||''); }
 
-    await ensureGhToken();
+/** Lee un archivo por contents API (para obtener sha + contenido) */
+async function ghGetJsonWithSha(path){
+  await ensureGhToken();
 
-    const text = value ? 'true' : 'false';
-    const b64  = btoa(unescape(encodeURIComponent(text)));
-
-    // Intentamos leer SHA existente (si lo hay)
-    let sha = null;
-    try {
-      const resGet = await fetch(ghMasterUrl(room), {
-        method: 'GET',
-        headers: {
-          'Accept': 'application/vnd.github+json',
-          'Authorization': `Bearer ${GH_TOKEN}`
-        }
-      });
-      if (resGet.ok) {
-        const dataGet = await resGet.json();
-        sha = dataGet.sha || null;
-      }
-    } catch (e) {
-      // Si falla, simplemente seguimos como si no existiera
+  const res = await fetch(ghFileUrl(path), {
+    method:'GET',
+    headers:{
+      'Accept':'application/vnd.github+json',
+      'Authorization': `Bearer ${GH_TOKEN}`
     }
+  });
 
+  if(res.status === 404) return { exists:false, sha:null, json:null };
+  if(!res.ok) throw new Error(`GitHub GET failed ${res.status}`);
+
+  const data = await res.json();
+  const sha = data.sha || null;
+
+  
+  // Cacheamos sha para futuros PUT
+  if(sha) GH_SHA_CACHE.set(path, sha);
+const b64 = (data.content || '').replace(/\n/g,'');
+  const txt = b64 ? atob(b64) : '';
+  const json = txt.trim() ? JSON.parse(txt) : null;
+
+  return { exists:true, sha, json };
+}
+
+/** Escribe JSON por contents API */
+async function ghPutJson(path, obj, sha, commitMsg){
+  // ============================
+  //  GitHub PUT (JSON) con retry
+  //  - Si el archivo ya existe, GitHub exige `sha`
+  //  - Si no tenemos sha, intentamos PUT y si devuelve 422/409, hacemos GET sha y reintentamos
+  // ============================
+
+  await ensureGhToken();
+  const token = GH_TOKEN;
+
+  // Convertimos el objeto a JSON + base64
+  const jsonStr = JSON.stringify(obj, null, 2);
+  const contentB64 = b64(jsonStr);
+
+  // Helper: hace 1 PUT con sha opcional y devuelve {res, txt, data}
+  const putOnce = async (useSha) => {
     const body = {
-      message: `set master<${room}> = ${text} ${new Date().toISOString()}`,
-      content: b64,
-      branch:  GH_BRANCH
+      message: commitMsg || `update ${path}`,
+      content: contentB64,
+      branch: GH_BRANCH,
+      ...(useSha ? { sha: useSha } : {})
     };
 
-    if (sha) body.sha = sha;
-
-    const resPut = await fetch(ghMasterUrl(room), {
+    const res = await fetch(ghFileUrl(path), {
       method: 'PUT',
       headers: {
         'Accept': 'application/vnd.github+json',
-        'Authorization': `Bearer ${GH_TOKEN}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(body)
     });
 
-    if (!resPut.ok) {
-      console.warn(`[MASTER SAVE WARNING] status=${resPut.status}`);
+    const txt = await res.text().catch(() => '');
+    let data = null;
+    try { data = txt ? JSON.parse(txt) : null; } catch(_e){ /* ignore */ }
+
+    return { res, txt, data };
+  };
+
+  // Preferimos sha pasado por parámetro; si no, el cache
+  let useSha = sha || GH_SHA_CACHE.get(path) || null;
+
+  // Intento 1
+  let out = await putOnce(useSha);
+  if(out.res.ok){
+    const newSha = out.data?.content?.sha || null;
+    if(newSha) GH_SHA_CACHE.set(path, newSha);
+    return out.data;
+  }
+
+  // Detectamos si falló por falta de sha o conflicto
+  const status1 = out.res.status;
+  const msg1 = (out.data && (out.data.message || JSON.stringify(out.data))) || out.txt || '';
+  // GitHub sometimes returns variations like '"sha" wasn't supplied.'
+  // Treat any 422 that mentions sha as a signal to fetch current sha and retry.
+  const needsSha = status1 === 422 && /sha/i.test(msg1);
+  const conflict = status1 === 409;
+
+  if(needsSha || conflict){
+    // Pedimos el sha actual y reintentamos 1 vez
+    const got = await ghGetJsonWithSha(path).catch(() => null);
+    const gotSha = got?.sha || null;
+
+    if(gotSha){
+      GH_SHA_CACHE.set(path, gotSha);
+      out = await putOnce(gotSha);
+
+      if(out.res.ok){
+        const newSha = out.data?.content?.sha || null;
+        if(newSha) GH_SHA_CACHE.set(path, newSha);
+        return out.data;
+      }
+
+      const status2 = out.res.status;
+      const msg2 = (out.data && (out.data.message || JSON.stringify(out.data))) || out.txt || '';
+      throw new Error(`PUT ${path} failed after retry (${status2}): ${msg2}`);
     }
-  } catch (e) {
-    console.error('[MASTER SAVE EXCEPTION]', e);
   }
+
+  // Log full response for debugging
+  console.error('[ghPutJson PUT ERROR]', { path, status: status1, message: msg1, data: out.data, txt: out.txt });
+
+  // If the token lacks write permissions, surface a clearer message
+  const permsIssue = (status1 === 401) || (status1 === 403) || (status1 === 422 && /permission|scope|access|not accessible/i.test(msg1));
+  if(permsIssue){
+    throw new Error(`GitHub PUT failed (${status1}): ${msg1 || 'Permission or scope error'}. Ensure your PAT has write permissions (repo or contents: write).`);
+  }
+
+  // Generic failure fallback
+  throw new Error(`PUT ${path} failed (${status1}): ${msg1}`);
 }
 
-/**
- * Marca master<room>.json = "true" para avisar a otros clientes.
- */
-async function notifyMasterChange() {
-  try {
-    await saveMasterStatus(true);
-  } catch (e) {
-    console.error('[NOTIFY MASTER CHANGE ERROR]', e);
+/** Asegura V2: si rooms/<room>.json era array (legacy), lo migra a cells */
+async function ensureRoomV2(roomName){
+  // 1) leer manifest actual (puede ser 404, array legacy, o objeto v2)
+  const mPath = manifestPath(roomName);
+  const m = await ghGetJsonWithSha(mPath);
+
+  // Caso A: no existe -> crear manifest v2 + cell 1 vacío
+  if(!m.exists){
+    const manifest = {
+      v: 2,
+      room: roomName,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      latestCell: 1,
+      totalMessages: 0,
+      cellMax: CELL_MAX_MESSAGES,
+      note: "V2 manifest (anti-lag). Mensajes en rooms-cells/<room>/cells/..."
+    };
+
+    await ghPutJson(cellPath(roomName, 1), [], null, `init cell 1 for ${roomName}`);
+    const newSha = await ghPutJson(mPath, manifest, null, `init manifest for ${roomName}`);
+
+    cache.manifest = manifest;
+    cache.manifestSha = newSha;
+
+    return;
   }
-}
 
-/**
- * Loop principal de polling contra master<room>.json.
- * - Si master == false => nada que hacer.
- * - Si master == true  => recargamos rooms/<room>.json y actualizamos UI,
- *                        luego ponemos master = false (tras un delay).
- */
-async function masterLoop() {
-  try {
-    if (!running || !room) return;
+  // Caso B: existe pero es array -> migración
+  if(Array.isArray(m.json)){
+    log('🛠️ Migrando sala a V2 (celdas)…', 'INFO');
 
-    if (masterProcessing) {
-      masterPollTimer = setTimeout(masterLoop, masterPollMs);
+    const legacyArr = m.json;
+
+    // Partimos en chunks
+    let cellNum = 1;
+    let total = 0;
+
+    for(let i=0; i<legacyArr.length; i += CELL_MAX_MESSAGES){
+      const slice = legacyArr.slice(i, i + CELL_MAX_MESSAGES);
+
+      const normalized = slice
+        .map(x => normalizeMessage(x, cellNum))
+        .filter(Boolean);
+
+      total += normalized.length;
+
+      await ghPutJson(cellPath(roomName, cellNum), normalized, null, `migrate cell ${cellNum} ${roomName}`);
+      cellNum++;
+    }
+
+    // Si no había nada, igual creamos cell 1 vacía
+    if(cellNum === 1){
+      await ghPutJson(cellPath(roomName, 1), [], null, `init empty cell 1 ${roomName}`);
+      cellNum = 2;
+    }
+
+    const manifest = {
+      v: 2,
+      room: roomName,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      latestCell: cellNum - 1,
+      totalMessages: total,
+      cellMax: CELL_MAX_MESSAGES,
+      migratedFromLegacyArray: true
+    };
+
+    // Sobrescribimos rooms/<room>.json con manifest (pequeño)
+    const newSha = await ghPutJson(mPath, manifest, m.sha, `migrate manifest V2 for ${roomName}`);
+
+    cache.manifest = manifest;
+    cache.manifestSha = newSha;
+
+    log('✅ Migración completada. (Ahora debería ir MUCHO más suave)', 'INFO');
+    return;
+  }
+
+  // Caso C: ya es objeto v2 (o algo)
+  if(m.json && typeof m.json === 'object'){
+    // Si no trae v, lo consideramos legacy raro y lo “empaquetamos”
+    if(m.json.v !== 2){
+      log('⚠️ Manifest raro detectado; intentando normalizar a V2…', 'WARN');
+
+      const manifest = {
+        v: 2,
+        room: roomName,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        latestCell: 1,
+        totalMessages: 0,
+        cellMax: CELL_MAX_MESSAGES,
+        note: "Recreado por normalización (archivo no era array ni v2)."
+      };
+
+      await ghPutJson(cellPath(roomName, 1), [], null, `normalize cell 1 ${roomName}`);
+      const newSha = await ghPutJson(mPath, manifest, m.sha, `normalize manifest V2 for ${roomName}`);
+
+      cache.manifest = manifest;
+      cache.manifestSha = newSha;
       return;
     }
 
-    const masterValue = await loadMasterStatus();
+    cache.manifest = m.json;
+    cache.manifestSha = m.sha;
+    return;
+  }
 
-    if (!masterValue) {
-      masterPollTimer = setTimeout(masterLoop, masterPollMs);
+  // Fallback total: recrear V2
+  log('⚠️ Manifest inválido; recreando V2 vacío…', 'WARN');
+  const manifest = {
+    v: 2,
+    room: roomName,
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+    latestCell: 1,
+    totalMessages: 0,
+    cellMax: CELL_MAX_MESSAGES
+  };
+  await ghPutJson(cellPath(roomName, 1), [], null, `fallback init cell 1 ${roomName}`);
+  const newSha = await ghPutJson(mPath, manifest, m.sha, `fallback init manifest ${roomName}`);
+  cache.manifest = manifest;
+  cache.manifestSha = newSha;
+}
+
+/* =====================================================================================
+   MASTER V2 (timestamp)
+   - master<room>.json contiene un número (Date.now())
+   - Los clientes SOLO leen; el emisor escribe al cambiar algo
+===================================================================================== */
+
+/** path master */
+function masterPath(roomName){
+  return `master${roomName}.json`;
+}
+
+/** Escribe master con timestamp actual (sin reset) */
+async function bumpMaster(roomName){
+  try{
+    const path = masterPath(roomName);
+
+    // Para PUT necesitas sha si existe
+    const existing = await ghGetJsonWithSha(path).catch(()=>({exists:false, sha:null, json:null}));
+    const stamp = Date.now();
+
+    // Guardamos como texto, pero usando JSON put (string) simplifica
+    // -> lo escribimos como número (JSON), así parse es trivial
+    const sha = await ghPutJson(path, stamp, existing.sha, `master bump ${roomName} ${stamp}`);
+
+    // Actualizamos cache local para no auto-dispararnos
+    cache.lastMasterStamp = stamp;
+    return sha;
+  }catch(e){
+    console.warn('[bumpMaster WARN]', e);
+  }
+}
+
+/** Lee master por RAW con ETag y devuelve stamp (number) */
+async function readMasterStampRaw(roomName){
+  const url = ghRawUrl(masterPath(roomName));
+
+  const headers = {};
+  if(cache.masterEtag) headers['If-None-Match'] = cache.masterEtag;
+
+  try{
+    const res = await fetch(url, { headers, cache:'no-store' });
+
+    if(res.status === 304){
+      return { unchanged:true, stamp: cache.lastMasterStamp };
+    }
+
+    // If raw returns 404, try the GitHub Contents API as a fallback
+    if(res.status === 404){
+      try{
+        const got = await ghGetJsonWithSha(masterPath(roomName)).catch(()=>null);
+        if(got && got.exists && got.json != null){
+          const stamp = Number(got.json || 0) || 0;
+          return { unchanged:false, stamp };
+        }
+        return { unchanged:false, stamp: cache.lastMasterStamp, error: `HTTP 404` };
+      }catch(e){
+        return { unchanged:false, stamp: cache.lastMasterStamp, error: `HTTP 404` };
+      }
+    }
+
+    if(!res.ok){
+      return { unchanged:false, stamp: cache.lastMasterStamp, error:`HTTP ${res.status}` };
+    }
+
+    const etag = res.headers.get('ETag') || res.headers.get('etag') || null;
+    if(etag) cache.masterEtag = etag;
+
+    // Puede ser número JSON (ej: 1700000000) o texto
+    const txt = (await res.text()).trim();
+    let stamp = 0;
+
+    try{
+      stamp = Number(JSON.parse(txt));
+    }catch(_){
+      stamp = Number(txt);
+    }
+
+    if(Number.isNaN(stamp)) stamp = 0;
+
+    return { unchanged:false, stamp };
+  }catch(e){
+    return { unchanged:false, stamp: cache.lastMasterStamp, error: e && e.message ? e.message : String(e) };
+  }
+}
+
+/* =====================================================================================
+   LECTURA: manifest + cells (RAW con ETag)
+===================================================================================== */
+
+/** Lee manifest por RAW y cachea ETag */
+async function readManifestRaw(roomName){
+  const url = ghRawUrl(manifestPath(roomName));
+
+  const headers = {};
+  if(cache.manifestEtag) headers['If-None-Match'] = cache.manifestEtag;
+
+  const res = await fetch(url, { headers, cache:'no-store' });
+
+  if(res.status === 304){
+    return { unchanged:true, manifest: cache.manifest };
+  }
+
+  if(!res.ok){
+    return { unchanged:false, manifest: cache.manifest, error:`HTTP ${res.status}` };
+  }
+
+  const etag = res.headers.get('ETag') || res.headers.get('etag') || null;
+  if(etag) cache.manifestEtag = etag;
+
+  const manifest = await res.json();
+  cache.manifest = manifest;
+
+  return { unchanged:false, manifest };
+}
+
+/** Lee cell por RAW (sin ETag individual para mantener simple) */
+async function readCellRaw(roomName, cellNumber){
+  const url = ghRawUrl(cellPath(roomName, cellNumber));
+  const res = await fetch(url, { cache:'no-store' });
+
+  if(!res.ok){
+    return { ok:false, messages:[], error:`HTTP ${res.status}` };
+  }
+
+  const arr = await res.json().catch(()=>[]);
+  if(!Array.isArray(arr)) return { ok:true, messages:[] };
+
+  // Normalizamos con cellNumber para que msg.cell exista
+  const normalized = arr.map(x => normalizeMessage(x, cellNumber)).filter(Boolean);
+
+  return { ok:true, messages: normalized };
+}
+
+/* =====================================================================================
+   RENDER: append + update (sin full rerender)
+===================================================================================== */
+
+/** Crea DOM de un mensaje */
+function buildMessageElement(msg){
+  const wrapper = document.createElement('div');
+  wrapper.classList.add('msg');
+
+  const isMine = (msg.userId === currentUser.userId);
+  wrapper.classList.add(isMine ? 'me' : 'other');
+
+  wrapper.dataset.msgId = msg.id;
+  wrapper.dataset.cell  = String(msg.cell || 1);
+
+  const textEl = document.createElement('div');
+  textEl.className = 'msg-text';
+
+  const metaEl = document.createElement('div');
+  metaEl.className = 'msg-meta';
+  // Click en la barra meta => abre detalles del mensaje
+  metaEl.title = 'Toca para ver detalles';
+  metaEl.style.cursor = 'pointer';
+  metaEl.addEventListener('click', (ev) => {
+    ev.stopPropagation();
+    openMessageDetailsById(msg.id);
+  });
+
+
+  const actions = document.createElement('div');
+  actions.className = 'msg-actions';
+
+  // Botón editar (solo para mis mensajes)
+  const editBtn = document.createElement('button');
+  editBtn.textContent = '✏️ Edit';
+  editBtn.dataset.action = 'edit';
+  editBtn.dataset.msgId = msg.id;
+
+  // Botón delete (para todos, “delete for everyone”)
+  const delBtn = document.createElement('button');
+  delBtn.textContent = '🗑️ Delete';
+  delBtn.classList.add('danger');
+  delBtn.dataset.action = 'delete';
+  delBtn.dataset.msgId = msg.id;
+
+  // En mensajes ajenos, ocultamos edit y delete (solo puedes tocar tus mensajes)
+  if(!isMine){
+    editBtn.style.display = 'none';
+    delBtn.style.display = 'none';
+  }
+
+  actions.appendChild(editBtn);
+  actions.appendChild(delBtn);
+
+  wrapper.appendChild(textEl);
+  wrapper.appendChild(metaEl);
+  wrapper.appendChild(actions);
+
+  // Inicializamos contenido
+  updateMessageElement(wrapper, msg);
+
+  return wrapper;
+}
+
+/** Actualiza un mensaje ya existente en DOM (edit/delete) */
+function updateMessageElement(wrapper, msg){
+  const textEl = wrapper.querySelector('.msg-text');
+  const metaEl = wrapper.querySelector('.msg-meta');
+
+  // Texto (si está eliminado, mostramos placeholder)
+  if(textEl){
+    textEl.textContent = msg.deleted ? '[mensaje eliminado]' : (msg.text || '');
+  }
+
+  // Meta: hora + nombre + flags
+  if(metaEl){
+    const d  = new Date(msg.ts || Date.now());
+    const hh = String(d.getHours()).padStart(2,'0');
+    const mm = String(d.getMinutes()).padStart(2,'0');
+
+    let metaText = `${hh}:${mm} · ${msg.sender || 'Anon'}`;
+
+    if(msg.edited && !msg.deleted) metaText += ' · editado';
+    if(msg.deleted) metaText += ' · eliminado';
+
+    metaEl.textContent = metaText;
+  }
+
+  // Si es mío, edit visible; si no, edit oculto
+  const editBtn = wrapper.querySelector('button[data-action="edit"]');
+  if(editBtn){
+    editBtn.style.display = (msg.userId === currentUser.userId) ? '' : 'none';
+  }
+}
+
+/** Aplica una lista de mensajes: append si no existe, update si ya existe */
+function applyMessagesDelta(messages){
+  if(!messagesEl) return;
+  if(!Array.isArray(messages) || messages.length === 0) return;
+
+  for(const msg of messages){
+    const existingEl = cache.msgElById.get(msg.id);
+
+    if(existingEl){
+      // Update (edit/delete, etc.)
+      updateMessageElement(existingEl, msg);
+      cache.msgById.set(msg.id, msg);
+      continue;
+    }
+
+    // Append nuevo
+    const elMsg = buildMessageElement(msg);
+    cache.msgElById.set(msg.id, elMsg);
+    cache.msgById.set(msg.id, msg);
+    messagesEl.appendChild(elMsg);
+  }
+
+  enforceDomCap();
+  scrollToBottomSoon();
+}
+
+/** Trim local view: deja últimos N mensajes en DOM (no toca GitHub) */
+function trimLocalView(n){
+  try{
+    if(!messagesEl) return;
+
+    // Si ya está corto, no hace nada
+    if(messagesEl.children.length <= n) return;
+
+    const keep = [];
+    const children = Array.from(messagesEl.children);
+    for(let i = Math.max(0, children.length - n); i < children.length; i++){
+      keep.push(children[i]);
+    }
+
+    // Limpiamos
+    messagesEl.innerHTML = '';
+    cache.msgElById.clear();
+
+    // Reinsertamos
+    for(const node of keep){
+      messagesEl.appendChild(node);
+      if(node.dataset && node.dataset.msgId){
+        cache.msgElById.set(node.dataset.msgId, node);
+      }
+    }
+
+    scrollToBottomSoon();
+    log(`🧹 Vista local recortada a últimos ${n} mensajes (solo tu pantalla).`, 'INFO');
+  }catch(e){
+    console.error('[trimLocalView ERROR]', e);
+  }
+}
+
+/* =====================================================================================
+   ESCRITURA: enviar, editar, borrar (solo celdas pequeñas)
+===================================================================================== */
+
+/** Lee cell por API (sha + contenido) para poder editar/append */
+async function ghGetCellWithSha(roomName, cellNumber){
+  const p = cellPath(roomName, cellNumber);
+  const c = await ghGetJsonWithSha(p);
+  const arr = Array.isArray(c.json) ? c.json : [];
+  return { path:p, sha:c.sha, arr };
+}
+
+/** Lee manifest por API (sha + contenido) para poder actualizar counters */
+async function ghGetManifestWithSha(roomName){
+  const p = manifestPath(roomName);
+  const m = await ghGetJsonWithSha(p);
+  const obj = (m.json && typeof m.json === 'object') ? m.json : null;
+  return { path:p, sha:m.sha, obj };
+}
+
+/** Envía mensaje (optimistic UI + write chunk pequeño) */
+async function sendMessage(){
+  try{
+    if(!running || !room){
+      log('Debes unirte a una sala antes de enviar.', 'WARN');
       return;
     }
 
-    masterProcessing = true;
+    const text = (inputEl.value || '').trim();
+    if(!text) return;
 
-    const msgs = await loadRoomMessages();
-    fullRerender(msgs);
+    // UX: limpiamos input inmediatamente (se siente instantáneo)
+    inputEl.value = '';
 
-    await sleep(MASTER_RESET_DELAY_MS);
-    await saveMasterStatus(false);
+    const now = Date.now();
+    const msg = {
+      id: makeMsgId(),
+      room: roomNameSafe(room),
+      sender: sender || 'Anon',
+      userId: currentUser.userId,
+    userCreatedAt: currentUser.createdAt,
+    ip: currentUser.ip,
+    device: currentUser.device,
+    ua: currentUser.ua,
+    lang: currentUser.lang,
+    tz: currentUser.tz,
+    screen: currentUser.screen,
 
-    masterProcessing = false;
-  } catch (e) {
-    console.error('[MASTER LOOP ERROR]', e);
-    masterProcessing = false;
+      fingerprint: currentUser.fingerprint,
+      ts: now,
+      text,
+      edited:false,
+      editedAt:null,
+      editedBy:null,
+      deleted:false,
+      deletedAt:null,
+      deletedBy:null,
+      pasteUrl:null
+    };
+
+    // ✅ Render optimista (cero lag visual)
+    applyMessagesDelta([normalizeMessage(msg, cache.manifest?.latestCell || 1)]);
+
+    // (Opcional) paste.rs: NO lo esperamos para no meter lag
+    createPasteAsync(text).then(url=>{
+      if(url && lastPasteEl) lastPasteEl.textContent = url;
+    });
+
+    // Guardamos en GitHub (celdas)
+    await appendMessageToCells(room, msg);
+
+    // Avisamos a todos (master bump)
+    await bumpMaster(room);
+
+  }catch(e){
+    console.error('[sendMessage ERROR]', e);
+    log('⚠️ No se pudo enviar el mensaje.', 'ERROR');
+  }
+}
+
+/** Append en celdas (lee SOLO la última celda, no todo el chat) */
+async function appendMessageToCells(roomName, msg){
+  // 1) Asegura manifest/celdas v2 (si usuario entró a sala nueva)
+  await ensureRoomV2(roomName);
+
+  // 2) Lee manifest actual por API (sha), porque vamos a actualizar contadores
+  const m = await ghGetManifestWithSha(roomName);
+  const manifest = (m.obj && m.obj.v === 2) ? m.obj : cache.manifest;
+
+  let latestCell = Number(manifest?.latestCell || 1);
+  if(Number.isNaN(latestCell) || latestCell < 1) latestCell = 1;
+
+  // 3) Lee celda actual (pequeña)
+  const cell = await ghGetCellWithSha(roomName, latestCell);
+
+  let arr = Array.isArray(cell.arr) ? cell.arr : [];
+
+  // 4) Si celda llena, crear nueva
+  if(arr.length >= (manifest.cellMax || CELL_MAX_MESSAGES)){
+    latestCell += 1;
+
+    // Crear celda nueva vacía
+    await ghPutJson(cellPath(roomName, latestCell), [], null, `new cell ${latestCell} ${roomName}`);
+
+    // Si corresponde, registra inicio de nueva "box" (grupo de celdas)
+    try{
+      await updateBoxIndexIfNeeded(roomName, latestCell);
+      // compact and rebuild room index in background (best-effort)
+      (async()=>{
+        await compactBoxForStartCell(roomName, latestCell).catch(()=>null);
+        await rebuildRoomCellsIndex(roomName).catch(()=>null);
+      })();
+    }catch(e){}
+
+    // Actualizamos referencia para escribir ahí
+    arr = [];
+  }
+
+  // 5) Guardamos msg con campo cell correcto
+  msg.cell = latestCell;
+  arr.push(msg);
+
+  // 6) PUT celda
+  const targetCellPath = cellPath(roomName, latestCell);
+
+  // Si es la misma celda que leímos, usamos su sha; si es nueva, sha = null
+  const shaToUse = (latestCell === Number(manifest.latestCell)) ? cell.sha : null;
+  await ghPutJson(targetCellPath, arr, shaToUse, `append msg ${msg.id} ${roomName}`);
+
+  // 7) Actualizamos manifest pequeño
+  const newManifest = {
+    ...(manifest || {}),
+    v: 2,
+    room: roomName,
+    latestCell,
+    updatedAt: Date.now(),
+    totalMessages: Number(manifest?.totalMessages || 0) + 1,
+    cellMax: Number(manifest?.cellMax || CELL_MAX_MESSAGES)
+  };
+
+  const newSha = await ghPutJson(manifestPath(roomName), newManifest, m.sha, `update manifest ${roomName}`);
+  cache.manifest = newManifest;
+  cache.manifestSha = newSha;
+}
+
+/** Edita un mensaje (solo si es mío) */
+/* ============================
+   MODALES (sin alert/prompt)
+   ============================ */
+let modalOverlay;
+let modalTitleEl;
+let modalBodyEl;
+let modalBtnOk;
+let modalBtnCancel;
+let modalBtnClose;
+
+let _modalResolve = null;
+
+function closeModal(result){
+  try{
+    if(_modalResolve) _modalResolve(result);
   } finally {
-    if (running && room) {
-      masterPollTimer = setTimeout(masterLoop, masterPollMs);
-    }
+    _modalResolve = null;
+    modalOverlay.classList.add('modal-hidden');
+    modalBodyEl.innerHTML = '';
+    modalTitleEl.textContent = 'Modal';
+    modalBtnOk.textContent = 'OK';
+    modalBtnCancel.textContent = 'Cancelar';
+    modalBtnCancel.style.display = '';
+    modalBtnOk.disabled = false;
   }
 }
 
-/**
- * Arranca el sistema de master para el room actual.
- */
-async function startMasterSystemForCurrentRoom() {
-  try {
-    masterProcessing = false;
-    if (masterPollTimer) {
-      clearTimeout(masterPollTimer);
-      masterPollTimer = null;
+function openModal({ title, bodyNode, okText='OK', cancelText='Cancelar', showCancel=true }){
+  // Cerramos cualquier modal anterior (por si acaso)
+  if(_modalResolve) closeModal(false);
+
+  modalTitleEl.textContent = title || 'Modal';
+  modalBodyEl.innerHTML = '';
+  if(bodyNode) modalBodyEl.appendChild(bodyNode);
+
+  modalBtnOk.textContent = okText;
+  modalBtnCancel.textContent = cancelText;
+  modalBtnCancel.style.display = showCancel ? '' : 'none';
+
+  modalOverlay.classList.remove('modal-hidden');
+
+  return new Promise((resolve) => {
+    _modalResolve = resolve;
+  });
+}
+
+
+async function showEditModal(oldText){
+  const wrap = document.createElement('div');
+
+  const p = document.createElement('p');
+  p.textContent = 'Edita tu mensaje:';
+  wrap.appendChild(p);
+
+  const ta = document.createElement('textarea');
+  ta.value = oldText || '';
+  wrap.appendChild(ta);
+
+  // Abrimos modal y esperamos OK/Cancel
+  const ok = await openModal({
+    title: 'Editar mensaje',
+    bodyNode: wrap,
+    okText: 'Guardar',
+    cancelText: 'Cancelar',
+    showCancel: true
+  });
+
+  if(!ok) return null;
+
+  const newText = (ta.value || '').trim();
+  return newText.length ? newText : null;
+}
+
+async function showConfirmModal(text){
+  const wrap = document.createElement('div');
+  const p = document.createElement('p');
+  p.textContent = text || '¿Confirmas?';
+  wrap.appendChild(p);
+
+  const ok = await openModal({
+    title: 'Confirmar',
+    bodyNode: wrap,
+    okText: 'Sí',
+    cancelText: 'No',
+    showCancel: true
+  });
+
+  return !!ok;
+}
+
+
+function openMessageDetailsById(msgId){
+  try{
+    const msg = cache.msgById.get(msgId);
+    if(!msg){
+      log('warn', `No encontré mensaje ${msgId} en memoria.`);
+      return;
     }
 
-    // Tomamos el intervalo desde el input (si es válido)
-    const raw = parseInt(intervalEl.value, 10);
-    if (!Number.isNaN(raw) && raw > 0) {
-      masterPollMs = raw;
-    } else {
-      masterPollMs = MASTER_POLL_MS_DEFAULT;
-      if (intervalEl) intervalEl.value = String(masterPollMs);
-    }
+    const pre = document.createElement('pre');
+    pre.style.whiteSpace = 'pre-wrap';
+    pre.style.wordBreak = 'break-word';
+    pre.textContent = JSON.stringify(msg, null, 2);
 
-    // Nos aseguramos de que master exista antes de iniciar el loop
-    await ensureMasterExistsForRoom();
-
-    // Lanzamos el loop (no esperamos la promesa)
-    masterLoop();
-  } catch (e) {
-    console.error('[START MASTER SYSTEM ERROR]', e);
+    openModal({
+      title: 'Detalles del mensaje',
+      bodyNode: pre,
+      okText: 'Cerrar',
+      cancelText: null
+    });
+  }catch(e){
+    log('error', `Detalles fallaron: ${e}`);
   }
 }
 
-/**
- * Detiene el sistema de master (por ejemplo, al salir del room).
- */
-function stopMasterSystem() {
-  try {
-    if (masterPollTimer) {
-      clearTimeout(masterPollTimer);
-      masterPollTimer = null;
+async function editMessageById(msgId){
+  try{
+    const msg = cache.msgById.get(msgId);
+
+    if(!msg){
+      log('warn', `No encontré el mensaje ${msgId} en cache local.`);
+      return;
     }
-    masterProcessing = false;
-  } catch (e) {
-    console.error('[STOP MASTER SYSTEM ERROR]', e);
+
+    // Seguridad: bloqueamos aunque el botón esté oculto
+    const mine = (msg.userId && msg.userId === currentUser.userId);
+    if(!mine){
+      openModal({
+        title: 'Sin permiso',
+        bodyText: 'Solo puedes modificar tus propios mensajes.',
+        okText: 'OK',
+        cancelText: null
+      });
+      return;
+    }
+
+    // Seguridad: solo puedes editar tus mensajes
+    if(msg.userId !== currentUser.userId){
+      log('warn', 'No puedes editar mensajes de otros usuarios.');
+      await openModal({
+        title: 'Acción bloqueada',
+        bodyNode: (() => {
+          const p = document.createElement('p');
+          p.textContent = 'Solo puedes editar tus propios mensajes.';
+          return p;
+        })(),
+        okText: 'OK',
+        showCancel: false
+      });
+      return;
+    }
+
+    // Modal (sin prompt)
+    const newText = await showEditModal(msg.text || '');
+
+    if(newText === null){
+      // Cancel o vacío
+      return;
+    }
+
+    if((newText || '').trim() === (msg.text || '').trim()){
+      log('info', 'Sin cambios (mismo texto).');
+      return;
+    }
+
+    // Actualizamos en storage (GitHub)
+    await updateMessageInStorage(msgId, (m) => {
+      // Doble seguridad (por si el cache estaba raro)
+      if(m.userId !== currentUser.userId) return m;
+
+      return normalizeMessage({
+        ...m,
+        text: newText,
+        edited: true,
+        editedAt: Date.now(),
+        editedBy: currentUser.userId
+      });
+    });
+
+    log('ok', `Mensaje editado: ${msgId}`);
+  } catch(err){
+    log('error', `Edit error: ${err?.message || err}`);
   }
 }
 
-/* ============================================================
-   METADATOS DEL ROOM  (rooms-meta/<room>.json)
-   ============================================================ */
+/** Delete for everyone (marca deleted=true) */
+async function deleteMessageById(msgId){
+  try{
+    const msg = cache.msgById.get(msgId);
 
-/**
- * URL de rooms-meta/<room>.json en la API de GitHub.
- */
-function ghRoomMetaUrl(roomName) {
+    if(!msg){
+      log('warn', `No encontré el mensaje ${msgId} en cache local.`);
+      return;
+    }
+
+    // Seguridad: bloqueamos aunque el botón esté oculto
+    const mine = (msg.userId && msg.userId === currentUser.userId);
+    if(!mine){
+      openModal({
+        title: 'Sin permiso',
+        bodyText: 'Solo puedes modificar tus propios mensajes.',
+        okText: 'OK',
+        cancelText: null
+      });
+      return;
+    }
+
+    // Seguridad: solo puedes borrar tus mensajes (para todos)
+    if(msg.userId !== currentUser.userId){
+      log('warn', 'No puedes borrar mensajes de otros usuarios.');
+      await openModal({
+        title: 'Acción bloqueada',
+        bodyNode: (() => {
+          const p = document.createElement('p');
+          p.textContent = 'Solo puedes borrar tus propios mensajes.';
+          return p;
+        })(),
+        okText: 'OK',
+        showCancel: false
+      });
+      return;
+    }
+
+    const ok = await showConfirmModal('¿Borrar este mensaje para todos?');
+    if(!ok) return;
+
+    await updateMessageInStorage(msgId, (m) => {
+      if(m.userId !== currentUser.userId) return m;
+
+      return normalizeMessage({
+        ...m,
+        deleted: true,
+        deletedAt: Date.now(),
+        deletedBy: currentUser.userId
+      });
+    });
+
+    log('ok', `Mensaje eliminado: ${msgId}`);
+  } catch(err){
+    log('error', `Delete error: ${err?.message || err}`);
+  }
+}
+
+/** Actualiza un mensaje en su celda (sin leer todo el chat) */
+async function updateMessageInStorage(msgId, updaterFn){
+  if(!room) return;
+
+  // Intento rápido: sacamos cell desde el DOM
+  const elMsg = cache.msgElById.get(msgId);
+  const cellNumber = elMsg && elMsg.dataset && elMsg.dataset.cell ? Number(elMsg.dataset.cell) : null;
+
+  // Si no sabemos celda, caemos a escaneo de pocas celdas (solo cerca del final)
+  const manifest = cache.manifest;
+  const latestCell = Number(manifest?.latestCell || 1);
+
+  const candidates = [];
+
+  if(cellNumber && !Number.isNaN(cellNumber)){
+    candidates.push(cellNumber);
+  }else{
+    // Escaneamos: última celda, y las 2 anteriores (esto es barato)
+    candidates.push(latestCell);
+    if(latestCell-1 >= 1) candidates.push(latestCell-1);
+    if(latestCell-2 >= 1) candidates.push(latestCell-2);
+  }
+
+  // Para no repetir
+  const uniq = Array.from(new Set(candidates));
+
+  for(const cnum of uniq){
+    const cell = await ghGetCellWithSha(room, cnum);
+
+    // Si la celda no existe, seguimos
+    if(!cell || !Array.isArray(cell.arr)) continue;
+
+    const idx = cell.arr.findIndex(m => m && m.id === msgId);
+    if(idx === -1) continue;
+
+    // Aplicamos updater
+    const updated = updaterFn({ ...cell.arr[idx] });
+    updated.cell = cnum;
+
+    cell.arr[idx] = updated;
+
+    // Guardamos celda
+    await ghPutJson(cellPath(room, cnum), cell.arr, cell.sha, `update msg ${msgId} ${room}`);
+
+    // Actualizamos UI local sin esperar al poll
+    const normalized = normalizeMessage(updated, cnum);
+    const domEl = cache.msgElById.get(msgId);
+    if(domEl){
+      updateMessageElement(domEl, normalized);
+    }
+
+    return;
+  }
+
+  throw new Error('No se encontró el mensaje en celdas cercanas (quizá es muy viejo).');
+}
+
+/* =====================================================================================
+   paste.rs (async)
+===================================================================================== */
+async function createPasteAsync(text){
+  try{
+    const proxyUrl = buildProxyUrl(PASTE_BASE);
+    const res = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: text
+    });
+    if(!res.ok) return null;
+
+    const raw = (await res.text()).trim();
+    const url = raw.startsWith('http') ? raw : `${PASTE_BASE}/${raw.replace(/^\//,'')}`;
+    return url;
+  }catch(e){
+    return null;
+  }
+}
+
+/* =====================================================================================
+   ROOM META (tu sistema original, sin cambios grandes)
+===================================================================================== */
+function ghRoomMetaUrl(roomName){
   return ghFileUrl(`rooms-meta/${roomName}.json`);
 }
 
-/**
- * Crea o carga los metadatos del room actual.
- * - Si no existe: se crea con info de creador actual y fecha de creación.
- * - Si existe: se carga y se muestra en la UI.
- */
-async function ensureRoomMetaExists() {
-  try {
-    if (!room) return;
+let roomMeta = null;
+let roomMetaSha = null;
+
+async function ensureRoomMetaExists(){
+  try{
+    if(!room) return;
 
     await ensureGhToken();
 
     const res = await fetch(ghRoomMetaUrl(room), {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/vnd.github+json',
+      method:'GET',
+      headers:{
+        'Accept':'application/vnd.github+json',
         'Authorization': `Bearer ${GH_TOKEN}`
       }
     });
 
     const now = Date.now();
 
-    if (res.status === 404) {
-      // Creamos metadatos nuevos
+    if(res.status === 404){
       const meta = {
         room,
         roomId: `room-${room}-${now}-${Math.random().toString(36).slice(2,8)}`,
         createdAt: now,
         createdAtIso: new Date(now).toISOString(),
         createdBy: {
-          userId:      currentUser.userId,
-          name:        sender || 'Anon',
+          userId: currentUser.userId,
+          name: sender || 'Anon',
           fingerprint: currentUser.fingerprint
         },
         lastActivity: now,
@@ -1164,31 +2045,28 @@ async function ensureRoomMetaExists() {
       return;
     }
 
-    if (!res.ok) {
+    if(!res.ok){
       console.warn(`[ROOM META LOAD WARNING] status=${res.status}`);
       return;
     }
 
-    const data       = await res.json();
-    roomMetaSha      = data.sha || null;
+    const data = await res.json();
+    roomMetaSha = data.sha || null;
     const contentStr = atob((data.content || '').replace(/\n/g,''));
-    const metaObj    = contentStr.trim() ? JSON.parse(contentStr) : null;
+    const metaObj = contentStr.trim() ? JSON.parse(contentStr) : null;
 
-    if (metaObj) {
+    if(metaObj){
       roomMeta = metaObj;
       renderRoomMeta();
     }
-  } catch (e) {
+  }catch(e){
     console.error('[ROOM META LOAD EXCEPTION]', e);
   }
 }
 
-/**
- * Guarda rooms-meta/<room>.json en GitHub con el objeto meta dado.
- */
-async function saveRoomMeta(meta) {
-  try {
-    if (!room || !meta) return;
+async function saveRoomMeta(meta){
+  try{
+    if(!room || !meta) return;
 
     await ensureGhToken();
 
@@ -1198,47 +2076,41 @@ async function saveRoomMeta(meta) {
     const body = {
       message: `update rooms-meta/${room}.json ${new Date().toISOString()}`,
       content: b64,
-      branch:  GH_BRANCH
+      branch: GH_BRANCH,
+      ...(roomMetaSha ? { sha: roomMetaSha } : {})
     };
 
-    if (roomMetaSha) body.sha = roomMetaSha;
-
     const res = await fetch(ghRoomMetaUrl(room), {
-      method: 'PUT',
-      headers: {
-        'Accept': 'application/vnd.github+json',
+      method:'PUT',
+      headers:{
+        'Accept':'application/vnd.github+json',
         'Authorization': `Bearer ${GH_TOKEN}`,
-        'Content-Type': 'application/json'
+        'Content-Type':'application/json'
       },
       body: JSON.stringify(body)
     });
 
-    if (!res.ok) {
+    if(!res.ok){
       console.warn(`[ROOM META SAVE WARNING] status=${res.status}`);
       return;
     }
 
     const data = await res.json();
-    if (data.content && data.content.sha) {
-      roomMetaSha = data.content.sha;
-    }
-  } catch (e) {
+    if(data.content && data.content.sha) roomMetaSha = data.content.sha;
+  }catch(e){
     console.error('[ROOM META SAVE EXCEPTION]', e);
   }
 }
 
-/**
- * Actualiza el pequeño panel de info de sala en la UI.
- */
-function renderRoomMeta() {
-  try {
-    if (!roomInfoEl || !roomMeta) return;
+function renderRoomMeta(){
+  try{
+    if(!roomInfoEl || !roomMeta) return;
 
     const created = new Date(roomMeta.createdAt || Date.now());
     const ca = `${created.getFullYear()}-${String(created.getMonth()+1).padStart(2,'0')}-${String(created.getDate()).padStart(2,'0')} ${String(created.getHours()).padStart(2,'0')}:${String(created.getMinutes()).padStart(2,'0')}`;
 
     const lastTs = roomMeta.lastActivity || roomMeta.createdAt || Date.now();
-    const last   = new Date(lastTs);
+    const last = new Date(lastTs);
     const la = `${last.getFullYear()}-${String(last.getMonth()+1).padStart(2,'0')}-${String(last.getDate()).padStart(2,'0')} ${String(last.getHours()).padStart(2,'0')}:${String(last.getMinutes()).padStart(2,'0')}`;
 
     const creatorName = roomMeta.createdBy && roomMeta.createdBy.name ? roomMeta.createdBy.name : 'Desconocido';
@@ -1249,449 +2121,762 @@ function renderRoomMeta() {
       Creado: ${ca}<br/>
       Última actividad: ${la}
     `;
-  } catch (e) {
+  }catch(e){
     console.error('[RENDER ROOM META ERROR]', e);
   }
 }
 
-/* ============================================================
-   MENSAJES EN rooms/<room>.json
-   ============================================================ */
+/* =====================================================================================
+   POLLING LOOP (anti-overlap)
+   - Revisa master stamp
+   - Si cambió -> lee manifest -> trae solo lo nuevo
+===================================================================================== */
+let pollTimer = null;
+let pollMs = POLL_MS_DEFAULT;
 
-/**
- * Normaliza un mensaje asegurando todos los metadatos.
- */
-function normalizeMessage(raw) {
-  try {
-    if (!raw || typeof raw !== 'object') return null;
+async function pollLoop(){
+  try{
+    if(!running || !room) return;
 
-    const ts = typeof raw.ts === 'number' ? raw.ts : Date.now();
-    const id = raw.id || `m-${ts}-${Math.random().toString(36).slice(2,8)}`;
-
-    const readBy = (raw.readBy && typeof raw.readBy === 'object') ? raw.readBy : {};
-
-    return {
-      id,
-      room:        raw.room || room || 'unknown',
-      sender:      raw.sender || 'Anon',
-      userId:      raw.userId || 'legacy',
-      fingerprint: raw.fingerprint || null,
-      ts,
-      text:        raw.text || '',
-      edited:      !!raw.edited,
-      editedAt:    raw.editedAt || null,
-      deleted:     !!raw.deleted,
-      createdAt:   raw.createdAt || ts,
-      readBy
-    };
-  } catch (e) {
-    console.error('[NORMALIZE MESSAGE ERROR]', e, raw);
-    return null;
-  }
-}
-
-/**
- * Carga y normaliza todos los mensajes de rooms/<room>.json.
- */
-async function loadRoomMessages() {
-  try {
-    if (!room) return [];
-
-    await ensureGhToken();
-
-    const path = `rooms/${room}.json`;
-    const res  = await fetch(ghFileUrl(path), {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/vnd.github+json',
-        'Authorization': `Bearer ${GH_TOKEN}`
+    // Pause/slow polling when user is idle
+    try{
+      const last = window._chat_lastInteraction || 0;
+      if(Date.now() - last > IDLE_TIMEOUT_MS){
+        // back off: schedule a much later poll and skip work
+        pollTimer = setTimeout(pollLoop, POLL_MS_MAX);
+        return;
       }
-    });
+    }catch(e){}
 
-    if (res.status === 404) {
-      lastSha       = null;
-      messagesCache = [];
-      return [];
-    }
-
-    if (!res.ok) {
-      throw new Error(`GitHub GET ${res.status}`);
-    }
-
-    const data       = await res.json();
-    lastSha          = data.sha || null;
-    const contentStr = atob((data.content || '').replace(/\n/g,''));
-
-    let rawArr = [];
-    if (contentStr.trim()) {
-      rawArr = JSON.parse(contentStr);
-    }
-
-    if (!Array.isArray(rawArr)) rawArr = [];
-
-    const normalized = [];
-    for (const r of rawArr) {
-      const msg = normalizeMessage(r);
-      if (msg) normalized.push(msg);
-    }
-
-    normalized.sort((a,b) => a.ts - b.ts);
-    messagesCache = normalized.slice(-MAX_ROOM_MESSAGES);
-    return messagesCache;
-  } catch (e) {
-    console.error('[LOAD ROOM MESSAGES ERROR]', e);
-    log('⚠️ No se pudo cargar el historial de la sala.', 'ERROR');
-    return messagesCache || [];
-  }
-}
-
-/**
- * Guarda todos los mensajes normalizados en rooms/<room>.json.
- */
-async function saveRoomMessages(messages) {
-  try {
-    if (!room) return;
-
-    await ensureGhToken();
-
-    const path = `rooms/${room}.json`;
-
-    const trimmed = Array.isArray(messages)
-      ? messages.slice(-MAX_ROOM_MESSAGES)
-      : [];
-
-    const json = JSON.stringify(trimmed, null, 2);
-    const b64  = btoa(unescape(encodeURIComponent(json)));
-
-    const body = {
-      message: `update room ${room} ${new Date().toISOString()}`,
-      content: b64,
-      branch:  GH_BRANCH
-    };
-
-    if (lastSha) body.sha = lastSha;
-
-    const res = await fetch(ghFileUrl(path), {
-      method: 'PUT',
-      headers: {
-        'Accept': 'application/vnd.github+json',
-        'Authorization': `Bearer ${GH_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    });
-
-    if (!res.ok) {
-      throw new Error(`GitHub PUT ${res.status}`);
-    }
-
-    const data = await res.json();
-    if (data.content && data.content.sha) {
-      lastSha = data.content.sha;
-    }
-
-    messagesCache = trimmed;
-  } catch (e) {
-    console.error('[SAVE ROOM MESSAGES ERROR]', e);
-    log('No se pudo guardar mensajes del room en GitHub.', 'ERROR');
-    throw e;
-  }
-}
-
-/* ============================================================
-   RENDER DEL CHAT
-   ============================================================ */
-
-/**
- * Añade al DOM una lista de mensajes al final.
- */
-function renderMessages(messages) {
-  try {
-    if (!messagesEl) return;
-    if (!Array.isArray(messages) || messages.length === 0) return;
-
-    for (const msg of messages) {
-      const wrapper = document.createElement('div');
-      wrapper.classList.add('msg');
-
-      const isMine = (msg.userId === currentUser.userId);
-      wrapper.classList.add(isMine ? 'me' : 'other');
-      wrapper.dataset.msgId = msg.id;
-
-      const body = document.createElement('div');
-      body.textContent = msg.deleted ? '[mensaje eliminado]' : msg.text;
-
-      const meta = document.createElement('div');
-      meta.style.fontSize  = '10px';
-      meta.style.opacity   = '0.8';
-      meta.style.marginTop = '2px';
-
-      const d  = new Date(msg.ts);
-      const hh = String(d.getHours()).padStart(2,'0');
-      const mm = String(d.getMinutes()).padStart(2,'0');
-
-      let metaText = `${hh}:${mm} · ${msg.sender}`;
-      if (msg.edited && !msg.deleted) metaText += ' · editado';
-      if (msg.deleted) metaText += ' · eliminado';
-
-      meta.textContent = metaText;
-
-      wrapper.appendChild(body);
-      wrapper.appendChild(meta);
-
-      messagesEl.appendChild(wrapper);
-      lastSeenTs = Math.max(lastSeenTs, msg.ts);
-    }
-
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  } catch (e) {
-    console.error('[RENDER MESSAGES ERROR]', e);
-  }
-}
-
-/**
- * Vacía el chat visible y vuelve a renderizar todo el historial.
- */
-function fullRerender(messages) {
-  try {
-    if (!messagesEl) return;
-    messagesEl.innerHTML = '';
-    lastSeenTs = 0;
-    if (Array.isArray(messages) && messages.length > 0) {
-      renderMessages(messages);
-    }
-  } catch (e) {
-    console.error('[FULL RERENDER ERROR]', e);
-  }
-}
-
-/* ============================================================
-   paste.rs  (sólo referencia / debug)
-   ============================================================ */
-
-/**
- * Crea un paste en paste.rs con el texto del mensaje.
- * No es requerido para el chat, pero sirve como copia externa.
- */
-async function createPaste(text) {
-  try {
-    const proxyUrl = buildProxyUrl(PASTE_BASE);
-
-    const res = await fetch(proxyUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: text
-    });
-
-    if (!res.ok) {
-      throw new Error(`No se pudo crear paste (${res.status}).`);
-    }
-
-    const raw = (await res.text()).trim();
-    const url = raw.startsWith('http') ? raw : `${PASTE_BASE}/${raw.replace(/^\//,'')}`;
-
-    if (lastPasteEl) {
-      lastPasteEl.textContent = url;
-    }
-
-    return url;
-  } catch (e) {
-    console.warn('[PASTE WARNING]', e);
-    return null;
-  }
-}
-
-/* ============================================================
-   ENVÍO DE MENSAJES
-   ============================================================ */
-
-/**
- * Envía un mensaje nuevo:
- *  - crea el objeto con metadatos
- *  - opcionalmente lo sube a paste.rs
- *  - lo guarda en rooms/<room>.json
- *  - actualiza metadatos del room
- *  - dispara master<room> = "true"
- */
-async function sendMessage() {
-  try {
-    if (!running || !room) {
-      log('Debes unirte a una sala antes de enviar mensajes.', 'WARN');
+    if(cache.pollInFlight){
+      pollTimer = setTimeout(pollLoop, pollMs);
       return;
     }
 
-    const text = (inputEl.value || '').trim();
-    if (!text) return;
+    cache.pollInFlight = true;
 
-    const now = Date.now();
+    // 1) leer master stamp
+    const ms = await readMasterStampRaw(room);
 
-    const msg = {
-      id:          `m-${now}-${Math.random().toString(36).slice(2,8)}`,
-      room,
-      sender:      sender || 'Anon',
-      userId:      currentUser.userId,
-      fingerprint: currentUser.fingerprint,
-      ts:          now,
-      text,
-      edited:      false,
-      editedAt:    null,
-      deleted:     false,
-      createdAt:   now,
-      readBy:      {}
-    };
+    if(ms.error){
+      // Reflect disconnected state and back off polling to avoid tight 404 loops
+      if(chatStatusEl) chatStatusEl.textContent = '● Desconectado';
+      if(headerStatusEl) headerStatusEl.textContent = 'Desconectado';
 
-    // Paste opcional
-    await createPaste(text);
+      // Increase poll interval progressively (capped)
+      try{ pollMs = Math.min(POLL_MS_MAX, Math.max(POLL_MS_DEFAULT, (pollMs || POLL_MS_DEFAULT) * 4)); }catch(e){}
 
-    const msgs = await loadRoomMessages();
-    msgs.push(msg);
-    await saveRoomMessages(msgs);
-    renderMessages([msg]);
-    inputEl.value = '';
-
-    // Actualizamos metadatos del room (última actividad)
-    if (roomMeta) {
-      roomMeta.lastActivity    = now;
-      roomMeta.lastActivityIso = new Date(now).toISOString();
-      roomMeta.lastMessageBy   = {
-        userId: currentUser.userId,
-        name:   sender || 'Anon'
-      };
-      await saveRoomMeta(roomMeta);
-      renderRoomMeta();
+      return;
     }
 
-    await notifyMasterChange();
-  } catch (e) {
-    console.error('[SEND MESSAGE ERROR]', e);
-    log('⚠️ No se pudo enviar el mensaje.', 'ERROR');
+    // Si no cambió, nada que hacer
+    const stamp = Number(ms.stamp || 0);
+    if(stamp <= (cache.lastMasterStamp || 0)){
+      if(chatStatusEl) chatStatusEl.textContent = '● Conectado';
+      if(headerStatusEl) headerStatusEl.textContent = 'Conectado';
+      // successful read -> restore normal poll cadence
+      pollMs = POLL_MS_DEFAULT;
+      return;
+    }
+
+    // Actualizamos local
+    cache.lastMasterStamp = stamp;
+
+    // 2) leer manifest pequeño
+    const mf = await readManifestRaw(room);
+    if(mf.error){
+      return;
+    }
+
+    const manifest = mf.manifest || cache.manifest;
+    if(!manifest || manifest.v !== 2) return;
+
+    // 3) Traer deltas
+    await fetchAndApplyDeltas(room, manifest);
+
+    if(chatStatusEl) chatStatusEl.textContent = '● Conectado';
+    if(headerStatusEl) headerStatusEl.textContent = 'Conectado';
+    // successful sync -> restore normal poll cadence
+    pollMs = POLL_MS_DEFAULT;
+
+  }catch(e){
+    console.error('[pollLoop ERROR]', e);
+  }finally{
+    cache.pollInFlight = false;
+
+    if(running && room){
+      pollTimer = setTimeout(pollLoop, pollMs);
+    }
   }
 }
 
-/* ============================================================
-   EVENTOS DE UI
-   ============================================================ */
+/** Trae solo lo nuevo (sin full rerender) */
+async function fetchAndApplyDeltas(roomName, manifest){
+  const latestCell = Number(manifest.latestCell || 1);
+
+  // Si es la primera vez, cargamos solo la última celda (rápido)
+  if(cache.lastLoadedCell === 0){
+    // Cargamos última celda y mostramos (no todo el historial)
+    const cell = await readCellRaw(roomName, latestCell);
+    if(cell.ok){
+      // Para que no te tire 120 de golpe si no quieres:
+      // mostramos últimos 50 de esa celda, así es súper rápido
+      const tail = cell.messages.slice(-50);
+      applyMessagesDelta(tail);
+
+      cache.lastLoadedCell = latestCell;
+      cache.lastLoadedCountInCell = cell.messages.length;
+    }
+    return;
+  }
+
+  // Si avanzó a nueva celda, cargamos celdas nuevas completas (son pequeñas)
+  if(latestCell > cache.lastLoadedCell){
+    for(let c = cache.lastLoadedCell + 1; c <= latestCell; c++){
+      const cell = await readCellRaw(roomName, c);
+      if(!cell.ok) continue;
+
+      applyMessagesDelta(cell.messages);
+
+      cache.lastLoadedCell = c;
+      cache.lastLoadedCountInCell = cell.messages.length;
+    }
+    return;
+  }
+
+  // Si seguimos en la misma celda, solo traemos la celda actual y aplicamos el delta por índice
+  const cell = await readCellRaw(roomName, latestCell);
+  if(!cell.ok) return;
+
+  const start = Math.min(cache.lastLoadedCountInCell || 0, cell.messages.length);
+  const delta = cell.messages.slice(start);
+
+  // También revisamos updates (edit/delete) para mensajes que ya estaban:
+  // -> aplicamos todos, pero solo hace UPDATE si existe (muy ligero)
+  applyMessagesDelta(cell.messages);
+
+  cache.lastLoadedCell = latestCell;
+  cache.lastLoadedCountInCell = cell.messages.length;
+
+  // Delta extra (si había nuevos) ya quedó aplicado
+}
+
+/* =====================================================================================
+   Boxes / Lazy-load helpers
+   - Boxes are metadata groups of CELLS_PER_BOX cells
+   - We keep an index per-room at rooms-boxes/<room>/boxes-index.json
+   - UI lazy-load listens to scroll / wheel and loads older messages on demand
+===================================================================================== */
+
+function boxesIndexPath(roomName){
+  return `${CELLS_BASE_DIR}/${roomName}/boxes/boxes-index.json`;
+}
+
+function boxPath(roomName, boxNumber){
+  return `${CELLS_BASE_DIR}/${roomName}/boxes/box-${String(boxNumber).padStart(6,'0')}.json`;
+}
+
+function roomCellsIndexPath(roomName){
+  return `${CELLS_BASE_DIR}/${roomName}/index.json`;
+}
+
+/** Compact a range of cells (startCell .. startCell+CELLS_PER_BOX-1) into a single box file. */
+async function compactBoxForStartCell(roomName, startCell){
+  try{
+    if(!roomName || !startCell) return null;
+    const cellsPerBox = CELLS_PER_BOX; // already computed from BOX_MAX_MESSAGES
+    const boxNumber = Math.ceil(startCell / cellsPerBox);
+    const pBox = `${CELLS_BASE_DIR}/${roomName}/boxes`;
+    const targetPath = boxPath(roomName, boxNumber);
+
+    // Gather messages from each cell in the box range
+    const merged = [];
+    for(let i=0;i<cellsPerBox;i++){
+      const cnum = startCell + i;
+      const cellPathRel = cellPath(roomName, cnum);
+      try{
+        const got = await ghGetJsonWithSha(cellPathRel).catch(()=>({ json:null, sha:null }));
+        if(got && Array.isArray(got.json) && got.json.length) merged.push(...got.json);
+      }catch(e){
+        // ignore missing cells
+      }
+    }
+
+    if(merged.length === 0){
+      // nothing to compact
+      return null;
+    }
+
+    // Write box file (best-effort). Use null sha to create/overwrite.
+    try{
+      const sha = await ghPutJson(targetPath, merged, null, `compact box ${boxNumber} ${roomName}`);
+      console.log('[BOX COMPACTED]', roomName, boxNumber, 'msgs=', merged.length);
+      return { boxNumber, path: targetPath, sha };
+    }catch(e){
+      console.warn('[BOX COMPACT FAILED]', roomName, boxNumber, e);
+      return null;
+    }
+  }catch(e){
+    console.error('[compactBoxForStartCell ERROR]', e);
+    return null;
+  }
+}
+
+/** Rebuild room-level index (rooms-cells/<room>/index.json) from boxes-index.json entries. */
+async function rebuildRoomCellsIndex(roomName){
+  try{
+    const p = boxesIndexPath(roomName).replace(/^/,'');
+    const gi = await ghGetJsonWithSha(p).catch(()=>({ json:null, sha:null }));
+    const boxes = Array.isArray(gi.json) ? gi.json : [];
+
+    const index = { room: roomName, boxes: [], totalMessages: 0, lastUpdated: Date.now() };
+    for(const b of boxes){
+      const boxNum = b.box;
+      const bp = boxPath(roomName, boxNum);
+      // Try to read box to compute size
+      const got = await ghGetJsonWithSha(bp).catch(()=>({ json:null, sha:null }));
+      const count = Array.isArray(got.json) ? got.json.length : 0;
+      index.boxes.push({ box: boxNum, startCell: b.startCell, endCell: b.endCell, path: bp, msgs: count });
+      index.totalMessages += count;
+    }
+
+    // write room index
+    const idxPath = roomCellsIndexPath(roomName);
+    await ghPutJson(idxPath, index, null, `update room index ${roomName}`);
+    console.log('[ROOM INDEX WRITTEN]', roomName, 'boxes=', index.boxes.length);
+    return index;
+  }catch(e){
+    console.warn('[rebuildRoomCellsIndex ERROR]', e);
+    return null;
+  }
+}
 
 /**
- * Configura manejadores de botones y teclado.
+ * Migrate a room to V3 storage layout (cells of CELL_MAX_MESSAGES, boxes of BOX_MAX_MESSAGES)
+ * - dryRun=true only reports counts without writing
+ * - Idempotent: if manifest.v >= 3 it will skip
  */
-function initUiEvents() {
-  // Unirse / crear room
-  joinBtnEl.onclick = async () => {
-    try {
-      const wantedRoom   = (roomInputEl.value   || '').trim();
+async function migrateRoomToV3(roomName, opts = { dryRun: false }){
+  try{
+    if(!roomName) throw new Error('roomName required');
+    const dryRun = !!opts.dryRun;
+
+    const m = await ghGetManifestWithSha(roomName);
+    if(!m.obj) throw new Error('manifest not found');
+    if(Number(m.obj.v || 0) >= 3){
+      console.log('[MIGRATE] room already v3 or newer:', roomName);
+      return { ok:true, reason:'already v3' };
+    }
+
+    const latestCell = Number(m.obj.latestCell || 1);
+    const allMsgs = [];
+
+    // Read all existing cells sequentially
+    for(let i=1;i<=latestCell;i++){
+      try{
+        const c = await ghGetCellWithSha(roomName, i).catch(()=>({ arr:[] }));
+        if(Array.isArray(c.arr) && c.arr.length) allMsgs.push(...c.arr);
+      }catch(e){ /* ignore missing cells */ }
+    }
+
+    // Normalize and sort by timestamp to be safe
+    const normalized = allMsgs.map((x,idx)=> normalizeMessage(x) ).filter(Boolean);
+    normalized.sort((a,b)=> (a.ts||0) - (b.ts||0));
+
+    const totalMsgs = normalized.length;
+    const perCell = CELL_MAX_MESSAGES || 1;
+    const perBox = BOX_MAX_MESSAGES || (perCell * 25);
+    const cells = [];
+    for(let i=0;i<normalized.length;i += perCell){
+      const slice = normalized.slice(i, i+perCell);
+      // assign provisional cell number (1-based)
+      const cnum = Math.floor(i / perCell) + 1;
+      slice.forEach(mf=>{ if(mf) mf.cell = cnum; });
+      cells.push(slice);
+    }
+
+    const newLatestCell = cells.length || 1;
+
+    // Dry-run: report counts
+    if(dryRun){
+      console.log('[MIGRATE DRY RUN]', { room: roomName, totalMsgs, perCell, perBox, newCells: cells.length, boxes: Math.ceil(totalMsgs / perBox) });
+      return { ok:true, dryRun:true, totalMsgs, newCells: cells.length };
+    }
+
+    log(`🔁 Migrating room ${roomName} → V3: ${totalMsgs} messages, ${cells.length} cells`, 'INFO');
+
+    // Write new cells (overwrite existing names). Do sequentially to avoid rate issues.
+    for(let i=0;i<cells.length;i++){
+      const idx = i+1;
+      const path = cellPath(roomName, idx);
+      try{
+        await ghPutJson(path, cells[i], null, `v3 migrate cell ${idx} ${roomName}`);
+      }catch(e){
+        console.warn('[MIGRATE WRITE CELL FAILED]', path, e);
+      }
+    }
+
+    // Update manifest to v3
+    const newManifest = {
+      ...(m.obj || {}),
+      v: 3,
+      room: roomName,
+      createdAt: m.obj.createdAt || Date.now(),
+      updatedAt: Date.now(),
+      latestCell: newLatestCell,
+      totalMessages: totalMsgs,
+      cellMax: CELL_MAX_MESSAGES,
+      migratedToV3At: Date.now()
+    };
+
+    await ghPutJson(manifestPath(roomName), newManifest, m.sha, `migrate manifest v3 ${roomName}`);
+    cache.manifest = newManifest;
+
+    // Build boxes (group messages by perBox count)
+    const boxes = [];
+    for(let i=0;i<normalized.length;i += perBox){
+      const startMsgIdx = i; // 0-based
+      const slice = normalized.slice(i, i+perBox);
+      const boxIdx = Math.floor(i / perBox) + 1;
+      const startCell = Math.floor(startMsgIdx / perCell) + 1;
+      const endMsgIdx = i + slice.length - 1;
+      const endCell = Math.floor(endMsgIdx / perCell) + 1;
+
+      // write box file
+      const bp = boxPath(roomName, boxIdx);
+      try{
+        await ghPutJson(bp, slice, null, `v3 box ${boxIdx} ${roomName}`);
+        boxes.push({ box: boxIdx, startCell, endCell, startMsg: startMsgIdx, endMsg: endMsgIdx, createdAt: Date.now() });
+      }catch(e){
+        console.warn('[MIGRATE WRITE BOX FAILED]', bp, e);
+      }
+    }
+
+    // Write boxes index
+    try{
+      const bix = boxes.map(b=>({ box:b.box, startCell:b.startCell, endCell:b.endCell, createdAt:b.createdAt }));
+      await ghPutJson(boxesIndexPath(roomName), bix, null, `v3 boxes-index ${roomName}`);
+    }catch(e){ console.warn('[MIGRATE WRITE BOXES INDEX FAILED]', e); }
+
+    // Rebuild room index
+    await rebuildRoomCellsIndex(roomName).catch(()=>null);
+
+    log(`✅ Migración a V3 completada para ${roomName}: ${totalMsgs} mensajes en ${cells.length} celdas, ${boxes.length} cajas.`, 'INFO');
+    return { ok:true, migrated:true, totalMsgs, cells: cells.length, boxes: boxes.length };
+
+  }catch(e){
+    console.error('[migrateRoomToV3 ERROR]', e);
+    return { ok:false, error: e && e.message ? e.message : String(e) };
+  }
+}
+
+// Expose migration helper to console
+window.migrateRoomToV3 = migrateRoomToV3;
+
+// --- Migration UI helpers -------------------------------------------------
+function createMigrationPanel(){
+  try{
+    if(document.getElementById('migration-panel')) return;
+    const panel = document.createElement('div');
+    panel.id = 'migration-panel';
+    panel.style.cssText = 'position:fixed;right:12px;top:60px;z-index:9999;padding:10px;background:#111;color:#fff;border-radius:6px;font-family:Arial, sans-serif;box-shadow:0 4px 14px rgba(0,0,0,0.4)';
+    panel.innerHTML = `
+      <div style="font-weight:600;margin-bottom:6px">Migration (V3)</div>
+      <div style="margin-bottom:6px"><input id="migration-room" placeholder="room name" style="width:180px;padding:6px;border-radius:4px;border:1px solid #333;background:#000;color:#fff"></div>
+      <div style="display:flex;gap:6px">
+        <button id="migration-dry" style="padding:6px;border-radius:4px">Dry Run</button>
+        <button id="migration-run" style="padding:6px;border-radius:4px">Run</button>
+        <button id="migration-verify" style="padding:6px;border-radius:4px">Verify</button>
+      </div>
+      <div id="migration-log" style="margin-top:8px;max-height:160px;overflow:auto;background:#060606;padding:6px;border-radius:4px;font-size:12px"></div>
+    `;
+    document.body.appendChild(panel);
+
+    const roomInput = panel.querySelector('#migration-room');
+    panel.querySelector('#migration-dry').addEventListener('click', async ()=>{
+      const room = roomInput.value.trim();
+      if(!room) return alert('enter room name');
+      appendLog('Running dry-run...');
+      const r = await migrateRoomToV3(room, { dryRun: true });
+      appendLog(JSON.stringify(r, null, 2));
+    });
+    panel.querySelector('#migration-run').addEventListener('click', async ()=>{
+      const room = roomInput.value.trim();
+      if(!room) return alert('enter room name');
+      if(!confirm('Run full migration for room: '+room+'? This will attempt GitHub writes. Continue?')) return;
+      appendLog('Running migration...');
+      const r = await migrateRoomToV3(room, { dryRun: false });
+      appendLog(JSON.stringify(r, null, 2));
+    });
+    panel.querySelector('#migration-verify').addEventListener('click', async ()=>{
+      const room = roomInput.value.trim();
+      if(!room) return alert('enter room name');
+      appendLog('Verifying manifest and boxes index...');
+      try{
+        const m = await ghGetManifestWithSha(room).catch(e=>({obj:null}));
+        appendLog('manifest: '+(m && m.obj ? JSON.stringify(m.obj) : 'missing'));
+        const bix = await ghGetJson(boxesIndexPath(room)).catch(()=>null);
+        appendLog('boxes-index: '+(bix ? JSON.stringify(bix) : 'missing'));
+      }catch(e){ appendLog('verify error: '+String(e)); }
+    });
+
+    function appendLog(s){
+      const el = panel.querySelector('#migration-log');
+      const pre = document.createElement('pre');
+      pre.style.margin='0';
+      pre.style.whiteSpace='pre-wrap';
+      pre.textContent = (new Date()).toISOString() + ' ' + s;
+      el.insertBefore(pre, el.firstChild);
+    }
+  }catch(e){ console.warn('migration panel failed', e); }
+}
+
+// Auto-create the panel when page loads
+if(document && document.readyState !== 'loading') createMigrationPanel(); else document.addEventListener('DOMContentLoaded', createMigrationPanel);
+
+// Convenience full flow callable from console: run dry-run then prompt then migrate then verify
+async function runMigrationFlow(roomName){
+  if(!roomName) throw new Error('roomName required');
+  const dry = await migrateRoomToV3(roomName, { dryRun: true });
+  console.log('dry-run:', dry);
+  if(!confirm('Dry-run completed. Proceed with full migration for '+roomName+'?')) return { ok:false, reason:'aborted' };
+  const r = await migrateRoomToV3(roomName, { dryRun: false });
+  console.log('migration result:', r);
+  try{ await rebuildRoomCellsIndex(roomName); }catch(e){}
+  return r;
+}
+window.runMigrationFlow = runMigrationFlow;
+
+async function updateBoxIndexIfNeeded(roomName, cellNumber){
+  try{
+    if(!roomName || !cellNumber) return;
+    const cellsPerBox = CELLS_PER_BOX;
+    const boxNumber = Math.ceil(cellNumber / cellsPerBox);
+    // If this cell is the first in a box, register a new box entry
+    const firstInBox = ((cellNumber - 1) % cellsPerBox) === 0;
+    if(!firstInBox) return;
+
+    // Try to fetch existing index
+    const p = boxesIndexPath(roomName);
+    const g = await ghGetJsonWithSha(p).catch(()=>({ json:null, sha:null }));
+    const idx = Array.isArray(g.json) ? g.json : [];
+    const now = Date.now();
+    idx.push({ box: boxNumber, startCell: cellNumber, endCell: cellNumber + CELLS_PER_BOX - 1, createdAt: now });
+
+    try{
+      await ghPutJson(p, idx, g.sha, `add box ${boxNumber} ${roomName}`);
+    }catch(e){
+      // best-effort, ignore failures
+      console.warn('[BOX INDEX UPDATE FAILED]', e);
+    }
+  }catch(e){
+    console.warn('[updateBoxIndexIfNeeded ERROR]', e);
+  }
+}
+
+/** Prepend messages to the top of the messages DOM (older messages) */
+function prependMessages(messages){
+  if(!messagesEl || !Array.isArray(messages) || messages.length === 0) return;
+  const firstChild = messagesEl.firstChild;
+  // Insert older messages preserving chronological order
+  for(let i = messages.length - 1; i >= 0; i--){
+    const msg = messages[i];
+    const el = buildMessageElement(msg);
+    cache.msgElById.set(msg.id, el);
+    cache.msgById.set(msg.id, msg);
+    if(firstChild) messagesEl.insertBefore(el, firstChild);
+    else messagesEl.appendChild(el);
+  }
+}
+
+/** Load older messages on demand (count = number of messages desired) */
+async function loadOlderByMessages(count){
+  try{
+    if(!room) return;
+    const want = Math.max(1, Number(count || 20));
+    const perCell = CELL_MAX_MESSAGES || 1;
+    let needCells = Math.ceil(want / perCell);
+
+    let cnum = (cache.lastLoadedCell || 1) - 1;
+    const toFetch = [];
+    while(needCells > 0 && cnum >= 1){
+      toFetch.push(cnum);
+      needCells -= 1;
+      cnum -= 1;
+    }
+
+    if(toFetch.length === 0) return;
+
+    // Fetch older cells in descending order and prepend their messages
+    for(const cn of toFetch){
+      const cell = await readCellRaw(room, cn);
+      if(!cell.ok) continue;
+      // prepend oldest-first (so messages appear in correct order)
+      prependMessages(cell.messages);
+      cache.lastLoadedCell = Math.max(1, cn);
+      cache.lastLoadedCountInCell = cell.messages.length;
+    }
+  }catch(e){
+    console.error('[loadOlderByMessages ERROR]', e);
+  }
+}
+
+/** Setup scroll and wheel listeners to infer user intent and load older messages */
+function setupScrollLoader(){
+  try{
+    if(!messagesEl) return;
+    let lastY = 0, lastT = Date.now();
+    let wheelAccum = 0;
+
+    messagesEl.addEventListener('scroll', (ev) => {
+      const st = messagesEl.scrollTop || 0;
+      const now = Date.now();
+      const dt = Math.max(1, now - lastT);
+      const dy = Math.abs(st - lastY);
+      const speed = (dy / dt) * 1000; // px/s
+      lastY = st; lastT = now;
+
+      // If user scrolled near top, load older messages based on speed
+      if(st < 120){
+        const pack = (speed > 2000) ? 100 : (speed > 800 ? 50 : 20);
+        loadOlderByMessages(pack);
+      }
+    }, { passive:true });
+
+    messagesEl.addEventListener('wheel', (ev) => {
+      wheelAccum += Math.abs(ev.deltaY);
+      const now = Date.now();
+      if(wheelAccum > 800){
+        // aggressive wheel -> load more
+        loadOlderByMessages(100);
+        wheelAccum = 0;
+      }
+    }, { passive:true });
+  }catch(e){
+    console.warn('[setupScrollLoader ERROR]', e);
+  }
+}
+
+/* =====================================================================================
+   UI EVENTS
+===================================================================================== */
+function stopPolling(){
+  if(pollTimer){
+    clearTimeout(pollTimer);
+    pollTimer = null;
+  }
+  cache.pollInFlight = false;
+}
+
+function updatePollMsFromInput(){
+  const raw = parseInt(intervalEl.value, 10);
+  if(!Number.isNaN(raw)){
+    pollMs = Math.max(POLL_MS_MIN, Math.min(POLL_MS_MAX, raw));
+    intervalEl.value = String(pollMs);
+  }else{
+    pollMs = POLL_MS_DEFAULT;
+    intervalEl.value = String(pollMs);
+  }
+}
+
+function showChatUI(){
+  if(chatEl){
+    chatEl.style.display = 'flex';
+  }
+  if(headerStatusEl) headerStatusEl.textContent = 'Conectado';
+  if(chatRoomNameEl) chatRoomNameEl.textContent = room;
+  if(chatSenderNameEl) chatSenderNameEl.textContent = sender;
+  if(chatStatusEl) chatStatusEl.textContent = '● Conectado';
+}
+
+/** Manejador: click en acciones de mensajes */
+function setupMessageActionDelegation(){
+  if(!messagesEl) return;
+
+  messagesEl.addEventListener('click', async (e)=>{
+    const btn = e.target && e.target.closest ? e.target.closest('button[data-action]') : null;
+    if(!btn) return;
+
+    const action = btn.dataset.action;
+    const msgId  = btn.dataset.msgId;
+
+    if(!action || !msgId) return;
+
+    // Evita doble click spam
+    btn.disabled = true;
+
+    try{
+      if(action === 'edit'){
+        await editMessageById(msgId);
+      }else if(action === 'delete'){
+        await deleteMessageById(msgId);
+      }
+    }finally{
+      btn.disabled = false;
+    }
+  });
+}
+
+function initUiEvents(){
+  joinBtnEl.onclick = async ()=>{
+    try{
+      const wantedRoom = safeRoomName(roomInputEl.value || '');
       const wantedSender = (senderInputEl.value || '').trim() || 'Anon';
 
-      if (!wantedRoom) {
+      if(!wantedRoom){
         log('Escribe un nombre de sala antes de unirte.', 'WARN');
         return;
       }
 
-      room    = wantedRoom;
-      sender  = wantedSender;
+      // Estado
+      room = wantedRoom;
+      sender = wantedSender;
       running = true;
 
-      // --- Mostrar tarjeta de chat al usuario cuando se una a una sala ---
-      if (chatEl) {
-        // Quitamos posibles clases de oculto (como "hidden") para evitar conflictos
-        chatEl.classList.remove('hidden');
-        // Forzamos display:flex para que respete el layout del CSS existente
-        chatEl.style.display = 'flex';
-      }
+      // UI
+      showChatUI();
 
-      // Actualizamos textos de header/cabecera del chat si existen
-      if (headerStatusEl) headerStatusEl.textContent = 'Conectado';
-      if (chatRoomNameEl) chatRoomNameEl.textContent = room;
-      if (chatSenderNameEl) chatSenderNameEl.textContent = sender;
-      if (chatStatusEl) chatStatusEl.textContent = '● Conectado';
-
-      messagesCache = [];
-      lastSha       = null;
-      roomMeta      = null;
-      roomMetaSha   = null;
+      // Reset caches para la sala
+      messagesEl.innerHTML = '';
+      cache.msgElById.clear();
+      cache.masterEtag = null;
+      cache.manifestEtag = null;
+      cache.lastMasterStamp = 0;
+      cache.lastLoadedCell = 0;
+      cache.lastLoadedCountInCell = 0;
 
       logEl.textContent = '';
       log(`✨ Sala actual: "${room}"`, 'INFO');
-      log('Escribe un mensaje para comenzar.', 'INFO');
+      log('Cargando…', 'INFO');
 
-      // Aseguramos metadatos del room (creación si no existía)
+      // Poll interval
+      updatePollMsFromInput();
+
+      // Asegura meta + V2 storage (migración si hacía falta)
       await ensureRoomMetaExists();
       renderRoomMeta();
 
-      // Cargamos historial
-      const initial = await loadRoomMessages();
-      if (initial.length === 0) {
-        log('No hay mensajes previos en esta sala.', 'INFO');
-      } else {
-        log(`Historial cargado (${initial.length} mensajes).`, 'INFO');
+      await ensureRoomV2(room);
+
+      // Primera carga rápida (sin esperar a master)
+      const mf = await readManifestRaw(room);
+      const manifest = mf.manifest || cache.manifest;
+      if(manifest && manifest.v === 2){
+        await fetchAndApplyDeltas(room, manifest);
       }
-      fullRerender(initial);
 
-      // Arrancamos sistema del master
-      await startMasterSystemForCurrentRoom();
-    } catch (e) {
-      console.error('[JOIN ROOM ERROR]', e);
-      log('Error al unirse a la sala.', 'ERROR');
+      // Para que el poll reaccione incluso si master estaba 0:
+      // leemos master actual y lo guardamos
+      const ms = await readMasterStampRaw(room);
+      cache.lastMasterStamp = Number(ms.stamp || 0);
+
+      // Arrancamos polling
+      stopPolling();
+      pollLoop();
+
+      log('✅ Listo. (V2: sin full reload en cada update)', 'INFO');
+
+    }catch(e){
+      console.error('[JOIN ERROR]', e);
+      log('Error al unirse a la sala (token/repo/paths).', 'ERROR');
     }
   };
 
-  // Enviar mensaje
-  sendBtnEl.onclick = () => {
-    sendMessage();
-  };
+  sendBtnEl.onclick = ()=> sendMessage();
 
-  // Limpiar vista de mensajes localmente
-  clearBtnEl.onclick = () => {
-    if (messagesEl) {
-      messagesEl.innerHTML = '';
-      lastSeenTs = 0;
-      log('🧹 Vista de mensajes limpiada (no se borran del historial).', 'INFO');
-    }
-  };
+  // Enter behavior:
+  // - Ctrl/Cmd+Enter: send
+  // - Enter (no Shift) on non-touch devices: send
+  // - Shift+Enter: newline
+  inputEl.addEventListener('keydown', (e)=>{
+    try{
+      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+      if(e.key === 'Enter'){
+        // Ctrl/Cmd+Enter -> send
+        if(e.ctrlKey || e.metaKey){
+          e.preventDefault();
+          sendMessage();
+          return;
+        }
 
-  // Ctrl+Enter o Cmd+Enter para enviar
-  inputEl.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      sendMessage();
+        // If composing IME, ignore
+        if(e.isComposing) return;
+
+        // Plain Enter (no Shift) on desktop -> send
+        if(!e.shiftKey && !isTouch){
+          e.preventDefault();
+          sendMessage();
+          return;
+        }
+        // Otherwise (Shift+Enter or touch), allow default (newline or virtual keyboard behavior)
+      }
+    }catch(err){
+      // Fallback: do nothing
     }
   });
 
-  // Cambio manual del intervalo de polling
-  intervalEl.addEventListener('change', () => {
-    try {
-      const raw = parseInt(intervalEl.value, 10);
-      if (!Number.isNaN(raw) && raw > 0) {
-        masterPollMs = raw;
-        log(`⏱️ Intervalo de polling actualizado a ${masterPollMs} ms.`, 'INFO');
-      } else {
-        intervalEl.value = String(masterPollMs);
-      }
-    } catch (e) {
-      console.error('[INTERVAL CHANGE ERROR]', e);
+  // Clear local: limpia pantalla sin tocar GitHub
+  clearBtnEl.onclick = ()=>{
+    // Si hay muchos mensajes, hacemos “trim” fuerte para aliviar el UI
+    if(messagesEl.children.length > 4){
+      trimLocalView(4);
+      return;
     }
+    // Si ya está corto, usamos como “mini reset” (pide el usuario)
+    location.reload();
+  };
+
+  // Trim explícito
+  trimBtnEl.onclick = ()=> trimLocalView(4);
+
+  // Reset explícito
+  resetBtnEl.onclick = ()=> location.reload();
+
+  // Cambiar intervalo
+  intervalEl.addEventListener('change', ()=>{
+    updatePollMsFromInput();
+    log(`⏱️ Poll actualizado a ${pollMs} ms.`, 'INFO');
   });
 }
 
-/* ============================================================
+/* =====================================================================================
    ARRANQUE GLOBAL
-   ============================================================ */
-
-window.addEventListener('load', async () => {
-  try {
+===================================================================================== */
+window.addEventListener('load', async ()=>{
+  try{
     initDom();
-    initUserIdentity();
+    await initUserIdentity();
+    setupMessageActionDelegation();
 
     log('⏳ Cargando token de GitHub desde paste.rs...', 'INFO');
     await ensureGhToken();
-    log('✅ Listo. Puedes unirte a una sala.', 'INFO');
+    log('✅ Token listo. Puedes unirte a una sala.', 'INFO');
 
     initUiEvents();
-  } catch (e) {
-    console.error('[GLOBAL INIT ERROR]', e);
-    log('❌ Error al inicializar la app. Revisa conexión/token.', 'ERROR');
+
+  }catch(e){
+    console.error('[INIT ERROR]', e);
+    log('❌ Error al inicializar. Revisa conexión/token.', 'ERROR');
   }
 });
 </script>
+
+
+<!-- ============================
+     MODAL (sin alert/prompt)
+     ============================ -->
+<div id="modalOverlay" class="modal-overlay modal-hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal" tabindex="-1">
+    <div class="modal-header">
+      <div id="modalTitle" class="modal-title">Modal</div>
+      <button id="modalClose" class="modal-close" title="Cerrar">✕</button>
+    </div>
+    <div id="modalBody" class="modal-body"></div>
+    <div class="modal-footer">
+      <button id="modalCancel" class="btn btn-ghost">Cancelar</button>
+      <button id="modalOk" class="btn">OK</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
