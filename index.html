@@ -180,8 +180,37 @@
     }
     .chatHeader .meta{display:flex; flex-direction:column; gap:2px; min-width:0}
     .chatHeader .meta .room{font-size:13px; font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-    .chatHeader .meta .sub{font-size:11px;color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .chatHeader .meta .sub{font-size:11px;color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:8px}
     .chatHeader .people{font-size:11px;color:var(--muted); white-space:nowrap}
+    .cell-indicator{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      padding:3px 8px;
+      background:linear-gradient(135deg, rgba(56,189,248,.15), rgba(168,85,247,.1));
+      border:1px solid rgba(56,189,248,.3);
+      border-radius:8px;
+      font-size:10px;
+      font-weight:600;
+      color:var(--accent-primary);
+      letter-spacing:.3px;
+      transition:all .3s ease;
+    }
+    .cell-indicator.synced{
+      border-color:rgba(34,197,94,.4);
+      background:linear-gradient(135deg, rgba(34,197,94,.15), rgba(56,189,248,.08));
+      color:var(--ok);
+    }
+    .cell-indicator.behind{
+      border-color:rgba(245,158,11,.4);
+      background:linear-gradient(135deg, rgba(245,158,11,.15), rgba(239,68,68,.08));
+      color:var(--warn);
+      animation:pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%, 100% { opacity:1; transform:scale(1); }
+      50% { opacity:.85; transform:scale(1.02); }
+    }
     .msgs{
       padding:12px;
       overflow:auto;
@@ -1058,7 +1087,12 @@
     <div class="chatHeader">
       <div class="meta">
         <div class="room" id="roomTitle">—</div>
-        <div class="sub" id="roomSub">—</div>
+        <div class="sub" id="roomSub">
+          <span id="roomSubText">—</span>
+          <span class="cell-indicator" id="cellIndicator" title="Current viewing cell">
+            <span id="cellViewingNum">—</span>/<span id="cellTotalNum">—</span>
+          </span>
+        </div>
       </div>
       <div class="people" id="presenceSummary">presence: —</div>
       <button id="fullscreenBtn" class="fullscreen-toggle" title="Fullscreen chat">⛶</button>
@@ -1178,6 +1212,10 @@ const fullscreenBtn = el("fullscreenBtn");
 const chatPanel  = el("chatPanel");
 const roomTitle  = el("roomTitle");
 const roomSub    = el("roomSub");
+const roomSubText = el("roomSubText");
+const cellIndicator = el("cellIndicator");
+const cellViewingNum = el("cellViewingNum");
+const cellTotalNum = el("cellTotalNum");
 const presenceSummary = el("presenceSummary");
 
 const messagesEl = el("messages");
@@ -2494,6 +2532,81 @@ let running = false;
 // Last known master state
 let masterLastValue = false;
 
+/* ============================================================
+   CELL TRACKING & CACHE
+   ============================================================ */
+let cellMetadata = {
+  currentViewingCell: null,
+  totalCells: 0,
+  latestCell: 0,
+  isSynced: false,
+  lastUpdate: 0
+};
+
+function saveCellMetadataToCache(){
+  if(!currentRoom) return;
+  try{
+    const key = `cp2p_cell_${currentRoom}`;
+    localStorage.setItem(key, JSON.stringify(cellMetadata));
+  }catch(e){
+    console.warn("[Cell Cache] Save failed:", e);
+  }
+}
+
+function loadCellMetadataFromCache(){
+  if(!currentRoom) return;
+  try{
+    const key = `cp2p_cell_${currentRoom}`;
+    const raw = localStorage.getItem(key);
+    if(raw){
+      const cached = JSON.parse(raw);
+      cellMetadata = {...cellMetadata, ...cached};
+      updateCellIndicatorUI();
+      log(`📦 Cell cache loaded: viewing ${cached.currentViewingCell}/${cached.totalCells}`, "INFO");
+    }
+  }catch(e){
+    console.warn("[Cell Cache] Load failed:", e);
+  }
+}
+
+function updateCellMetadata(viewing, total, latest){
+  cellMetadata.currentViewingCell = viewing;
+  cellMetadata.totalCells = total;
+  cellMetadata.latestCell = latest;
+  cellMetadata.isSynced = (viewing >= latest - 1); // Synced if viewing latest or one before
+  cellMetadata.lastUpdate = Date.now();
+  
+  updateCellIndicatorUI();
+  saveCellMetadataToCache();
+}
+
+function updateCellIndicatorUI(){
+  const viewing = cellMetadata.currentViewingCell || 0;
+  const total = cellMetadata.totalCells || 0;
+  const latest = cellMetadata.latestCell || 0;
+  
+  if(viewing > 0 && total > 0){
+    cellViewingNum.textContent = `Cell ${viewing}`;
+    cellTotalNum.textContent = `${total}`;
+    
+    // Update sync status
+    cellIndicator.classList.remove('synced', 'behind');
+    if(viewing >= latest){
+      cellIndicator.classList.add('synced');
+      cellIndicator.title = `Viewing latest cell (${viewing}/${total})`;
+    }else if(latest - viewing >= 2){
+      cellIndicator.classList.add('behind');
+      cellIndicator.title = `Behind by ${latest - viewing} cells - pull to refresh`;
+    }else{
+      cellIndicator.title = `Viewing cell ${viewing} of ${total}`;
+    }
+  }else{
+    cellViewingNum.textContent = '—';
+    cellTotalNum.textContent = '—';
+    cellIndicator.title = 'No cells loaded';
+  }
+}
+
 // Poll loop guards
 let pollTimer = null;
 let pollInFlight = false;
@@ -2762,7 +2875,11 @@ async function loadCellsRange(roomName, startCell, endCell){
     if(got.ok && Array.isArray(got.obj)){
       for(const raw of got.obj){
         const msg = normalizeMessage(raw);
-        if(msg) out.push(msg);
+        if(msg){
+          // Tag message with cell number for live tracking
+          msg.cell = c;
+          out.push(msg);
+        }
       }
     }
   }
@@ -3062,7 +3179,10 @@ function addMessageToDom(m, silent=false, prepend=false){
   const wrap = document.createElement("div");
   wrap.className = "msg" + ((session && m.userId===session.userId) ? " me" : "");
   wrap.dataset.msgId = m.id;
-  if(m.cell) wrap.dataset.cell = String(m.cell);
+  // Store cell number for live detection
+  if(m.cell !== undefined && m.cell !== null){
+    wrap.dataset.cell = String(m.cell);
+  }
   wrap.dataset.ts = String(m.ts);
 
   const text = document.createElement("div");
@@ -3147,6 +3267,85 @@ function pickLoadCountFromScrollSpeed(pxPerSec){
   if(pxPerSec >= 2400) return 100;
   if(pxPerSec >= 1200) return 50;
   return 20;
+}
+
+/* ============================================================
+   LIVE CELL DETECTION (Scroll-based)
+   ============================================================ */
+let cellDetectionThrottle = null;
+
+function detectVisibleCells(){
+  if(!messagesEl || !currentRoom) return;
+  
+  // Get all message nodes in viewport
+  const rect = messagesEl.getBoundingClientRect();
+  const messages = messagesEl.querySelectorAll('.msg');
+  
+  if(messages.length === 0) return;
+  
+  // Find messages in viewport (center 50% for stability)
+  const centerY = rect.top + rect.height / 2;
+  const tolerance = rect.height * 0.25; // 25% tolerance
+  
+  const visibleCells = new Set();
+  let closestToCenter = null;
+  let closestDistance = Infinity;
+  
+  for(const msg of messages){
+    const msgRect = msg.getBoundingClientRect();
+    const msgCenterY = msgRect.top + msgRect.height / 2;
+    const distance = Math.abs(msgCenterY - centerY);
+    
+    // Check if in viewport center area
+    if(distance < tolerance){
+      const cellNum = parseInt(msg.dataset.cell || '0', 10);
+      if(cellNum > 0) visibleCells.add(cellNum);
+    }
+    
+    // Track closest to exact center
+    if(distance < closestDistance){
+      closestDistance = distance;
+      closestToCenter = msg;
+    }
+  }
+  
+  // Use cell closest to center as "current viewing cell"
+  let viewingCell = null;
+  if(closestToCenter){
+    viewingCell = parseInt(closestToCenter.dataset.cell || '0', 10);
+  }
+  
+  // If no cell found, use first visible
+  if(!viewingCell && visibleCells.size > 0){
+    viewingCell = Math.min(...Array.from(visibleCells));
+  }
+  
+  // Update metadata if changed
+  if(viewingCell && viewingCell !== cellMetadata.currentViewingCell){
+    const totalCells = loadedCellsMax || roomIndex?.latestCell || 0;
+    const latestCell = roomIndex?.latestCell || totalCells;
+    updateCellMetadata(viewingCell, totalCells, latestCell);
+  }
+}
+
+function startCellDetection(){
+  if(!messagesEl) return;
+  
+  // Throttled scroll listener
+  messagesEl.addEventListener('scroll', ()=>{
+    clearTimeout(cellDetectionThrottle);
+    cellDetectionThrottle = setTimeout(detectVisibleCells, 150);
+  }, {passive: true});
+  
+  // Initial detection
+  setTimeout(detectVisibleCells, 500);
+  
+  // Periodic check every 3 seconds (backup)
+  setInterval(()=>{
+    if(running && currentRoom && messagesEl.childElementCount > 0){
+      detectVisibleCells();
+    }
+  }, 3000);
 }
 
 function installLazyLoader(){
@@ -3782,7 +3981,7 @@ async function syncLatestFromStorage(){
   // Load newest messages - check last 3 cells to ensure completeness
   await loadRoomIndex(currentRoom);
 
-  const latestCell = roomIndex.latestCell || 1;
+  const latestCellNum = roomIndex.latestCell || 1;
 
   // If nothing loaded yet -> load latest
   if(loadedCellsMax === null){
@@ -3794,14 +3993,14 @@ async function syncLatestFromStorage(){
 
   // CRITICAL: Check if user is behind by comparing their last loaded cell to actual latest
   // Always check the last 3 cells to catch any missed messages
-  const safeCheckFrom = Math.max(1, latestCell - 2); // Check last 3 cells
+  const safeCheckFrom = Math.max(1, latestCellNum - 2); // Check last 3 cells
   const needToCheck = loadedCellsMax < safeCheckFrom;
   
   if(needToCheck){
     // User is significantly behind - load ALL missing cells
-    log(`📦 Loading missing cells ${loadedCellsMax+1} to ${latestCell}`, "INFO");
-    const newMsgs = await loadCellsRange(currentRoom, loadedCellsMax+1, latestCell);
-    loadedCellsMax = latestCell;
+    log(`📦 Loading missing cells ${loadedCellsMax+1} to ${latestCellNum}`, "INFO");
+    const newMsgs = await loadCellsRange(currentRoom, loadedCellsMax+1, latestCellNum);
+    loadedCellsMax = latestCellNum;
     
     // Filter out duplicates and add to DOM
     let addedCount = 0;
@@ -3814,9 +4013,18 @@ async function syncLatestFromStorage(){
     }
     
     if(addedCount > 0){
-      log(`📨 ${addedCount} new message(s) received (loaded ${latestCell - loadedCellsMax} cells)`, "INFO");
+      log(`📨 ${addedCount} new message(s) received (loaded cells)`, "INFO");
       setupReadObserver();
     }
+    
+    // Update cell metadata after sync
+    const totalCells1 = loadedCellsMax || (roomIndex?.latestCell || 0);
+    const latestForMeta1 = roomIndex?.latestCell || totalCells1;
+    const currentViewing1 = cellMetadata.currentViewingCell || latestForMeta1;
+    updateCellMetadata(currentViewing1, totalCells1, latestForMeta1);
+    
+    // Detect visible cells after new messages load
+    setTimeout(detectVisibleCells, 300);
     
     await maybeRefreshPresence();
     updateReadBadges();
@@ -3824,13 +4032,13 @@ async function syncLatestFromStorage(){
   }
 
   // User is close to latest - check if there are new cells
-  if(latestCell <= loadedCellsMax){
+  if(latestCellNum <= loadedCellsMax){
     // No new cells, but reload last 3 cells to ensure completeness
     // (in case messages were added to existing cells)
-    const reloadFrom = Math.max(1, latestCell - 2);
+    const reloadFrom = Math.max(1, latestCellNum - 2);
     if(reloadFrom <= loadedCellsMax){
-      log(`🔄 Verifying last 3 cells (${reloadFrom} to ${latestCell})`, "INFO");
-      const msgs = await loadCellsRange(currentRoom, reloadFrom, latestCell);
+      log(`🔄 Verifying last 3 cells (${reloadFrom} to ${latestCellNum})`, "INFO");
+      const msgs = await loadCellsRange(currentRoom, reloadFrom, latestCellNum);
       
       // Add any messages we don't have yet
       let addedCount = 0;
@@ -3854,9 +4062,9 @@ async function syncLatestFromStorage(){
   }
 
   // Load new cells from user's position to latest
-  log(`📥 Loading new cells ${loadedCellsMax+1} to ${latestCell}`, "INFO");
-  const newMsgs = await loadCellsRange(currentRoom, loadedCellsMax+1, latestCell);
-  loadedCellsMax = latestCell;
+  log(`📥 Loading new cells ${loadedCellsMax+1} to ${latestCellNum}`, "INFO");
+  const newMsgs = await loadCellsRange(currentRoom, loadedCellsMax+1, latestCellNum);
+  loadedCellsMax = latestCellNum;
 
   // Filter out duplicates and add to DOM
   let addedCount = 0;
@@ -3874,6 +4082,15 @@ async function syncLatestFromStorage(){
     log(`📨 ${addedCount} new message(s) received`, "INFO");
     setupReadObserver();
   }
+  
+  // Update cell metadata after sync
+  const totalCells2 = loadedCellsMax || (roomIndex?.latestCell || 0);
+  const latestForMeta2 = roomIndex?.latestCell || totalCells2;
+  const currentViewing2 = cellMetadata.currentViewingCell || latestForMeta2;
+  updateCellMetadata(currentViewing2, totalCells2, latestForMeta2);
+  
+  // Detect visible cells after new messages load
+  setTimeout(detectVisibleCells, 300);
   
   await maybeRefreshPresence();
   updateReadBadges();
@@ -3992,7 +4209,10 @@ joinBtn.onclick = async ()=>{
     chatPanel.style.display = "flex";
     syncBtn.style.display = "inline-block";
     roomTitle.textContent = `#${currentRoom}`;
-    roomSub.textContent = `storage: V3 · cell=${CELL_MAX_MESSAGES} · box=${CELLS_PER_BOX} cells`;
+    roomSubText.textContent = `V3 Storage`;
+    
+    // Load cell metadata from cache
+    loadCellMetadataFromCache();
 
     // Presence: join => online=true
     presenceState.inRoom = true;
@@ -4005,6 +4225,14 @@ joinBtn.onclick = async ()=>{
     // Lazy load + observers
     installLazyLoader();
     setupReadObserver();
+    
+    // Start live cell detection
+    startCellDetection();
+    
+    // Update cell metadata with initial state
+    const totalCells = loadedCellsMax || roomIndex?.latestCell || 0;
+    const latestCell = roomIndex?.latestCell || totalCells;
+    updateCellMetadata(latestCell, totalCells, latestCell);
 
     // Kick poll loop
     clearTimeout(pollTimer);
