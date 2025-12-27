@@ -509,6 +509,7 @@
     .composer-main{
       display:flex;
       gap:10px;
+      align-items:flex-end;
     }
     .composer textarea{
       flex:1;
@@ -534,6 +535,326 @@
       border-color:rgba(56,189,248,.5);
       background:rgba(0,0,0,.35);
       box-shadow:0 0 0 3px rgba(56,189,248,.1);
+    }
+    
+    /* Audio Recording Controls */
+    .audio-record-btn{
+      width:44px;
+      height:44px;
+      border-radius:50%;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      background:linear-gradient(135deg, rgba(56,189,248,.15), rgba(168,85,247,.15));
+      border:1px solid var(--border);
+      transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
+      font-size:20px;
+      position:relative;
+    }
+    .audio-record-btn:hover{
+      background:linear-gradient(135deg, rgba(56,189,248,.25), rgba(168,85,247,.25));
+      transform:scale(1.05);
+      box-shadow:0 4px 12px rgba(56,189,248,.2);
+    }
+    .audio-record-btn.recording{
+      background:linear-gradient(135deg, rgba(239,68,68,.2), rgba(220,38,38,.2));
+      border-color:rgba(239,68,68,.5);
+      animation:pulse-record 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-record{
+      0%, 100%{box-shadow:0 0 0 0 rgba(239,68,68,.7);}
+      50%{box-shadow:0 0 0 10px rgba(239,68,68,0);}
+    }
+    
+    /* Audio Recording Modal */
+    .audio-modal{
+      position:fixed;
+      top:0; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,.85);
+      backdrop-filter:blur(8px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:10000;
+      padding:20px;
+    }
+    .audio-modal.active{
+      display:flex;
+    }
+    .audio-modal-content{
+      background:var(--panel);
+      border-radius:var(--radius);
+      padding:30px;
+      max-width:400px;
+      width:100%;
+      box-shadow:var(--shadow);
+      border:1px solid var(--border);
+    }
+    .audio-modal-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:20px;
+    }
+    .audio-modal-title{
+      font-size:18px;
+      font-weight:600;
+    }
+    .audio-close-btn{
+      background:transparent;
+      border:none;
+      color:var(--muted);
+      font-size:24px;
+      cursor:pointer;
+      padding:0;
+      width:32px;
+      height:32px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:8px;
+      transition:all .2s ease;
+    }
+    .audio-close-btn:hover{
+      background:rgba(239,68,68,.1);
+      color:var(--bad);
+    }
+    .audio-visualizer{
+      width:100%;
+      height:80px;
+      background:rgba(0,0,0,.3);
+      border-radius:12px;
+      margin:20px 0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:3px;
+      padding:0 15px;
+      overflow:hidden;
+    }
+    .audio-bar{
+      width:4px;
+      background:linear-gradient(to top, var(--accent-primary), var(--accent-secondary));
+      border-radius:2px;
+      transition:height .1s ease;
+      min-height:4px;
+    }
+    .audio-timer{
+      text-align:center;
+      font-size:24px;
+      font-weight:600;
+      color:var(--txt);
+      margin:15px 0;
+      font-variant-numeric:tabular-nums;
+    }
+    .audio-controls{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      margin-top:20px;
+    }
+    .audio-control-btn{
+      padding:12px 20px;
+      border-radius:12px;
+      font-size:14px;
+      font-weight:500;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      transition:all .2s ease;
+    }
+    .audio-control-btn.record{
+      background:linear-gradient(135deg, rgba(239,68,68,.2), rgba(220,38,38,.2));
+      border-color:rgba(239,68,68,.5);
+      color:var(--bad);
+    }
+    .audio-control-btn.pause{
+      background:linear-gradient(135deg, rgba(251,191,36,.2), rgba(245,158,11,.2));
+      border-color:rgba(251,191,36,.5);
+      color:var(--warn);
+    }
+    .audio-control-btn.send{
+      background:linear-gradient(135deg, rgba(34,197,94,.2), rgba(22,163,74,.2));
+      border-color:rgba(34,197,94,.5);
+      color:var(--ok);
+    }
+    .audio-lock-indicator{
+      position:absolute;
+      bottom:-40px;
+      left:50%;
+      transform:translateX(-50%);
+      background:rgba(251,191,36,.15);
+      border:1px solid rgba(251,191,36,.3);
+      border-radius:20px;
+      padding:8px 16px;
+      font-size:12px;
+      color:var(--warn);
+      white-space:nowrap;
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .3s ease;
+    }
+    .audio-lock-indicator.show{
+      opacity:1;
+    }
+    
+    /* Mobile Gesture Indicators */
+    .gesture-hint{
+      position:fixed;
+      display:none;
+      z-index:10001;
+      pointer-events:none;
+    }
+    .gesture-hint.active{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:10px;
+    }
+    .gesture-lock{
+      position:absolute;
+      top:-100px;
+      left:50%;
+      transform:translateX(-50%);
+      background:rgba(34,197,94,.2);
+      border:2px solid rgba(34,197,94,.5);
+      border-radius:50%;
+      width:60px;
+      height:60px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:28px;
+      transition:all .2s ease;
+    }
+    .gesture-lock.highlight{
+      background:rgba(34,197,94,.4);
+      transform:translateX(-50%) scale(1.2);
+    }
+    .gesture-cancel{
+      position:absolute;
+      left:-120px;
+      top:50%;
+      transform:translateY(-50%);
+      background:rgba(239,68,68,.2);
+      border:2px solid rgba(239,68,68,.5);
+      border-radius:50%;
+      width:60px;
+      height:60px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:28px;
+      transition:all .2s ease;
+    }
+    .gesture-cancel.highlight{
+      background:rgba(239,68,68,.4);
+      transform:translateY(-50%) scale(1.2);
+    }
+    .gesture-text{
+      position:absolute;
+      bottom:-50px;
+      left:50%;
+      transform:translateX(-50%);
+      background:rgba(0,0,0,.8);
+      padding:8px 16px;
+      border-radius:20px;
+      font-size:12px;
+      white-space:nowrap;
+      color:var(--txt);
+    }
+    .recording-overlay{
+      position:fixed;
+      top:0; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,.5);
+      z-index:10000;
+      display:none;
+      backdrop-filter:blur(4px);
+    }
+    .recording-overlay.active{
+      display:block;
+    }
+    
+    /* Audio Message Bubbles */
+    .msg-audio{
+      background:linear-gradient(135deg, rgba(56,189,248,.12), rgba(168,85,247,.08));
+      border-radius:12px;
+      padding:12px;
+      margin-top:8px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:280px;
+      max-width:350px;
+    }
+    .audio-play-btn{
+      width:42px;
+      height:42px;
+      min-width:42px;
+      border-radius:50%;
+      background:linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border:none;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:all .2s ease;
+      color:#fff;
+      font-size:16px;
+    }
+    .audio-play-btn:hover{
+      transform:scale(1.05);
+      box-shadow:0 4px 12px rgba(56,189,248,.3);
+    }
+    .audio-waveform{
+      flex:1;
+      height:40px;
+      display:flex;
+      align-items:center;
+      gap:2px;
+      cursor:pointer;
+    }
+    .audio-wave-bar{
+      width:3px;
+      background:rgba(56,189,248,.3);
+      border-radius:2px;
+      opacity:.6;
+      transition:all .05s ease;
+      position:relative;
+    }
+    .audio-wave-bar.active{
+      opacity:1;
+      background:linear-gradient(to top, var(--accent-primary), var(--accent-secondary));
+      box-shadow:0 0 4px rgba(56,189,248,.5);
+    }
+    .audio-wave-bar.active::after{
+      content:'';
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      bottom:0;
+      background:linear-gradient(to top, rgba(56,189,248,.4), rgba(168,85,247,.4));
+      filter:blur(2px);
+      z-index:-1;
+    }
+    .audio-duration{
+      font-size:12px;
+      color:var(--muted);
+      font-variant-numeric:tabular-nums;
+      min-width:80px;
+      text-align:right;
+      line-height:1.4;
+    }
+    .audio-play-btn[disabled]{
+      opacity:0.6;
+      cursor:not-allowed;
+      transform:scale(1);
+    }
+    .audio-play-btn[disabled]:hover{
+      transform:scale(1);
+      box-shadow:none;
     }
     .log{
       padding:10px 12px;
@@ -1153,6 +1474,47 @@
         max-height:80px;
         padding:8px 10px;
       }
+      
+      /* Audio controls for mobile */
+      .audio-record-btn{
+        width:48px;
+        height:48px;
+        font-size:22px;
+      }
+      
+      .audio-modal-content{
+        max-width:90%;
+        padding:20px;
+      }
+      
+      .audio-visualizer{
+        height:60px;
+      }
+      
+      .audio-timer{
+        font-size:20px;
+      }
+      
+      .audio-controls{
+        flex-direction:column;
+      }
+      
+      .audio-control-btn{
+        width:100%;
+        justify-content:center;
+      }
+      
+      .msg-audio{
+        min-width:240px;
+        max-width:90%;
+      }
+      
+      .audio-play-btn{
+        width:38px;
+        height:38px;
+        min-width:38px;
+        font-size:14px;
+      }
     }
 
     /* Tablet: 641px - 1024px */
@@ -1298,10 +1660,38 @@
         <div class="reply-preview-text" id="replyToText"></div>
       </div>
       <div class="composer-main">
+        <button id="audioRecordBtn" class="audio-record-btn" title="Record audio message">🎤</button>
         <textarea id="msgInput" placeholder="Type… (Enter to send — Shift+Enter for newline)"></textarea>
         <button id="sendBtn" class="primary">Send</button>
         <button id="clearBtn">Clear view</button>
       </div>
+    </div>
+
+    <!-- Audio Recording Modal -->
+    <div class="audio-modal" id="audioModal">
+      <div class="audio-modal-content">
+        <div class="audio-modal-header">
+          <span class="audio-modal-title">🎤 Recording Audio</span>
+          <button class="audio-close-btn" id="audioCloseBtn">✕</button>
+        </div>
+        <div class="audio-visualizer" id="audioVisualizer">
+          <!-- Waveform bars will be generated here -->
+        </div>
+        <div class="audio-timer" id="audioTimer">0:00</div>
+        <div class="audio-controls">
+          <button class="audio-control-btn record" id="audioStopBtn">⏹️ Stop</button>
+          <button class="audio-control-btn pause" id="audioPauseBtn">⏸️ Pause</button>
+          <button class="audio-control-btn send" id="audioSendBtn" style="display:none;">📤 Send</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Gesture Hints -->
+    <div class="recording-overlay" id="recordingOverlay"></div>
+    <div class="gesture-hint" id="gestureHint">
+      <div class="gesture-lock" id="gestureLock">🔒</div>
+      <div class="gesture-cancel" id="gestureCancel">❌</div>
+      <div class="gesture-text" id="gestureText">Hold to record</div>
     </div>
 
     <div class="log" id="log"></div>
@@ -1422,6 +1812,19 @@ const mentionBadge = el("mentionBadge");
 const messagesEl = el("messages");
 const msgInput   = el("msgInput");
 const sendBtn    = el("sendBtn");
+const audioRecordBtn = el("audioRecordBtn");
+const audioModal = el("audioModal");
+const audioCloseBtn = el("audioCloseBtn");
+const audioVisualizer = el("audioVisualizer");
+const audioTimer = el("audioTimer");
+const audioStopBtn = el("audioStopBtn");
+const audioPauseBtn = el("audioPauseBtn");
+const audioSendBtn = el("audioSendBtn");
+const recordingOverlay = el("recordingOverlay");
+const gestureHint = el("gestureHint");
+const gestureLock = el("gestureLock");
+const gestureCancel = el("gestureCancel");
+const gestureText = el("gestureText");
 const clearBtn   = el("clearBtn");
 const replyPreview = el("replyPreview");
 const replyToUser = el("replyToUser");
@@ -1606,6 +2009,63 @@ async function ghGetJsonWithSha(path){
   const jsonText = contentB64 ? b64DecodeUtf8(contentB64) : "";
   const obj = jsonText.trim() ? JSON.parse(jsonText) : null;
   return { ok:true, status:res.status, obj, sha:data.sha||null, rawText };
+}
+
+// Contents PUT File (for binary data like audio)
+async function ghPutFile(path, base64Content, sha=null, message="upload file"){
+  await ensureGhToken();
+  const body = {
+    message: `${message} ${new Date().toISOString()}`,
+    content: base64Content,
+    branch: GH_BRANCH
+  };
+  if(sha) body.sha = sha;
+
+  // Try PUT, and on 422/409 attempt one retry by fetching current sha
+  const doPut = async (putBody) => {
+    const res = await fetch(ghFileUrl(path), {
+      method:"PUT",
+      headers:{
+        "Accept":"application/vnd.github+json",
+        "Authorization":`Bearer ${GH_TOKEN}`,
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify(putBody)
+    });
+    const raw = await res.text();
+    return { res, raw };
+  };
+
+  let attempt = 0;
+  let lastErr = null;
+  while(attempt < 2){
+    const { res, raw } = await doPut(body);
+    if(res.ok){
+      const data = JSON.parse(raw || '{}');
+      return { ok:true, status: res.status, sha: data?.content?.sha || null, url: data?.content?.download_url || null };
+    }
+
+    // If GitHub complains about missing sha or conflict, try to GET current sha and retry once
+    if((res.status === 422 || res.status === 409) && attempt === 0){
+      try{
+        const got = await ghGetJsonWithSha(path);
+        if(got.sha) body.sha = got.sha;
+        else body.sha = null;
+        attempt++;
+        continue;
+      }catch(e){
+        lastErr = e;
+        break;
+      }
+    }
+
+    // Other failures: capture and throw
+    console.error("[ghPutFile ERROR]", {path, status: res.status, raw});
+    lastErr = new Error(`ghPutFile failed status=${res.status} path=${path}`);
+    break;
+  }
+
+  throw lastErr || new Error(`ghPutFile failed for ${path}`);
 }
 
 // Contents PUT JSON
@@ -3126,6 +3586,10 @@ let presenceCache = new Map(); // userId -> obj
 let presenceDirSha = null;
 let lastPresenceRefreshAt = 0;
 
+// Audio cache for in-browser playback
+let audioCache = new Map(); // audioPath -> { blob, blobUrl, size, cachedAt }
+const AUDIO_CACHE_MAX_AGE = 3600000; // 1 hour in milliseconds
+
 // Read receipts throttling
 let lastReadWriteAt = 0;
 
@@ -3318,7 +3782,7 @@ async function rebuildV3FromMessages(roomName, messages){
 function normalizeMessage(raw){
   if(!raw || typeof raw !== "object") return null;
   const ts = (typeof raw.ts === "number") ? raw.ts : Date.now();
-  return {
+  const normalized = {
     id: raw.id || `m-${ts}-${Math.random().toString(36).slice(2,8)}`,
     room: raw.room || currentRoom || "unknown",
     sender: raw.sender || "Anon",
@@ -3332,6 +3796,19 @@ function normalizeMessage(raw){
     replyTo: raw.replyTo || null, // {msgId, sender, text}
     mentions: raw.mentions || [] // Array of mentioned usernames
   };
+  
+  // Preserve audio metadata if present
+  if(raw.type === 'audio'){
+    normalized.type = 'audio';
+    normalized.audioPath = raw.audioPath || null;
+    normalized.audioData = raw.audioData || null;
+    normalized.audioSize = raw.audioSize || 0;
+    normalized.audioFileName = raw.audioFileName || null;
+    normalized.audioFolderType = raw.audioFolderType || null;
+    normalized.audioDuration = raw.audioDuration || 0;
+  }
+  
+  return normalized;
 }
 
 /* ============================================================
@@ -3380,6 +3857,18 @@ async function loadCellsRange(roomName, startCell, endCell){
           // Tag message with cell number for live tracking
           msg.cell = c;
           out.push(msg);
+          
+          // Debug: Log audio messages
+          if(msg.type === 'audio'){
+            console.log('📼 Loaded audio message from GitHub:', {
+              msgId: msg.id,
+              hasPath: !!msg.audioPath,
+              hasData: !!msg.audioData,
+              size: formatBytes(msg.audioSize || 0),
+              duration: msg.audioDuration,
+              path: msg.audioPath
+            });
+          }
         }
       }
     }
@@ -3712,13 +4201,234 @@ function addMessageToDom(m, silent=false, prepend=false){
   const text = document.createElement("div");
   text.className = "text";
   
-  // Highlight mentions in text
-  if(!m.deleted){
-    const currentUser = session?.username || nameInput.value || localGuest.name;
-    const highlightedText = highlightMentions(m.text, currentUser);
-    text.innerHTML = highlightedText;
+  // Check if this is an audio message
+  if(m.type === 'audio' && (m.audioData || m.audioPath)){
+    const audioMsg = document.createElement("div");
+    audioMsg.className = "msg-audio";
+    audioMsg.dataset.msgId = m.id;
+    
+    const audioPlayBtn = document.createElement("button");
+    audioPlayBtn.className = "audio-play-btn";
+    audioPlayBtn.innerHTML = "⬇️"; // Download icon initially
+    audioPlayBtn.dataset.playing = "false";
+    audioPlayBtn.dataset.loaded = "false";
+    audioPlayBtn.title = "Tap to download and play";
+    
+    const audioWaveform = document.createElement("div");
+    audioWaveform.className = "audio-waveform";
+    
+    // Generate waveform bars
+    const barCount = 30;
+    for(let i = 0; i < barCount; i++){
+      const bar = document.createElement("div");
+      bar.className = "audio-wave-bar";
+      const height = Math.random() * 30 + 10;
+      bar.style.height = height + 'px';
+      audioWaveform.appendChild(bar);
+    }
+    
+    const audioDuration = document.createElement("div");
+    audioDuration.className = "audio-duration";
+    
+    // Show file size initially if not downloaded yet
+    const audioSize = m.audioSize || 0;
+    const durationSec = Math.floor(m.audioDuration || 0);
+    
+    if(audioSize > 0){
+      // Show size before download
+      audioDuration.innerHTML = `<span style="opacity:0.7">${formatBytes(audioSize)}</span> · ${formatDuration(durationSec)}`;
+    }else{
+      audioDuration.textContent = formatDuration(durationSec);
+    }
+    
+    // Audio element (hidden)
+    const audioElement = document.createElement("audio");
+    audioElement.style.display = "none";
+    audioElement.preload = "metadata";
+    audioElement.dataset.msgId = m.id;
+    
+    // Load audio function (on-demand)
+    const loadAudioOnDemand = async () => {
+      if(audioPlayBtn.dataset.loaded === "true") return true;
+      
+      audioPlayBtn.innerHTML = "⏳";
+      audioPlayBtn.disabled = true;
+      audioDuration.innerHTML = `<span style="opacity:0.7">Loading...</span>`;
+      
+      try{
+        if(m.audioPath){
+          // Get from cache or download
+          const cached = await getCachedAudio(m.audioPath);
+          if(!cached) throw new Error('Failed to download audio');
+          
+          audioElement.src = cached.blobUrl;
+          audioPlayBtn.innerHTML = "▶️";
+          audioPlayBtn.disabled = false;
+          audioPlayBtn.dataset.loaded = "true";
+          audioPlayBtn.title = "Play audio";
+          
+          // Update duration display to show just time now
+          audioDuration.textContent = formatDuration(durationSec);
+          
+          console.log('Audio ready for playback:', {
+            msgId: m.id,
+            size: formatBytes(cached.size),
+            path: m.audioPath
+          });
+          
+          return true;
+        }else if(m.audioData){
+          // Use base64 data (legacy or just-sent)
+          audioElement.src = m.audioData;
+          audioPlayBtn.innerHTML = "▶️";
+          audioPlayBtn.disabled = false;
+          audioPlayBtn.dataset.loaded = "true";
+          audioPlayBtn.title = "Play audio";
+          audioDuration.textContent = formatDuration(durationSec);
+          return true;
+        }
+      }catch(err){
+        console.error('Error loading audio:', err);
+        audioPlayBtn.innerHTML = "❌";
+        audioPlayBtn.disabled = true;
+        audioDuration.innerHTML = `<span style="opacity:0.7;color:var(--danger)">Failed</span>`;
+        showToast('Failed to load audio: ' + err.message, 'error');
+        return false;
+      }
+    };
+    
+    // Handle audio element errors
+    audioElement.addEventListener('error', (e) => {
+      console.error('Audio playback error:', e);
+      audioPlayBtn.innerHTML = "❌";
+      audioPlayBtn.disabled = true;
+      showToast('Audio playback failed', 'error');
+    });
+    
+    // Play/pause functionality with on-demand loading
+    audioPlayBtn.onclick = async () => {
+      if(audioPlayBtn.disabled) return;
+      
+      // Load audio if not loaded yet
+      if(audioPlayBtn.dataset.loaded !== "true"){
+        const loaded = await loadAudioOnDemand();
+        if(!loaded) return;
+        // Don't auto-play after download, wait for second click
+        showToast('Audio ready. Tap to play.', 'success');
+        return;
+      }
+      
+      const isPlaying = audioPlayBtn.dataset.playing === "true";
+      
+      if(isPlaying){
+        audioElement.pause();
+        audioPlayBtn.innerHTML = "▶️";
+        audioPlayBtn.dataset.playing = "false";
+      }else{
+        // Pause all other audio players
+        document.querySelectorAll('.audio-play-btn[data-playing="true"]').forEach(btn => {
+          if(btn !== audioPlayBtn){
+            const otherMsgId = btn.closest('.msg-audio').dataset.msgId;
+            const otherAudio = document.querySelector(`audio[data-msg-id="${otherMsgId}"]`);
+            if(otherAudio){
+              otherAudio.pause();
+              btn.innerHTML = "▶️";
+              btn.dataset.playing = "false";
+            }
+          }
+        });
+        
+        // Play this audio
+        audioElement.play().then(() => {
+          audioPlayBtn.innerHTML = "⏸️";
+          audioPlayBtn.dataset.playing = "true";
+          console.log('Audio playing:', m.id);
+        }).catch(e => {
+          console.error('Error playing audio:', e);
+          showToast('Could not play audio: ' + e.message, 'error');
+          audioPlayBtn.innerHTML = "❌";
+        });
+      }
+    };
+    
+    // Update waveform and time during playback
+    let playbackAnimationId = null;
+    
+    const updatePlaybackProgress = () => {
+      if(!audioElement.duration) return;
+      
+      const progress = audioElement.currentTime / audioElement.duration;
+      const bars = audioWaveform.querySelectorAll('.audio-wave-bar');
+      const activeBarCount = Math.floor(progress * bars.length);
+      
+      bars.forEach((bar, idx) => {
+        if(idx < activeBarCount){
+          bar.classList.add('active');
+        }else{
+          bar.classList.remove('active');
+        }
+      });
+      
+      // Update duration display with current time
+      const currentSec = Math.floor(audioElement.currentTime);
+      audioDuration.textContent = formatDuration(currentSec);
+      
+      // Continue animation while playing
+      if(!audioElement.paused){
+        playbackAnimationId = requestAnimationFrame(updatePlaybackProgress);
+      }
+    };
+    
+    audioElement.addEventListener('play', () => {
+      updatePlaybackProgress();
+    });
+    
+    audioElement.addEventListener('pause', () => {
+      if(playbackAnimationId){
+        cancelAnimationFrame(playbackAnimationId);
+        playbackAnimationId = null;
+      }
+    });
+    
+    audioElement.addEventListener('timeupdate', updatePlaybackProgress);
+    
+    audioElement.addEventListener('ended', () => {
+      audioPlayBtn.innerHTML = "▶️";
+      audioPlayBtn.dataset.playing = "false";
+      
+      // Reset waveform
+      const bars = audioWaveform.querySelectorAll('.audio-wave-bar');
+      bars.forEach(bar => bar.classList.remove('active'));
+      
+      // Reset duration
+      audioDuration.textContent = formatDuration(durationSec);
+    });
+    
+    // Click waveform to seek
+    audioWaveform.onclick = (e) => {
+      if(!audioElement.duration) return;
+      
+      const rect = audioWaveform.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const progress = Math.max(0, Math.min(1, x / rect.width));
+      audioElement.currentTime = progress * audioElement.duration;
+    };
+    
+    audioMsg.appendChild(audioPlayBtn);
+    audioMsg.appendChild(audioWaveform);
+    audioMsg.appendChild(audioDuration);
+    text.appendChild(audioMsg);
+    text.appendChild(audioElement);
   }else{
-    text.textContent = "[deleted]";
+    // Regular text message
+    // Highlight mentions in text
+    if(!m.deleted){
+      const currentUser = session?.username || nameInput.value || localGuest.name;
+      const highlightedText = highlightMentions(m.text, currentUser);
+      text.innerHTML = highlightedText;
+    }else{
+      text.textContent = "[deleted]";
+    }
   }
 
   const meta = document.createElement("div");
@@ -3771,16 +4481,19 @@ function addMessageToDom(m, silent=false, prepend=false){
 
   // Edit/Delete only for own messages
   if(session && m.userId === session.userId){
-    const editBtn = document.createElement('button');
-    editBtn.textContent = '✏️ Edit';
-    editBtn.addEventListener('click', (e)=>{ e.stopPropagation(); editMessageById(m.id); });
+    // Don't show edit button for audio messages (can't edit audio)
+    if(m.type !== 'audio'){
+      const editBtn = document.createElement('button');
+      editBtn.textContent = '✏️ Edit';
+      editBtn.addEventListener('click', (e)=>{ e.stopPropagation(); editMessageById(m.id); });
+      actions.appendChild(editBtn);
+    }
 
     const delBtn = document.createElement('button');
     delBtn.textContent = '🗑️ Delete';
     delBtn.className = 'danger';
     delBtn.addEventListener('click', (e)=>{ e.stopPropagation(); deleteMessageById(m.id); });
 
-    actions.appendChild(editBtn);
     actions.appendChild(delBtn);
   }
   
@@ -4869,6 +5582,718 @@ syncBtn.onclick = async ()=>{
     syncBtn.textContent = '🔄 Check Messages';
   }
 };
+
+/* ============================================================
+   AUDIO RECORDING WITH GITHUB STORAGE
+   ============================================================ */
+let mediaRecorder = null;
+let audioChunks = [];
+let audioStream = null;
+let recordingStartTime = 0;
+let recordingInterval = null;
+let audioPaused = false;
+let pausedDuration = 0;
+let lastPauseTime = 0;
+let visualizerInterval = null;
+let audioContext = null;
+let analyser = null;
+let dataArray = null;
+let bufferLength = 0;
+let recordedBlob = null;
+let isRecordingLocked = false;
+let recordingStartPos = { x: 0, y: 0 };
+let isMobileGestureRecording = false;
+let animationFrameId = null;
+
+// Initialize visualizer bars
+function initVisualizer(){
+  audioVisualizer.innerHTML = '';
+  const barCount = 40;
+  for(let i = 0; i < barCount; i++){
+    const bar = document.createElement('div');
+    bar.className = 'audio-bar';
+    bar.style.height = '4px';
+    audioVisualizer.appendChild(bar);
+  }
+}
+
+// Update visualizer with real audio data
+function updateVisualizer(){
+  if(!analyser || audioPaused) return;
+  
+  // Get frequency data
+  analyser.getByteFrequencyData(dataArray);
+  
+  const bars = audioVisualizer.querySelectorAll('.audio-bar');
+  const barCount = bars.length;
+  
+  // Calculate how many data points per bar
+  const step = Math.floor(bufferLength / barCount);
+  
+  bars.forEach((bar, index) => {
+    // Get average amplitude for this bar's range
+    let sum = 0;
+    const start = index * step;
+    const end = start + step;
+    
+    for(let i = start; i < end && i < bufferLength; i++){
+      sum += dataArray[i];
+    }
+    
+    const average = sum / step;
+    
+    // Normalize to 0-1 range (dataArray values are 0-255)
+    const normalized = average / 255;
+    
+    // Map to height (minimum 4px, maximum 70px)
+    const height = 4 + (normalized * 66);
+    bar.style.height = height + 'px';
+  });
+  
+  // Continue animation
+  animationFrameId = requestAnimationFrame(updateVisualizer);
+}
+
+// Stop visualizer animation
+function stopVisualizerAnimation(){
+  if(animationFrameId){
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
+  const bars = audioVisualizer.querySelectorAll('.audio-bar');
+  bars.forEach(bar => bar.style.height = '4px');
+}
+
+// Update recording timer
+function updateTimer(){
+  if(audioPaused) return;
+  const elapsed = Date.now() - recordingStartTime - pausedDuration;
+  const seconds = Math.floor(elapsed / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+  audioTimer.textContent = `${minutes}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Upload audio file to GitHub
+// isRecorded: true for recorded audio, false for uploaded audio files
+async function uploadAudioToGitHub(blob, messageId, roomName, isRecorded = true){
+  try{
+    const userId = session?.userId || localGuest.userId || 'anon';
+    const timestamp = Date.now();
+    
+    // Determine file extension from blob type
+    let ext = 'webm';
+    if(blob.type.includes('mp3')) ext = 'mp3';
+    else if(blob.type.includes('mp4')) ext = 'mp4';
+    else if(blob.type.includes('ogg')) ext = 'ogg';
+    else if(blob.type.includes('wav')) ext = 'wav';
+    
+    // Organize by type: recorded-audios vs media-audios
+    const folderType = isRecorded ? 'recorded-audios' : 'media-audios';
+    
+    // File naming: user_timestamp_msgid.ext
+    const fileName = `${userId}_${timestamp}_${messageId}.${ext}`;
+    const audioPath = `${ROOMS_META_DIR}/${roomName}/${folderType}/${fileName}`;
+    
+    // Convert blob to base64
+    const reader = new FileReader();
+    const base64Promise = new Promise((resolve, reject) => {
+      reader.onloadend = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+    });
+    reader.readAsDataURL(blob);
+    const base64Content = await base64Promise;
+    
+    // Upload to GitHub
+    const commitMsg = isRecorded 
+      ? `Upload recorded audio from ${userId}` 
+      : `Upload media audio from ${userId}`;
+    const result = await ghPutFile(audioPath, base64Content, null, commitMsg);
+    
+    if(result.ok){
+      log(`🎵 Audio uploaded to GitHub: ${audioPath}`, 'INFO');
+      return { 
+        ok: true, 
+        path: audioPath, 
+        url: result.url,
+        fileName: fileName,
+        folderType: folderType
+      };
+    }else{
+      throw new Error(`Upload failed with status ${result.status}`);
+    }
+  }catch(error){
+    console.error('Error uploading audio:', error);
+    return { ok: false, error: error.message };
+  }
+}
+
+// Download audio from GitHub
+async function downloadAudioFromGitHub(audioPath){
+  try{
+    const response = await rawGetBinary(audioPath);
+    if(response.ok){
+      return response.blob;
+    }else{
+      throw new Error(`Download failed with status ${response.status}`);
+    }
+  }catch(error){
+    console.error('Error downloading audio:', error);
+    return null;
+  }
+}
+
+// Get cached audio or download if not cached
+async function getCachedAudio(audioPath){
+  // Check cache first
+  const cached = audioCache.get(audioPath);
+  if(cached){
+    const age = Date.now() - cached.cachedAt;
+    if(age < AUDIO_CACHE_MAX_AGE){
+      log(`🎵 Using cached audio: ${audioPath}`, 'INFO');
+      return cached;
+    }else{
+      // Cache expired, clean up
+      if(cached.blobUrl) URL.revokeObjectURL(cached.blobUrl);
+      audioCache.delete(audioPath);
+    }
+  }
+  
+  // Download audio
+  log(`📥 Downloading audio: ${audioPath}`, 'INFO');
+  const blob = await downloadAudioFromGitHub(audioPath);
+  if(!blob) return null;
+  
+  // Create blob URL and cache
+  const blobUrl = URL.createObjectURL(blob);
+  const cacheEntry = {
+    blob,
+    blobUrl,
+    size: blob.size,
+    cachedAt: Date.now()
+  };
+  audioCache.set(audioPath, cacheEntry);
+  
+  log(`✅ Audio cached: ${audioPath} (${formatBytes(blob.size)})`, 'INFO');
+  return cacheEntry;
+}
+
+// Format bytes to human readable size
+function formatBytes(bytes, decimals = 2){
+  if(bytes === 0) return '0 B';
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+// Format duration in seconds to MM:SS
+function formatDuration(seconds){
+  const mins = Math.floor(seconds / 60);
+  const secs = Math.floor(seconds % 60);
+  return `${mins}:${secs.toString().padStart(2, '0')}`;
+}
+
+// Helper to get binary from GitHub raw
+async function rawGetBinary(path){
+  try{
+    const url = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${path}`;
+    const response = await fetch(url);
+    if(response.ok){
+      const blob = await response.blob();
+      return { ok: true, blob, status: response.status };
+    }else{
+      return { ok: false, status: response.status };
+    }
+  }catch(error){
+    return { ok: false, error: error.message };
+  }
+}
+
+// Start recording
+async function startAudioRecording(){
+  try{
+    // Request microphone permission
+    audioStream = await navigator.mediaDevices.getUserMedia({ 
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true
+      } 
+    });
+    
+    // Setup MediaRecorder
+    const options = { mimeType: 'audio/webm;codecs=opus' };
+    if(!MediaRecorder.isTypeSupported(options.mimeType)){
+      options.mimeType = 'audio/webm';
+      if(!MediaRecorder.isTypeSupported(options.mimeType)){
+        options.mimeType = 'audio/mp4';
+      }
+    }
+    
+    mediaRecorder = new MediaRecorder(audioStream, options);
+    audioChunks = [];
+    
+    mediaRecorder.ondataavailable = (e) => {
+      if(e.data.size > 0){
+        audioChunks.push(e.data);
+      }
+    };
+    
+    mediaRecorder.onstop = () => {
+      recordedBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+      stopVisualizerAnimation();
+      
+      // If mobile gesture and not locked, send immediately
+      if(isMobileGestureRecording && !isRecordingLocked){
+        setTimeout(() => sendAudioMessage(), 300);
+      }else{
+        showAudioPreview();
+      }
+    };
+    
+    // Setup Web Audio API for real-time visualization
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioContext.createMediaStreamSource(audioStream);
+    analyser = audioContext.createAnalyser();
+    
+    // Configure analyser
+    analyser.fftSize = 256; // Higher = more detail, lower = better performance
+    bufferLength = analyser.frequencyBinCount;
+    dataArray = new Uint8Array(bufferLength);
+    
+    // Connect source to analyser (don't connect to destination to avoid feedback)
+    source.connect(analyser);
+    
+    // Start recording
+    mediaRecorder.start(100); // Collect data every 100ms
+    recordingStartTime = Date.now();
+    pausedDuration = 0;
+    audioPaused = false;
+    
+    // Show modal or overlay based on mode
+    if(isMobileGestureRecording){
+      recordingOverlay.classList.add('active');
+    }else{
+      audioModal.classList.add('active');
+    }
+    
+    audioRecordBtn.classList.add('recording');
+    
+    // Initialize visualizer
+    initVisualizer();
+    
+    // Start timer and real-time visualizer
+    recordingInterval = setInterval(updateTimer, 100);
+    updateVisualizer(); // Start animation loop
+    
+    // Show initial time
+    audioTimer.textContent = '0:00';
+    audioStopBtn.style.display = 'block';
+    audioPauseBtn.style.display = 'block';
+    audioSendBtn.style.display = 'none';
+    
+    log('🎤 Audio recording started', 'INFO');
+    
+  }catch(error){
+    console.error('Error starting audio recording:', error);
+    showToast('Could not access microphone: ' + error.message, 'error');
+    stopAudioRecording();
+  }
+}
+
+// Pause/Resume recording
+function togglePauseRecording(){
+  if(!mediaRecorder || mediaRecorder.state === 'inactive') return;
+  
+  if(audioPaused){
+    // Resume
+    mediaRecorder.resume();
+    pausedDuration += Date.now() - lastPauseTime;
+    audioPaused = false;
+    audioPauseBtn.innerHTML = '⏸️ Pause';
+    audioPauseBtn.classList.remove('record');
+    audioPauseBtn.classList.add('pause');
+    log('🎤 Recording resumed', 'INFO');
+  }else{
+    // Pause
+    mediaRecorder.pause();
+    lastPauseTime = Date.now();
+    audioPaused = true;
+    audioPauseBtn.innerHTML = '▶️ Resume';
+    audioPauseBtn.classList.remove('pause');
+    audioPauseBtn.classList.add('record');
+    log('⏸️ Recording paused', 'INFO');
+  }
+}
+
+// Stop recording
+function stopAudioRecording(){
+  if(mediaRecorder && mediaRecorder.state !== 'inactive'){
+    mediaRecorder.stop();
+  }
+  
+  if(audioStream){
+    audioStream.getTracks().forEach(track => track.stop());
+    audioStream = null;
+  }
+  
+  // Cleanup Web Audio API
+  if(audioContext){
+    audioContext.close().catch(e => console.warn('Error closing audio context:', e));
+    audioContext = null;
+  }
+  analyser = null;
+  dataArray = null;
+  
+  clearInterval(recordingInterval);
+  stopVisualizerAnimation();
+  
+  audioRecordBtn.classList.remove('recording');
+  recordingOverlay.classList.remove('active');
+  gestureHint.classList.remove('active');
+  isRecordingLocked = false;
+  isMobileGestureRecording = false;
+}
+
+// Cancel recording
+function cancelAudioRecording(){
+  stopAudioRecording();
+  recordedBlob = null;
+  audioChunks = [];
+  closeAudioModal();
+  log('❌ Recording cancelled', 'INFO');
+}
+
+// Show preview with play button
+function showAudioPreview(){
+  audioModal.classList.add('active');
+  recordingOverlay.classList.remove('active');
+  gestureHint.classList.remove('active');
+  
+  audioStopBtn.style.display = 'none';
+  audioPauseBtn.style.display = 'none';
+  audioSendBtn.style.display = 'block';
+  
+  // Create preview audio element
+  const previewContainer = document.createElement('div');
+  previewContainer.style.cssText = 'display:flex; align-items:center; justify-content:center; gap:15px; width:100%;';
+  
+  const playBtn = document.createElement('button');
+  playBtn.id = 'previewPlayBtn';
+  playBtn.style.cssText = `
+    background:linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    border:none;
+    color:#fff;
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    font-size:24px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    transition:all .2s ease;
+  `;
+  playBtn.innerHTML = '▶️';
+  
+  const previewText = document.createElement('div');
+  previewText.style.cssText = 'flex:1; text-align:center; color:var(--muted);';
+  previewText.textContent = 'Click to preview audio';
+  
+  // Create hidden audio element
+  const audioEl = document.createElement('audio');
+  audioEl.id = 'previewAudio';
+  if(recordedBlob){
+    const audioUrl = URL.createObjectURL(recordedBlob);
+    audioEl.src = audioUrl;
+    audioEl.preload = 'auto';
+    
+    console.log('Preview audio created:', {
+      blobSize: recordedBlob.size,
+      blobType: recordedBlob.type,
+      url: audioUrl
+    });
+  }
+  
+  playBtn.onclick = () => {
+    if(!audioEl.src){
+      showToast('No audio to preview', 'error');
+      return;
+    }
+    
+    if(audioEl.paused){
+      audioEl.play().then(() => {
+        playBtn.innerHTML = '⏸️';
+        previewText.textContent = 'Playing...';
+        log('🎵 Playing preview', 'INFO');
+      }).catch(e => {
+        console.error('Error playing preview:', e);
+        showToast('Could not play preview: ' + e.message, 'error');
+      });
+    }else{
+      audioEl.pause();
+      playBtn.innerHTML = '▶️';
+      previewText.textContent = 'Click to preview audio';
+    }
+  };
+  
+  audioEl.onended = () => {
+    playBtn.innerHTML = '▶️';
+    previewText.textContent = 'Click to preview audio';
+  };
+  
+  previewContainer.appendChild(playBtn);
+  previewContainer.appendChild(previewText);
+  
+  audioVisualizer.innerHTML = '';
+  audioVisualizer.appendChild(previewContainer);
+  audioVisualizer.appendChild(audioEl);
+  
+  log('🎧 Audio preview ready', 'INFO');
+}
+
+// Send audio message
+async function sendAudioMessage(){
+  if(!recordedBlob || !running || !currentRoom) return;
+  
+  try{
+    const now = Date.now();
+    const userId = session?.userId || localGuest.userId;
+    const sender = (nameInput.value||"").trim() || session?.username || localGuest.name || "Anon";
+    
+    // Calculate audio duration
+    const audioDuration = (Date.now() - recordingStartTime - pausedDuration) / 1000;
+    
+    const messageId = `m-${now}-${Math.random().toString(36).slice(2,8)}`;
+    
+    const ip = null;
+    const device = `${navigator.platform || 'unknown'} - ${navigator.userAgent.slice(0,50)}`;
+    const sessionType = session?.userId ? 'registered' : (String(localGuest.userId||'').startsWith('g-') ? 'guest' : 'anon');
+    
+    // Upload audio to GitHub first (isRecorded = true)
+    log('📤 Uploading recorded audio to GitHub...', 'INFO');
+    const uploadResult = await uploadAudioToGitHub(recordedBlob, messageId, currentRoom, true);
+    
+    if(!uploadResult.ok){
+      throw new Error('Failed to upload audio: ' + uploadResult.error);
+    }
+    
+    const msg = {
+      id: messageId,
+      room: currentRoom,
+      sender,
+      userId,
+      ts: now,
+      text: '🎤 Voice message',
+      type: 'audio',
+      audioPath: uploadResult.path,
+      audioFileName: uploadResult.fileName,
+      audioFolderType: uploadResult.folderType,
+      audioDuration: audioDuration,
+      audioMimeType: recordedBlob.type,
+      audioSize: recordedBlob.size,
+      edited: false,
+      editedAt: null,
+      deleted: false,
+      createdAt: now,
+      status: 'sending',
+      replyTo: replyingTo ? {
+        msgId: replyingTo.msgId,
+        sender: replyingTo.sender,
+        text: replyingTo.text,
+        userId: replyingTo.userId
+      } : null,
+      meta: {
+        sessionType,
+        sessionUsername: session?.username || null,
+        device,
+        ip,
+        ua: navigator.userAgent || null
+      }
+    };
+    
+    // Show in UI immediately
+    addMessageToDom(msg);
+    closeAudioModal();
+    cancelReplyTo();
+    markInteraction("send");
+    
+    // Send message metadata to GitHub
+    try{
+      log(`📤 Sending audio message metadata to GitHub...`, "INFO");
+      const result = await appendMessageV3(currentRoom, msg);
+      
+      if(result && result.cellSha){
+        msg.status = 'sent';
+        updateMessageStatus(msg.id, 'sent');
+        log(`✅ Audio message sent (cell ${result.cellNum})`, "INFO");
+        
+        // Enter burst mode
+        burstModeUntil = Date.now() + POLL_BURST_DURATION;
+        if(running && currentRoom){
+          clearTimeout(pollTimer);
+          scheduleNextPoll(POLL_MS_BURST);
+        }
+        
+        await presenceSetOnline(true, "send");
+        await maybeRefreshPresence();
+        
+        setTimeout(() => {
+          msg.status = 'delivered';
+          updateMessageStatus(msg.id, 'delivered');
+        }, 500);
+      }else{
+        throw new Error("GitHub write returned no SHA");
+      }
+    }catch(e){
+      console.error('[sendAudioMessage ERROR]', e);
+      msg.status = 'failed';
+      updateMessageStatus(msg.id, 'failed');
+      log(`❌ Failed to send audio: ${e.message}`, "ERROR");
+      showToast('Failed to send audio message', 'error');
+    }
+    
+  }catch(error){
+    console.error('Error sending audio:', error);
+    showToast('Failed to send audio message: ' + error.message, 'error');
+    closeAudioModal();
+  }
+}
+
+// Close audio modal
+function closeAudioModal(){
+  audioModal.classList.remove('active');
+  recordingOverlay.classList.remove('active');
+  gestureHint.classList.remove('active');
+  stopAudioRecording();
+  recordedBlob = null;
+  audioChunks = [];
+  isRecordingLocked = false;
+  isMobileGestureRecording = false;
+}
+
+// Event listeners
+audioRecordBtn.onclick = () => {
+  if(!running || !currentRoom){
+    showToast('Join a room first', 'warning');
+    return;
+  }
+  startAudioRecording();
+};
+
+audioCloseBtn.onclick = closeAudioModal;
+audioStopBtn.onclick = stopAudioRecording;
+audioPauseBtn.onclick = togglePauseRecording;
+audioSendBtn.onclick = sendAudioMessage;
+
+// Mobile: Touch gestures for recording
+let touchStartY = 0;
+let touchStartX = 0;
+let touchStartTime = 0;
+
+audioRecordBtn.addEventListener('touchstart', (e) => {
+  if(!running || !currentRoom) return;
+  e.preventDefault();
+  
+  const touch = e.touches[0];
+  touchStartY = touch.clientY;
+  touchStartX = touch.clientX;
+  touchStartTime = Date.now();
+  
+  const rect = audioRecordBtn.getBoundingClientRect();
+  recordingStartPos = {
+    x: rect.left + rect.width / 2,
+    y: rect.top + rect.height / 2
+  };
+  
+  // Position gesture hints
+  gestureHint.style.left = recordingStartPos.x + 'px';
+  gestureHint.style.top = recordingStartPos.y + 'px';
+  gestureHint.classList.add('active');
+  gestureText.textContent = '↑ Slide up to lock';
+  
+  // Start recording in gesture mode
+  isMobileGestureRecording = true;
+  isRecordingLocked = false;
+  startAudioRecording();
+});
+
+audioRecordBtn.addEventListener('touchmove', (e) => {
+  if(!isMobileGestureRecording) return;
+  e.preventDefault();
+  
+  const touch = e.touches[0];
+  const deltaY = touchStartY - touch.clientY; // Positive when sliding up
+  const deltaX = touchStartX - touch.clientX; // Positive when sliding left
+  
+  // Check for slide up to lock (80px threshold)
+  if(deltaY > 80 && !isRecordingLocked){
+    isRecordingLocked = true;
+    gestureLock.classList.add('highlight');
+    gestureText.textContent = '🔒 Recording locked';
+    audioModal.classList.add('active');
+    recordingOverlay.classList.remove('active');
+    setTimeout(() => {
+      gestureHint.classList.remove('active');
+    }, 500);
+    log('🔒 Recording locked', 'INFO');
+  }
+  
+  // Check for slide left to cancel (100px threshold)
+  if(deltaX > 100 && !isRecordingLocked){
+    gestureCancel.classList.add('highlight');
+    gestureText.textContent = '❌ Cancelled';
+    setTimeout(() => {
+      cancelAudioRecording();
+    }, 200);
+  }
+  
+  // Visual feedback for gestures
+  if(deltaY > 40 && !isRecordingLocked){
+    gestureLock.classList.add('highlight');
+  }else if(!isRecordingLocked){
+    gestureLock.classList.remove('highlight');
+  }
+  
+  if(deltaX > 60 && !isRecordingLocked){
+    gestureCancel.classList.add('highlight');
+  }else{
+    gestureCancel.classList.remove('highlight');
+  }
+});
+
+audioRecordBtn.addEventListener('touchend', (e) => {
+  if(!isMobileGestureRecording) return;
+  e.preventDefault();
+  
+  const touchDuration = Date.now() - touchStartTime;
+  
+  // If locked, keep recording (user can use modal controls)
+  if(isRecordingLocked){
+    gestureHint.classList.remove('active');
+    return;
+  }
+  
+  // If too short (< 500ms), cancel
+  if(touchDuration < 500){
+    gestureText.textContent = 'Too short!';
+    setTimeout(() => {
+      cancelAudioRecording();
+    }, 300);
+    return;
+  }
+  
+  // Otherwise, stop and send
+  stopAudioRecording();
+  gestureHint.classList.remove('active');
+});
+
+// Prevent default click when using touch gestures
+audioRecordBtn.addEventListener('touchstart', (e) => {
+  e.stopPropagation();
+}, { passive: false });
 
 sendBtn.onclick = ()=>sendMessage();
 clearBtn.onclick = ()=>{
