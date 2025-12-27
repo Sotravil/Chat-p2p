@@ -580,6 +580,50 @@
       }
     }
 
+    /* Pull to Refresh Indicator */
+    .pull-refresh-indicator{
+      position:absolute;
+      top:50px;
+      left:50%;
+      transform:translateX(-50%) scale(0);
+      padding:12px 20px;
+      background:linear-gradient(135deg, rgba(56,189,248,.25), rgba(168,85,247,.18));
+      border:1px solid rgba(56,189,248,.4);
+      border-radius:24px;
+      color:var(--txt);
+      font-size:13px;
+      font-weight:600;
+      letter-spacing:.3px;
+      box-shadow:0 8px 24px rgba(0,0,0,.4);
+      backdrop-filter:blur(12px);
+      z-index:150;
+      pointer-events:none;
+      opacity:0;
+      transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .pull-refresh-indicator.active{
+      transform:translateX(-50%) scale(1);
+      opacity:1;
+    }
+    .pull-refresh-indicator.syncing{
+      border-color:rgba(34,197,94,.5);
+      background:linear-gradient(135deg, rgba(34,197,94,.25), rgba(56,189,248,.15));
+    }
+    .pull-refresh-indicator .icon{
+      font-size:16px;
+      animation:spin 1s linear infinite;
+    }
+    .pull-refresh-indicator.syncing .icon{
+      animation:spin .6s linear infinite;
+    }
+    @keyframes spin{
+      from{transform:rotate(0deg)}
+      to{transform:rotate(360deg)}
+    }
+
     /* Room Browser */
     .room-list{
       display:flex;
@@ -961,6 +1005,12 @@
   </style>
 </head>
 <body>
+<!-- Pull to Refresh Indicator -->
+<div class="pull-refresh-indicator" id="pullRefreshIndicator">
+  <span class="icon">🔄</span>
+  <span id="pullRefreshText">Pull to refresh</span>
+</div>
+
 <header>
   <div class="left">
     <h1>Chat‑p2p V3 (cells + boxes + indexes)</h1>
@@ -1135,6 +1185,8 @@ const msgInput   = el("msgInput");
 const sendBtn    = el("sendBtn");
 const clearBtn   = el("clearBtn");
 const logEl      = el("log");
+const pullRefreshIndicator = el("pullRefreshIndicator");
+const pullRefreshText = el("pullRefreshText");
 
 /* ============================================================
    UTIL
@@ -2054,6 +2106,199 @@ function resetBehaviorTracking(){
   for(const key in userBehavior.engagement){
     userBehavior.engagement[key] = 0;
   }
+}
+
+/* ============================================================
+   PULL-TO-REFRESH GESTURE SYSTEM
+   ============================================================ */
+let lastRefreshTime = 0;
+const REFRESH_COOLDOWN_MS = 3000; // 3 seconds between refreshes
+
+// Unified refresh function
+async function triggerManualRefresh(source = "unknown"){
+  const now = Date.now();
+  
+  // Cooldown to prevent spam
+  if(now - lastRefreshTime < REFRESH_COOLDOWN_MS){
+    log(`⏱️ Refresh cooldown active (${((REFRESH_COOLDOWN_MS - (now - lastRefreshTime))/1000).toFixed(1)}s remaining)`, "WARN");
+    return false;
+  }
+  
+  if(!currentRoom || !running){
+    log("⚠️ Cannot refresh: no active room", "WARN");
+    return false;
+  }
+  
+  lastRefreshTime = now;
+  
+  try{
+    // Show indicator as syncing
+    pullRefreshIndicator.classList.add('active', 'syncing');
+    pullRefreshText.textContent = 'Syncing...';
+    
+    log(`🔄 Manual refresh triggered (${source})`, "INFO");
+    showToast('🔄 Syncing messages...', 'info', 2000);
+    
+    // Call the sync function
+    await syncLatestFromStorage();
+    
+    // Success feedback
+    pullRefreshText.textContent = '✓ Synced!';
+    log(`✅ Manual refresh complete`, "INFO");
+    showToast('✓ Chat synced successfully', 'success', 2000);
+    
+    // Hide indicator after delay
+    setTimeout(()=>{
+      pullRefreshIndicator.classList.remove('active', 'syncing');
+      pullRefreshText.textContent = 'Pull to refresh';
+    }, 1500);
+    
+    return true;
+  }catch(e){
+    log(`❌ Manual refresh failed: ${e.message}`, "ERROR");
+    showToast(`❌ Sync failed: ${e.message}`, 'error', 3000);
+    
+    pullRefreshText.textContent = '✕ Failed';
+    setTimeout(()=>{
+      pullRefreshIndicator.classList.remove('active', 'syncing');
+      pullRefreshText.textContent = 'Pull to refresh';
+    }, 1500);
+    
+    return false;
+  }
+}
+
+// Pull-to-refresh gesture detection (tap-hold-drag)
+let pullGestureState = {
+  active: false,
+  startY: 0,
+  startTime: 0,
+  currentY: 0,
+  holdTimer: null,
+  moved: false
+};
+
+function initPullToRefreshGesture(){
+  if(!messagesEl) return;
+  
+  messagesEl.addEventListener("touchstart", (e)=>{
+    const touch = e.touches[0];
+    pullGestureState.startY = touch.clientY;
+    pullGestureState.startTime = Date.now();
+    pullGestureState.currentY = touch.clientY;
+    pullGestureState.moved = false;
+    pullGestureState.active = false;
+    
+    // Hold timer: activate after 300ms
+    clearTimeout(pullGestureState.holdTimer);
+    pullGestureState.holdTimer = setTimeout(()=>{
+      pullGestureState.active = true;
+      pullRefreshIndicator.classList.add('active');
+      pullRefreshText.textContent = 'Drag to refresh';
+      log("👆 Pull gesture activated", "INFO");
+    }, 300);
+  }, {passive: true});
+  
+  messagesEl.addEventListener("touchmove", (e)=>{
+    const touch = e.touches[0];
+    pullGestureState.currentY = touch.clientY;
+    pullGestureState.moved = true;
+    
+    if(pullGestureState.active){
+      const delta = pullGestureState.currentY - pullGestureState.startY;
+      const absDelta = Math.abs(delta);
+      
+      // Check for slow vertical movement (> 30px)
+      if(absDelta > 30){
+        const elapsed = Date.now() - pullGestureState.startTime;
+        const speed = absDelta / elapsed; // px/ms
+        
+        // Slow drag: < 0.5 px/ms
+        if(speed < 0.5){
+          pullRefreshText.textContent = '🔄 Release to refresh';
+        }
+      }
+    }
+  }, {passive: true});
+  
+  messagesEl.addEventListener("touchend", (e)=>{
+    clearTimeout(pullGestureState.holdTimer);
+    
+    if(pullGestureState.active && pullGestureState.moved){
+      const delta = pullGestureState.currentY - pullGestureState.startY;
+      const absDelta = Math.abs(delta);
+      const elapsed = Date.now() - pullGestureState.startTime;
+      const speed = absDelta / elapsed;
+      
+      // Trigger refresh if: moved > 50px slowly (< 0.5 px/ms)
+      if(absDelta > 50 && speed < 0.5){
+        triggerManualRefresh("tap-hold-drag");
+      }else{
+        // Reset without triggering
+        pullRefreshIndicator.classList.remove('active');
+        pullRefreshText.textContent = 'Pull to refresh';
+      }
+    }else{
+      pullRefreshIndicator.classList.remove('active');
+      pullRefreshText.textContent = 'Pull to refresh';
+    }
+    
+    pullGestureState.active = false;
+  }, {passive: true});
+  
+  messagesEl.addEventListener("touchcancel", ()=>{
+    clearTimeout(pullGestureState.holdTimer);
+    pullGestureState.active = false;
+    pullRefreshIndicator.classList.remove('active');
+    pullRefreshText.textContent = 'Pull to refresh';
+  }, {passive: true});
+}
+
+// Scroll-based refresh (top & bottom detection)
+let scrollRefreshState = {
+  lastScrollTop: 0,
+  atTopTime: 0,
+  atBottomTime: 0
+};
+
+function initScrollToRefresh(){
+  if(!messagesEl) return;
+  
+  messagesEl.addEventListener("scroll", ()=>{
+    const { scrollTop, scrollHeight, clientHeight } = messagesEl;
+    const now = Date.now();
+    
+    // At top (scrollTop = 0)
+    if(scrollTop === 0){
+      if(scrollRefreshState.atTopTime === 0){
+        scrollRefreshState.atTopTime = now;
+        log("📜 Scrolled to top", "INFO");
+      }else if(now - scrollRefreshState.atTopTime > 800){
+        // Stayed at top for 800ms -> trigger refresh
+        scrollRefreshState.atTopTime = 0; // Reset
+        triggerManualRefresh("scroll-to-top");
+      }
+    }else{
+      scrollRefreshState.atTopTime = 0;
+    }
+    
+    // At bottom (scrollTop + clientHeight >= scrollHeight)
+    const atBottom = Math.abs((scrollTop + clientHeight) - scrollHeight) < 5;
+    if(atBottom){
+      if(scrollRefreshState.atBottomTime === 0){
+        scrollRefreshState.atBottomTime = now;
+        log("📜 Scrolled to bottom", "INFO");
+      }else if(now - scrollRefreshState.atBottomTime > 800){
+        // Stayed at bottom for 800ms -> trigger refresh
+        scrollRefreshState.atBottomTime = 0; // Reset
+        triggerManualRefresh("scroll-to-bottom");
+      }
+    }else{
+      scrollRefreshState.atBottomTime = 0;
+    }
+    
+    scrollRefreshState.lastScrollTop = scrollTop;
+  }, {passive: true});
 }
 
 function markInteraction(kind="unknown"){
@@ -3785,9 +4030,10 @@ syncBtn.onclick = async ()=>{
   try{
     syncBtn.disabled = true;
     syncBtn.textContent = '🔄 Syncing...';
-    log('🔄 Manually checking for new messages...', 'INFO');
-    await syncLatestFromStorage();
-    showToast('Sync complete!', 'success');
+    
+    // Use the unified refresh function
+    await triggerManualRefresh("sync-button");
+    
   }catch(e){
     console.error('[Manual Sync ERROR]', e);
     showToast('Sync failed: ' + e.message, 'error');
@@ -3901,6 +4147,11 @@ window.addEventListener("load", async ()=>{
     applySessionToUi();
 
     installInteractionListeners();
+    
+    // Initialize pull-to-refresh gestures
+    initPullToRefreshGesture();
+    initScrollToRefresh();
+    log("✅ Pull-to-refresh gestures initialized", "INFO");
     
     // Tab visibility: check for messages when tab becomes visible
     document.addEventListener("visibilitychange", ()=>{
