@@ -181,7 +181,33 @@
     .chatHeader .meta{display:flex; flex-direction:column; gap:2px; min-width:0}
     .chatHeader .meta .room{font-size:13px; font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
     .chatHeader .meta .sub{font-size:11px;color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:8px}
-    .chatHeader .people{font-size:11px;color:var(--muted); white-space:nowrap}
+    .chatHeader .people{font-size:11px;color:var(--muted); white-space:nowrap; display:flex; align-items:center; gap:8px}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:20px;
+      height:20px;
+      padding:0 6px;
+      background:var(--bad);
+      color:#fff;
+      border-radius:10px;
+      font-size:10px;
+      font-weight:700;
+      letter-spacing:.2px;
+      box-shadow:0 2px 6px rgba(239,68,68,.4);
+    }
+    .badge.mention-badge{
+      background:linear-gradient(135deg, rgba(245,158,11,.9), rgba(245,158,11,.75));
+      box-shadow:0 2px 6px rgba(245,158,11,.5);
+    }
+    .badge.mention-badge::before{
+      content:'@';
+      margin-right:2px;
+    }
+    .badge:empty{
+      display:none;
+    }
     .cell-indicator{
       display:inline-flex;
       align-items:center;
@@ -319,11 +345,170 @@
       0%, 100%{opacity:.5}
       50%{opacity:1}
     }
+    
+    /* Reply System */
+    .msg-reply{
+      padding:6px 9px;
+      margin-bottom:6px;
+      background:rgba(0,0,0,.3);
+      border-left:3px solid rgba(56,189,248,.6);
+      border-radius:6px;
+      font-size:11px;
+      color:var(--muted);
+      cursor:pointer;
+      transition:all .2s ease;
+      max-width:100%;
+      overflow:hidden;
+    }
+    .msg-reply:hover{
+      background:rgba(0,0,0,.4);
+      border-left-color:rgba(56,189,248,.85);
+    }
+    .msg-reply-author{
+      color:var(--accent-primary);
+      font-weight:600;
+      margin-bottom:2px;
+    }
+    .msg-reply-text{
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      opacity:.85;
+    }
+    .msg-actions{
+      margin-top:8px;
+      display:flex;
+      gap:6px;
+      opacity:0;
+      transition:opacity .2s ease;
+    }
+    .msg:hover .msg-actions{
+      opacity:1;
+    }
+    .msg-actions button{
+      padding:4px 9px;
+      font-size:10px;
+      border-radius:6px;
+      background:rgba(255,255,255,.05);
+      border:1px solid var(--border);
+      color:var(--muted);
+      cursor:pointer;
+      transition:all .2s ease;
+    }
+    .msg-actions button:hover{
+      background:rgba(255,255,255,.1);
+      color:var(--txt);
+      border-color:rgba(56,189,248,.4);
+    }
+    
+    /* Highlight Animation */
+    .msg-highlight{
+      animation:messageHighlight 2s ease-out;
+    }
+    @keyframes messageHighlight{
+      0%, 100%{
+        background:rgba(255,255,255,.06);
+        box-shadow:0 2px 8px rgba(0,0,0,.15);
+      }
+      10%, 30%, 50%{
+        background:rgba(245,158,11,.25);
+        box-shadow:0 0 20px rgba(245,158,11,.4);
+        transform:scale(1.02);
+      }
+      20%, 40%{
+        background:rgba(245,158,11,.15);
+        box-shadow:0 0 15px rgba(245,158,11,.3);
+      }
+    }
+    .msg.me.msg-highlight{
+      animation:messageHighlightMe 2s ease-out;
+    }
+    @keyframes messageHighlightMe{
+      0%, 100%{
+        background:linear-gradient(135deg, rgba(56,189,248,.15), rgba(56,189,248,.08));
+      }
+      10%, 30%, 50%{
+        background:linear-gradient(135deg, rgba(245,158,11,.3), rgba(245,158,11,.2));
+        box-shadow:0 0 20px rgba(245,158,11,.4);
+        transform:scale(1.02);
+      }
+      20%, 40%{
+        background:linear-gradient(135deg, rgba(245,158,11,.2), rgba(245,158,11,.12));
+      }
+    }
+    
+    /* Mention Highlighting */
+    .mention{
+      color:var(--accent-primary);
+      background:rgba(56,189,248,.15);
+      padding:1px 4px;
+      border-radius:4px;
+      font-weight:600;
+    }
+    .mention.mention-me{
+      color:var(--warn);
+      background:rgba(245,158,11,.2);
+      border:1px solid rgba(245,158,11,.3);
+    }
+    
     .composer{
       display:flex;
-      gap:10px;
+      flex-direction:column;
+      gap:8px;
       padding:12px;
       border-top:1px solid var(--border);
+    }
+    
+    /* Reply Preview in Composer */
+    .reply-preview{
+      display:none;
+      padding:8px 10px;
+      background:rgba(56,189,248,.1);
+      border-left:3px solid var(--accent-primary);
+      border-radius:8px;
+      font-size:11px;
+      position:relative;
+    }
+    .reply-preview.active{
+      display:block;
+    }
+    .reply-preview-header{
+      color:var(--accent-primary);
+      font-weight:600;
+      margin-bottom:3px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .reply-preview-text{
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .reply-preview-close{
+      background:rgba(255,255,255,.1);
+      border:1px solid var(--border);
+      border-radius:50%;
+      width:18px;
+      height:18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      font-size:12px;
+      color:var(--muted);
+      transition:all .2s ease;
+    }
+    .reply-preview-close:hover{
+      background:rgba(239,68,68,.2);
+      border-color:rgba(239,68,68,.4);
+      color:var(--bad);
+    }
+    
+    .composer-main{
+      display:flex;
+      gap:10px;
     }
     .composer textarea{
       flex:1;
@@ -1094,16 +1279,29 @@
           </span>
         </div>
       </div>
-      <div class="people" id="presenceSummary">presence: —</div>
+      <div class="people" id="presenceSummary">
+        <span id="presenceText">presence: —</span>
+        <span class="badge" id="unreadBadge"></span>
+        <span class="badge mention-badge" id="mentionBadge"></span>
+      </div>
       <button id="fullscreenBtn" class="fullscreen-toggle" title="Fullscreen chat">⛶</button>
     </div>
 
     <div class="msgs" id="messages"></div>
 
     <div class="composer">
-      <textarea id="msgInput" placeholder="Type… (Enter to send — Shift+Enter for newline)"></textarea>
-      <button id="sendBtn" class="primary">Send</button>
-      <button id="clearBtn">Clear view</button>
+      <div class="reply-preview" id="replyPreview">
+        <div class="reply-preview-header">
+          <span>Replying to <span id="replyToUser"></span></span>
+          <button class="reply-preview-close" id="cancelReply" title="Cancel reply">✕</button>
+        </div>
+        <div class="reply-preview-text" id="replyToText"></div>
+      </div>
+      <div class="composer-main">
+        <textarea id="msgInput" placeholder="Type… (Enter to send — Shift+Enter for newline)"></textarea>
+        <button id="sendBtn" class="primary">Send</button>
+        <button id="clearBtn">Clear view</button>
+      </div>
     </div>
 
     <div class="log" id="log"></div>
@@ -1217,11 +1415,18 @@ const cellIndicator = el("cellIndicator");
 const cellViewingNum = el("cellViewingNum");
 const cellTotalNum = el("cellTotalNum");
 const presenceSummary = el("presenceSummary");
+const presenceText = el("presenceText");
+const unreadBadge = el("unreadBadge");
+const mentionBadge = el("mentionBadge");
 
 const messagesEl = el("messages");
 const msgInput   = el("msgInput");
 const sendBtn    = el("sendBtn");
 const clearBtn   = el("clearBtn");
+const replyPreview = el("replyPreview");
+const replyToUser = el("replyToUser");
+const replyToText = el("replyToText");
+const cancelReply = el("cancelReply");
 const logEl      = el("log");
 const pullRefreshIndicator = el("pullRefreshIndicator");
 const pullRefreshText = el("pullRefreshText");
@@ -2533,6 +2738,157 @@ let running = false;
 let masterLastValue = false;
 
 /* ============================================================
+   REPLY & MENTION SYSTEM
+   ============================================================ */
+let replyingTo = null; // {msgId, sender, text}
+let lastReadMessageTs = 0; // Timestamp of last message user has seen
+let unreadCount = 0;
+let mentionCount = 0;
+
+function setReplyTo(msg){
+  if(!msg) return;
+  replyingTo = {
+    msgId: msg.id,
+    sender: msg.sender,
+    text: msg.text,
+    userId: msg.userId
+  };
+  replyPreview.classList.add('active');
+  replyToUser.textContent = msg.sender;
+  replyToText.textContent = msg.text;
+  msgInput.focus();
+  log(`👉 Replying to ${msg.sender}`, "INFO");
+}
+
+function cancelReplyTo(){
+  replyingTo = null;
+  replyPreview.classList.remove('active');
+  replyToUser.textContent = '';
+  replyToText.textContent = '';
+}
+
+function detectMentions(text){
+  // Match @username patterns
+  const mentionRegex = /@([\w\-]+)/g;
+  const mentions = [];
+  let match;
+  while((match = mentionRegex.exec(text)) !== null){
+    mentions.push(match[1]);
+  }
+  return mentions;
+}
+
+function highlightMentions(text, currentUser){
+  if(!text) return '';
+  const mentionRegex = /@([\w\-]+)/g;
+  return text.replace(mentionRegex, (match, username) => {
+    const isSelf = (username.toLowerCase() === currentUser.toLowerCase());
+    const className = isSelf ? 'mention mention-me' : 'mention';
+    return `<span class="${className}">${match}</span>`;
+  });
+}
+
+function scrollToMessage(msgId){
+  const msgEl = messagesEl.querySelector(`[data-msg-id="${msgId}"]`);
+  if(!msgEl) {
+    log(`⚠️ Message ${msgId} not in view`, "WARN");
+    return;
+  }
+  
+  // Scroll to message
+  msgEl.scrollIntoView({behavior: 'smooth', block: 'center'});
+  
+  // Highlight it
+  msgEl.classList.add('msg-highlight');
+  setTimeout(()=>{
+    msgEl.classList.remove('msg-highlight');
+  }, 2000);
+}
+
+function updateUnreadBadge(){
+  if(unreadCount > 0){
+    unreadBadge.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+  }else{
+    unreadBadge.textContent = '';
+  }
+}
+
+function updateMentionBadge(){
+  if(mentionCount > 0){
+    mentionBadge.textContent = mentionCount > 99 ? '99+' : String(mentionCount);
+  }else{
+    mentionBadge.textContent = '';
+  }
+}
+
+function checkNewMessages(messages){
+  if(!session && !localGuest.userId) return;
+  
+  const userId = session?.userId || localGuest.userId;
+  const username = session?.username || nameInput.value || localGuest.name;
+  
+  let newUnread = 0;
+  let newMentions = 0;
+  
+  for(const msg of messages){
+    // Skip own messages
+    if(msg.userId === userId) continue;
+    
+    // Check if message is newer than last read
+    if(msg.ts > lastReadMessageTs){
+      newUnread++;
+      
+      // Check for mentions
+      const mentions = detectMentions(msg.text);
+      if(mentions.some(m => m.toLowerCase() === username.toLowerCase())){
+        newMentions++;
+      }
+    }
+  }
+  
+  unreadCount = newUnread;
+  mentionCount = newMentions;
+  
+  updateUnreadBadge();
+  updateMentionBadge();
+}
+
+function markAllAsRead(){
+  // Set last read to most recent message timestamp
+  if(loadedMessages.length > 0){
+    const latestMsg = loadedMessages[loadedMessages.length - 1];
+    lastReadMessageTs = latestMsg.ts;
+  }else{
+    lastReadMessageTs = Date.now();
+  }
+  
+  unreadCount = 0;
+  mentionCount = 0;
+  updateUnreadBadge();
+  updateMentionBadge();
+  
+  // Save to localStorage
+  if(currentRoom){
+    try{
+      const key = `cp2p_lastread_${currentRoom}`;
+      localStorage.setItem(key, String(lastReadMessageTs));
+    }catch(e){}
+  }
+}
+
+function loadLastReadTimestamp(){
+  if(!currentRoom) return;
+  try{
+    const key = `cp2p_lastread_${currentRoom}`;
+    const stored = localStorage.getItem(key);
+    if(stored){
+      lastReadMessageTs = parseInt(stored, 10);
+      log(`📖 Last read: ${new Date(lastReadMessageTs).toLocaleTimeString()}`, "INFO");
+    }
+  }catch(e){}
+}
+
+/* ============================================================
    CELL TRACKING & CACHE
    ============================================================ */
 let cellMetadata = {
@@ -2829,7 +3185,9 @@ function normalizeMessage(raw){
     edited: !!raw.edited,
     editedAt: raw.editedAt || null,
     deleted: !!raw.deleted,
-    createdAt: raw.createdAt || ts
+    createdAt: raw.createdAt || ts,
+    replyTo: raw.replyTo || null, // {msgId, sender, text}
+    mentions: raw.mentions || [] // Array of mentioned usernames
   };
 }
 
@@ -3162,6 +3520,9 @@ function renderAll(messages){
   for(const m of messages) addMessageToDom(m, true);
   messagesEl.scrollTop = messagesEl.scrollHeight;
   setupReadObserver(); // attach read receipts to current DOM nodes
+  
+  // Check for unread messages and mentions
+  checkNewMessages(messages);
 }
 
 function addMessageToDom(m, silent=false, prepend=false){
@@ -3185,9 +3546,37 @@ function addMessageToDom(m, silent=false, prepend=false){
   }
   wrap.dataset.ts = String(m.ts);
 
+  // Reply preview (if message is replying to another)
+  if(m.replyTo && m.replyTo.msgId){
+    const replyDiv = document.createElement("div");
+    replyDiv.className = "msg-reply";
+    replyDiv.dataset.replyTo = m.replyTo.msgId;
+    replyDiv.onclick = ()=> scrollToMessage(m.replyTo.msgId);
+    
+    const replyAuthor = document.createElement("div");
+    replyAuthor.className = "msg-reply-author";
+    replyAuthor.textContent = m.replyTo.sender || "Unknown";
+    
+    const replyText = document.createElement("div");
+    replyText.className = "msg-reply-text";
+    replyText.textContent = m.replyTo.text || "";
+    
+    replyDiv.appendChild(replyAuthor);
+    replyDiv.appendChild(replyText);
+    wrap.appendChild(replyDiv);
+  }
+
   const text = document.createElement("div");
   text.className = "text";
-  text.textContent = m.deleted ? "[deleted]" : m.text;
+  
+  // Highlight mentions in text
+  if(!m.deleted){
+    const currentUser = session?.username || nameInput.value || localGuest.name;
+    const highlightedText = highlightMentions(m.text, currentUser);
+    text.innerHTML = highlightedText;
+  }else{
+    text.textContent = "[deleted]";
+  }
 
   const meta = document.createElement("div");
   meta.className = "meta";
@@ -3224,24 +3613,35 @@ function addMessageToDom(m, silent=false, prepend=false){
   wrap.appendChild(meta);
   wrap.appendChild(reads);
 
-  // Actions (edit/delete) for my messages
-  if(session && m.userId === session.userId){
-    const actions = document.createElement('div');
-    actions.className = 'msg-actions';
+  // Actions (edit/delete/reply) for all messages
+  const actions = document.createElement('div');
+  actions.className = 'msg-actions';
 
+  // Reply button (for all messages)
+  const replyBtn = document.createElement('button');
+  replyBtn.textContent = '↩️ Reply';
+  replyBtn.addEventListener('click', (e)=>{ 
+    e.stopPropagation(); 
+    setReplyTo(m); 
+  });
+  actions.appendChild(replyBtn);
+
+  // Edit/Delete only for own messages
+  if(session && m.userId === session.userId){
     const editBtn = document.createElement('button');
-    editBtn.textContent = 'Edit';
+    editBtn.textContent = '✏️ Edit';
     editBtn.addEventListener('click', (e)=>{ e.stopPropagation(); editMessageById(m.id); });
 
     const delBtn = document.createElement('button');
-    delBtn.textContent = 'Delete';
+    delBtn.textContent = '🗑️ Delete';
     delBtn.className = 'danger';
     delBtn.addEventListener('click', (e)=>{ e.stopPropagation(); deleteMessageById(m.id); });
 
     actions.appendChild(editBtn);
     actions.appendChild(delBtn);
-    wrap.appendChild(actions);
   }
+  
+  wrap.appendChild(actions);
 
   if(prepend){
     messagesEl.insertBefore(wrap, messagesEl.firstChild);
@@ -3699,7 +4099,7 @@ function renderPresenceSummary(){
     if(now - lastActiveAt < 10_000) active++;
     else if(now - lastSeenAt < PRESENCE_RECENT_MS) recent++;
   }
-  presenceSummary.textContent = `presence: ${active} active · ${recent} recent`;
+  presenceText.textContent = `presence: ${active} active · ${recent} recent`;
 }
 
 /* ============================================================
@@ -3840,6 +4240,9 @@ async function sendMessage(){
   const userId = session?.userId || localGuest.userId;
   const sender = (nameInput.value||"").trim() || session?.username || localGuest.name || "Anon";
 
+  // Detect mentions in message
+  const mentions = detectMentions(text);
+
   // attach rich metadata for provenance
   const ip = null; // IP tracking disabled
   const device = `${navigator.platform || 'unknown'} - ${navigator.userAgent.slice(0,50)}`;
@@ -3857,6 +4260,13 @@ async function sendMessage(){
     deleted:false,
     createdAt: now,
     status: 'sending', // New status field
+    replyTo: replyingTo ? {
+      msgId: replyingTo.msgId,
+      sender: replyingTo.sender,
+      text: replyingTo.text,
+      userId: replyingTo.userId
+    } : null,
+    mentions: mentions,
     meta: {
       sessionType,
       sessionUsername: session?.username || null,
@@ -3869,6 +4279,7 @@ async function sendMessage(){
   // OPTIMISTIC UI: Show message immediately with "sending" status
   addMessageToDom(msg);
   msgInput.value = "";
+  cancelReplyTo(); // Clear reply after sending
   markInteraction("send");
 
   // Send to GitHub (wait for confirmation before marking as sent)
@@ -4081,6 +4492,9 @@ async function syncLatestFromStorage(){
   if(addedCount > 0){
     log(`📨 ${addedCount} new message(s) received`, "INFO");
     setupReadObserver();
+    
+    // Check for new messages and mentions
+    checkNewMessages(newMsgs);
   }
   
   // Update cell metadata after sync
@@ -4213,6 +4627,9 @@ joinBtn.onclick = async ()=>{
     
     // Load cell metadata from cache
     loadCellMetadataFromCache();
+    
+    // Load last read timestamp for unread counter
+    loadLastReadTimestamp();
 
     // Presence: join => online=true
     presenceState.inRoom = true;
@@ -4315,7 +4732,25 @@ clearBtn.onclick = ()=>{
   clearView();
   // Also reset behavior tracking when clearing view
   resetBehaviorTracking();
+  // Reset unread/mention counters
+  markAllAsRead();
 };
+
+// Cancel reply button
+cancelReply.onclick = ()=>{
+  cancelReplyTo();
+};
+
+// Mark as read when scrolling to bottom
+messagesEl.addEventListener('scroll', ()=>{
+  const { scrollTop, scrollHeight, clientHeight } = messagesEl;
+  const isAtBottom = Math.abs((scrollTop + clientHeight) - scrollHeight) < 50;
+  
+  if(isAtBottom){
+    // User scrolled to bottom - mark all as read
+    markAllAsRead();
+  }
+}, {passive: true});
 
 // Debug command: type "/engagement" to see current score
 const originalSendMessage = sendMessage;
