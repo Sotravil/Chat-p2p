@@ -2168,14 +2168,16 @@ async function triggerManualRefresh(source = "unknown"){
   }
 }
 
-// Pull-to-refresh gesture detection (tap-hold-drag)
+// Pull-to-refresh gesture detection (SINGLE METHOD: tap-hold-drag)
+// Stricter requirements to avoid accidental triggers
 let pullGestureState = {
   active: false,
   startY: 0,
   startTime: 0,
   currentY: 0,
   holdTimer: null,
-  moved: false
+  moved: false,
+  holdConfirmed: false
 };
 
 function initPullToRefreshGesture(){
@@ -2188,15 +2190,19 @@ function initPullToRefreshGesture(){
     pullGestureState.currentY = touch.clientY;
     pullGestureState.moved = false;
     pullGestureState.active = false;
+    pullGestureState.holdConfirmed = false;
     
-    // Hold timer: activate after 300ms
+    // Longer hold timer: activate after 500ms (more deliberate)
     clearTimeout(pullGestureState.holdTimer);
     pullGestureState.holdTimer = setTimeout(()=>{
-      pullGestureState.active = true;
+      pullGestureState.holdConfirmed = true;
       pullRefreshIndicator.classList.add('active');
-      pullRefreshText.textContent = 'Drag to refresh';
-      log("👆 Pull gesture activated", "INFO");
-    }, 300);
+      pullRefreshText.textContent = 'Drag slowly to refresh';
+      log("👆 Pull gesture ready (hold 500ms)", "INFO");
+      
+      // Haptic feedback if available
+      if(navigator.vibrate) navigator.vibrate(50);
+    }, 500);
   }, {passive: true});
   
   messagesEl.addEventListener("touchmove", (e)=>{
@@ -2204,18 +2210,31 @@ function initPullToRefreshGesture(){
     pullGestureState.currentY = touch.clientY;
     pullGestureState.moved = true;
     
-    if(pullGestureState.active){
+    // Only activate if hold was confirmed
+    if(pullGestureState.holdConfirmed && !pullGestureState.active){
       const delta = pullGestureState.currentY - pullGestureState.startY;
       const absDelta = Math.abs(delta);
       
-      // Check for slow vertical movement (> 30px)
-      if(absDelta > 30){
-        const elapsed = Date.now() - pullGestureState.startTime;
-        const speed = absDelta / elapsed; // px/ms
-        
-        // Slow drag: < 0.5 px/ms
-        if(speed < 0.5){
+      // Require 20px movement after hold to activate
+      if(absDelta > 20){
+        pullGestureState.active = true;
+        log("👆 Pull gesture active (dragging)", "INFO");
+      }
+    }
+    
+    if(pullGestureState.active){
+      const delta = pullGestureState.currentY - pullGestureState.startY;
+      const absDelta = Math.abs(delta);
+      const elapsed = Date.now() - pullGestureState.startTime;
+      const speed = absDelta / elapsed; // px/ms
+      
+      // Check for slow vertical movement (> 60px)
+      if(absDelta > 60){
+        // Slow drag: < 0.4 px/ms (slower than before)
+        if(speed < 0.4){
           pullRefreshText.textContent = '🔄 Release to refresh';
+        }else{
+          pullRefreshText.textContent = 'Drag slower...';
         }
       }
     }
@@ -2230,11 +2249,20 @@ function initPullToRefreshGesture(){
       const elapsed = Date.now() - pullGestureState.startTime;
       const speed = absDelta / elapsed;
       
-      // Trigger refresh if: moved > 50px slowly (< 0.5 px/ms)
-      if(absDelta > 50 && speed < 0.5){
-        triggerManualRefresh("tap-hold-drag");
+      // STRICT TRIGGER: held 500ms + moved > 80px slowly (< 0.4 px/ms)
+      const holdDuration = elapsed;
+      if(holdDuration >= 500 && absDelta > 80 && speed < 0.4){
+        log(`✓ Refresh triggered: hold=${holdDuration}ms, dist=${absDelta.toFixed(0)}px, speed=${speed.toFixed(3)}px/ms`, "INFO");
+        triggerManualRefresh("pull-to-refresh");
       }else{
-        // Reset without triggering
+        // Reset without triggering - show why it failed
+        if(holdDuration < 500){
+          log(`✗ Hold too short: ${holdDuration}ms (need 500ms+)`, "WARN");
+        }else if(absDelta < 80){
+          log(`✗ Movement too small: ${absDelta.toFixed(0)}px (need 80px+)`, "WARN");
+        }else if(speed >= 0.4){
+          log(`✗ Drag too fast: ${speed.toFixed(3)}px/ms (need <0.4px/ms)`, "WARN");
+        }
         pullRefreshIndicator.classList.remove('active');
         pullRefreshText.textContent = 'Pull to refresh';
       }
@@ -2244,60 +2272,15 @@ function initPullToRefreshGesture(){
     }
     
     pullGestureState.active = false;
+    pullGestureState.holdConfirmed = false;
   }, {passive: true});
   
   messagesEl.addEventListener("touchcancel", ()=>{
     clearTimeout(pullGestureState.holdTimer);
     pullGestureState.active = false;
+    pullGestureState.holdConfirmed = false;
     pullRefreshIndicator.classList.remove('active');
     pullRefreshText.textContent = 'Pull to refresh';
-  }, {passive: true});
-}
-
-// Scroll-based refresh (top & bottom detection)
-let scrollRefreshState = {
-  lastScrollTop: 0,
-  atTopTime: 0,
-  atBottomTime: 0
-};
-
-function initScrollToRefresh(){
-  if(!messagesEl) return;
-  
-  messagesEl.addEventListener("scroll", ()=>{
-    const { scrollTop, scrollHeight, clientHeight } = messagesEl;
-    const now = Date.now();
-    
-    // At top (scrollTop = 0)
-    if(scrollTop === 0){
-      if(scrollRefreshState.atTopTime === 0){
-        scrollRefreshState.atTopTime = now;
-        log("📜 Scrolled to top", "INFO");
-      }else if(now - scrollRefreshState.atTopTime > 800){
-        // Stayed at top for 800ms -> trigger refresh
-        scrollRefreshState.atTopTime = 0; // Reset
-        triggerManualRefresh("scroll-to-top");
-      }
-    }else{
-      scrollRefreshState.atTopTime = 0;
-    }
-    
-    // At bottom (scrollTop + clientHeight >= scrollHeight)
-    const atBottom = Math.abs((scrollTop + clientHeight) - scrollHeight) < 5;
-    if(atBottom){
-      if(scrollRefreshState.atBottomTime === 0){
-        scrollRefreshState.atBottomTime = now;
-        log("📜 Scrolled to bottom", "INFO");
-      }else if(now - scrollRefreshState.atBottomTime > 800){
-        // Stayed at bottom for 800ms -> trigger refresh
-        scrollRefreshState.atBottomTime = 0; // Reset
-        triggerManualRefresh("scroll-to-bottom");
-      }
-    }else{
-      scrollRefreshState.atBottomTime = 0;
-    }
-    
-    scrollRefreshState.lastScrollTop = scrollTop;
   }, {passive: true});
 }
 
@@ -3796,7 +3779,7 @@ async function retryMessage(msg){
 }
 
 async function syncLatestFromStorage(){
-  // Load newest messages since loadedCellsMax
+  // Load newest messages - check last 3 cells to ensure completeness
   await loadRoomIndex(currentRoom);
 
   const latestCell = roomIndex.latestCell || 1;
@@ -3809,13 +3792,69 @@ async function syncLatestFromStorage(){
     return;
   }
 
-  if(latestCell <= loadedCellsMax){
-    // still refresh presence sometimes
+  // CRITICAL: Check if user is behind by comparing their last loaded cell to actual latest
+  // Always check the last 3 cells to catch any missed messages
+  const safeCheckFrom = Math.max(1, latestCell - 2); // Check last 3 cells
+  const needToCheck = loadedCellsMax < safeCheckFrom;
+  
+  if(needToCheck){
+    // User is significantly behind - load ALL missing cells
+    log(`📦 Loading missing cells ${loadedCellsMax+1} to ${latestCell}`, "INFO");
+    const newMsgs = await loadCellsRange(currentRoom, loadedCellsMax+1, latestCell);
+    loadedCellsMax = latestCell;
+    
+    // Filter out duplicates and add to DOM
+    let addedCount = 0;
+    const existingIds = new Set(loadedMessages.map(m => m.id));
+    
+    for(const m of newMsgs){
+      if(existingIds.has(m.id)) continue;
+      addMessageToDom(m, false);
+      addedCount++;
+    }
+    
+    if(addedCount > 0){
+      log(`📨 ${addedCount} new message(s) received (loaded ${latestCell - loadedCellsMax} cells)`, "INFO");
+      setupReadObserver();
+    }
+    
     await maybeRefreshPresence();
+    updateReadBadges();
     return;
   }
 
-  // Load new cells
+  // User is close to latest - check if there are new cells
+  if(latestCell <= loadedCellsMax){
+    // No new cells, but reload last 3 cells to ensure completeness
+    // (in case messages were added to existing cells)
+    const reloadFrom = Math.max(1, latestCell - 2);
+    if(reloadFrom <= loadedCellsMax){
+      log(`🔄 Verifying last 3 cells (${reloadFrom} to ${latestCell})`, "INFO");
+      const msgs = await loadCellsRange(currentRoom, reloadFrom, latestCell);
+      
+      // Add any messages we don't have yet
+      let addedCount = 0;
+      const existingIds = new Set(loadedMessages.map(m => m.id));
+      
+      for(const m of msgs){
+        if(existingIds.has(m.id)) continue;
+        addMessageToDom(m, false);
+        addedCount++;
+      }
+      
+      if(addedCount > 0){
+        log(`📨 ${addedCount} message(s) found in verification`, "INFO");
+        setupReadObserver();
+      }
+    }
+    
+    await maybeRefreshPresence();
+    updateReadBadges();
+    return;
+  }
+
+  // Load new cells from user's position to latest
+  log(`📥 Loading new cells ${loadedCellsMax+1} to ${latestCell}`, "INFO");
   const newMsgs = await loadCellsRange(currentRoom, loadedCellsMax+1, latestCell);
   loadedCellsMax = latestCell;
 
@@ -4148,10 +4187,9 @@ window.addEventListener("load", async ()=>{
 
     installInteractionListeners();
     
-    // Initialize pull-to-refresh gestures
+    // Initialize pull-to-refresh gesture (tap-hold-drag only)
     initPullToRefreshGesture();
-    initScrollToRefresh();
-    log("✅ Pull-to-refresh gestures initialized", "INFO");
+    log("✅ Pull-to-refresh gesture initialized (hold 500ms + drag 80px slowly)", "INFO");
     
     // Tab visibility: check for messages when tab becomes visible
     document.addEventListener("visibilitychange", ()=>{
