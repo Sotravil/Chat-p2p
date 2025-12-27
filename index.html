@@ -3573,6 +3573,7 @@ let isTypingMode = false;
 let typingTimeout = null;
 let lastTypingAt = 0;
 let burstModeUntil = 0;  // Timestamp for burst mode end
+let lastMessageSyncAt = 0; // Track last time we synced messages for active users
 
 // V3 loaded window
 let loadedCellsMin = null;
@@ -4112,12 +4113,29 @@ async function pollLoop(){
       return;
     }
 
-    // ONLY sync if master=true (someone sent a message)
-    if(master.value){
-      log(`🔄 Syncing new messages (master=true)...`, "INFO");
+    // ========================================
+    // ACTIVE USER MESSAGE SYNC:
+    // If user is actively viewing the chat, periodically sync messages
+    // even if master flag is false. This ensures they see new messages
+    // from other users without waiting for interactions.
+    // ========================================
+    const shouldForceSync = active && (now - lastMessageSyncAt > 5000); // Sync every 5s when active
+    
+    // Sync if master=true OR if user is actively viewing (force sync)
+    if(master.value || shouldForceSync){
+      if(master.value){
+        log(`🔄 Syncing new messages (master=true)...`, "INFO");
+      }else{
+        log(`🔄 Active user sync - checking for new messages...`, "INFO");
+      }
+      
       await syncLatestFromStorage();
-      await sleep(100);
-      await saveMasterValue(currentRoom, false);
+      lastMessageSyncAt = now; // Track last sync time
+      
+      if(master.value){
+        await sleep(100);
+        await saveMasterValue(currentRoom, false);
+      }
       
       // Enter burst mode: check frequently for quick back-and-forth
       burstModeUntil = now + POLL_BURST_DURATION;
@@ -4129,13 +4147,21 @@ async function pollLoop(){
     // Smart scheduling:
     // - Burst mode (after message received): aggressive polling for 10s
     // - Typing mode: check while typing
+    // - Active viewing: moderate polling to catch new messages
     // - Otherwise: NO automatic polling (wait for interaction)
     
     const inBurstMode = now < burstModeUntil;
     
-    if(inBurstMode || isTypingMode){
-      // Continue polling during conversation
-      const interval = inBurstMode ? POLL_MS_BURST : POLL_MS_INTERACTION;
+    if(inBurstMode || isTypingMode || active){
+      // Continue polling during conversation or when actively viewing
+      let interval;
+      if(inBurstMode){
+        interval = POLL_MS_BURST;           // 500ms - very fast during conversation
+      }else if(isTypingMode){
+        interval = POLL_MS_INTERACTION;     // 2000ms - while typing
+      }else{
+        interval = POLL_MS_INTERACTION * 2; // 4000ms - when just viewing
+      }
       scheduleNextPoll(interval);
     }
     // else: stop polling, wait for next interaction
