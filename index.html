@@ -3797,15 +3797,19 @@ function normalizeMessage(raw){
     mentions: raw.mentions || [] // Array of mentioned usernames
   };
   
-  // Preserve audio metadata if present
+  // ========================================
+  // AUDIO METADATA: Preserve all audio-specific fields when loading from GitHub
+  // This ensures audio messages maintain their playback info and listen tracking
+  // ========================================
   if(raw.type === 'audio'){
     normalized.type = 'audio';
-    normalized.audioPath = raw.audioPath || null;
-    normalized.audioData = raw.audioData || null;
-    normalized.audioSize = raw.audioSize || 0;
-    normalized.audioFileName = raw.audioFileName || null;
-    normalized.audioFolderType = raw.audioFolderType || null;
-    normalized.audioDuration = raw.audioDuration || 0;
+    normalized.audioPath = raw.audioPath || null;           // GitHub path to audio file
+    normalized.audioData = raw.audioData || null;           // Base64 data (legacy/just-sent)
+    normalized.audioSize = raw.audioSize || 0;              // File size in bytes
+    normalized.audioFileName = raw.audioFileName || null;   // Original filename
+    normalized.audioFolderType = raw.audioFolderType || null; // 'recorded-audios' or 'media-audios'
+    normalized.audioDuration = raw.audioDuration || 0;      // Duration in seconds
+    normalized.listenedBy = raw.listenedBy || [];          // AUDIO READ RECEIPT: Array of {userId, username, listenedAt}
   }
   
   return normalized;
@@ -4343,6 +4347,13 @@ function addMessageToDom(m, silent=false, prepend=false){
           audioPlayBtn.innerHTML = "⏸️";
           audioPlayBtn.dataset.playing = "true";
           console.log('Audio playing:', m.id);
+          
+          // ========================================
+          // AUDIO READ RECEIPT: Mark as listened when playback starts
+          // This is the ONLY way audio messages get marked as "read"
+          // (not just by being visible like regular text messages)
+          // ========================================
+          markAudioAsListened(m.id);
         }).catch(e => {
           console.error('Error playing audio:', e);
           showToast('Could not play audio: ' + e.message, 'error');
@@ -4417,6 +4428,26 @@ function addMessageToDom(m, silent=false, prepend=false){
     audioMsg.appendChild(audioPlayBtn);
     audioMsg.appendChild(audioWaveform);
     audioMsg.appendChild(audioDuration);
+    
+    // ========================================
+    // AUDIO READ RECEIPT UI: Show "🎧 N" indicator on sender's messages
+    // Displays how many people listened to this audio message
+    // Only visible to the person who sent the audio
+    // Hover tooltip shows names of all listeners
+    // ========================================
+    const userId = session?.userId || localGuest.userId;
+    const isMyMessage = m.userId === userId;
+    
+    if(isMyMessage && m.listenedBy && m.listenedBy.length > 0){
+      const listenedCount = m.listenedBy.length;
+      const listeners = m.listenedBy.map(l => l.username).join(', ');
+      const listenedIndicator = document.createElement('div');
+      listenedIndicator.className = 'audio-listened-indicator';
+      listenedIndicator.innerHTML = `<span title="Listened by: ${listeners}">🎧 ${listenedCount}</span>`;
+      listenedIndicator.style.cssText = 'font-size:10px; opacity:0.7; margin-top:4px; text-align:right; color:var(--muted);';
+      audioMsg.appendChild(listenedIndicator);
+    }
+    
     text.appendChild(audioMsg);
     text.appendChild(audioElement);
   }else{
@@ -4973,6 +5004,17 @@ function setupReadObserver(){
       const node = ent.target;
       const msgId = node.dataset.msgId;
       const ts = Number(node.dataset.ts||0);
+      
+      // ========================================
+      // AUDIO READ RECEIPT: Skip automatic read tracking for audio messages
+      // Audio messages require explicit user interaction (download + play)
+      // to be marked as "listened". This prevents marking audio as "read"
+      // when user just scrolls past it without actually listening.
+      // ========================================
+      const isAudioMsg = node.querySelector('.msg-audio');
+      if(isAudioMsg){
+        continue;
+      }
 
       // Only consider if visible enough
       if(ent.intersectionRatio < 0.60){
@@ -5046,8 +5088,105 @@ async function markRead(ts, msgId, zone){
   updateReadBadges();
 }
 
+/* ============================================================
+   AUDIO READ RECEIPTS: markAudioAsListened()
+   
+   Tracks when users actually PLAY audio messages (not just see them).
+   This function is called when user clicks play button on an audio message.
+   
+   What it does:
+   1. Checks if user already listened (prevents duplicates)
+   2. Adds {userId, username, listenedAt} to message.listenedBy array
+   3. Updates message in GitHub cell with listened status
+   4. Marks message as "read" in presence tracking
+   5. Updates UI badges to show "listened by" count
+   
+   GitHub Storage:
+   - listenedBy array saved to: rooms-cells/<room>/cells/cell-NNNNNN.json
+   - Synced across all devices via poll loop
+   - Sender can see who listened to their audio messages
+   ============================================================ */
+async function markAudioAsListened(msgId){
+  if(!currentRoom) return;
+  
+  const userId = session?.userId || localGuest.userId;
+  const username = session?.username || localGuest.name || "Guest";
+  
+  // Find the message in loadedMessages array
+  const msg = loadedMessages.find(m => m.id === msgId);
+  if(!msg || msg.type !== 'audio') return;
+  
+  // Prevent duplicate entries - check if this user already listened
+  if(!msg.listenedBy) msg.listenedBy = [];
+  const alreadyListened = msg.listenedBy.some(l => l.userId === userId);
+  if(alreadyListened) return;
+  
+  // Create listened entry with user info and timestamp
+  const listenEntry = {
+    userId,
+    username,
+    listenedAt: Date.now()
+  };
+  msg.listenedBy.push(listenEntry);
+  
+  log(`🎧 Marked audio as listened: ${msgId}`, 'INFO');
+  
+  // ========================================
+  // Save listened status to GitHub for cross-device sync
+  // This updates the message in the cell JSON file
+  // ========================================
+  try{
+    const cellNum = msg.cell;
+    if(!cellNum){
+      console.warn('No cell number for message:', msgId);
+      return;
+    }
+    
+    const got = await ghGetJsonWithSha(cellPath(currentRoom, cellNum));
+    if(!got.ok || !Array.isArray(got.obj)){
+      console.error('Failed to load cell for audio listened update');
+      return;
+    }
+    
+    const cellArr = got.obj;
+    const idx = cellArr.findIndex(m => m.id === msgId);
+    if(idx === -1){
+      console.warn('Message not found in cell:', msgId);
+      return;
+    }
+    
+    // Update the message in the cell with listened entry
+    if(!cellArr[idx].listenedBy) cellArr[idx].listenedBy = [];
+    cellArr[idx].listenedBy.push(listenEntry);
+    
+    // Write updated cell back to GitHub with SHA for conflict resolution
+    const put = await ghPutJson(cellPath(currentRoom, cellNum), cellArr, got.sha, `audio listened ${msgId}`);
+    if(put && put.ok){
+      log(`✓ Audio listened status saved to GitHub`, 'INFO');
+      
+      // Also mark as read in presence (updates lastReadTs)
+      // This ensures the message is considered "read" for badge calculations
+      await markRead(msg.ts, msgId, 'CENTER');
+      
+      // Refresh UI to show "listened by" count
+      updateReadBadges();
+    }
+  }catch(err){
+    console.error('Error updating audio listened status:', err);
+  }
+}
+
 function updateReadBadges(){
-  // Show "read by" if presence.lastReadTs >= msg.ts
+  // ========================================
+  // READ RECEIPTS: Show "read by" for text, "listened by" for audio
+  // 
+  // Text messages: Use presence.lastReadTs (automatic when visible)
+  // Audio messages: Use message.listenedBy array (only when played)
+  // 
+  // This dual system ensures:
+  // - Text messages = seen = read (traditional)
+  // - Audio messages = played = read (engagement-based)
+  // ========================================
   const nodes = messagesEl.querySelectorAll(".msg");
   const selfId = session?.userId || localGuest.userId;
   
@@ -5056,28 +5195,63 @@ function updateReadBadges(){
     const msgId = node.dataset.msgId;
     const readsEl = node.querySelector(".reads");
     if(!readsEl) continue;
-
-    const readers = [];
-    let hasOtherReaders = false;
     
-    for(const p of presenceCache.values()){
-      if(!p.userId) continue;
-      if((p.lastReadTs||0) >= ts){
-        // don't show self
-        if(p.userId !== selfId){
-          readers.push(p.username || p.userId);
-          hasOtherReaders = true;
+    // Check if this is an audio message
+    const isAudioMsg = node.querySelector('.msg-audio');
+    
+    if(isAudioMsg){
+      // ========================================
+      // AUDIO READ RECEIPT: Use listenedBy array (not presence tracking)
+      // Shows "listened by" instead of "read by"
+      // Only counts users who actually played the audio
+      // ========================================
+      const msg = loadedMessages.find(m => m.id === msgId);
+      if(msg && msg.listenedBy && msg.listenedBy.length > 0){
+        const listeners = msg.listenedBy
+          .filter(l => l.userId !== selfId)  // Exclude self from count
+          .map(l => l.username || l.userId);
+        
+        if(listeners.length > 0){
+          readsEl.textContent = `listened by: ${listeners.slice(0,3).join(", ")}${listeners.length>3?"…":""}`;
+          
+          // Update message status indicator to 'read' (✓✓)
+          const statusEl = node.querySelector('.msg-status');
+          if(statusEl){
+            updateMessageStatus(msgId, 'read');
+          }
+        }else{
+          readsEl.textContent = "";
+        }
+      }else{
+        readsEl.textContent = "";
+      }
+    }else{
+      // ========================================
+      // REGULAR MESSAGE READ RECEIPT: Use presence.lastReadTs
+      // Traditional read tracking - marks as read when visible
+      // ========================================
+      const readers = [];
+      let hasOtherReaders = false;
+      
+      for(const p of presenceCache.values()){
+        if(!p.userId) continue;
+        if((p.lastReadTs||0) >= ts){
+          // don't show self
+          if(p.userId !== selfId){
+            readers.push(p.username || p.userId);
+              hasOtherReaders = true;
+          }
         }
       }
-    }
-    readsEl.textContent = readers.length ? `read by: ${readers.slice(0,3).join(", ")}${readers.length>3?"…":""}` : "";
-    
-    // Update own message status to 'read' if others have read it
-    const statusEl = node.querySelector('.msg-status');
-    if(statusEl && hasOtherReaders){
-      const currentStatus = statusEl.className.match(/status-(\w+)/)?.[1];
-      if(currentStatus && ['sent', 'delivered'].includes(currentStatus)){
-        updateMessageStatus(msgId, 'read');
+      readsEl.textContent = readers.length ? `read by: ${readers.slice(0,3).join(", ")}${readers.length>3?"…":""}` : "";
+      
+      // Update own message status to 'read' if others have read it
+      const statusEl = node.querySelector('.msg-status');
+      if(statusEl && hasOtherReaders){
+        const currentStatus = statusEl.className.match(/status-(\w+)/)?.[1];
+        if(currentStatus && ['sent', 'delivered'].includes(currentStatus)){
+          updateMessageStatus(msgId, 'read');
+        }
       }
     }
   }
@@ -6094,6 +6268,7 @@ async function sendAudioMessage(){
       audioDuration: audioDuration,
       audioMimeType: recordedBlob.type,
       audioSize: recordedBlob.size,
+      listenedBy: [], // AUDIO READ RECEIPT: Initialize empty array - will be populated when users play the audio
       edited: false,
       editedAt: null,
       deleted: false,
