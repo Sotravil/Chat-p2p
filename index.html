@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5,viewport-fit=cover,user-scalable=yes"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="theme-color" content="#0b0f17"/>
   <title>Chat-p2p V3 (cells+boxes) — Sotravil</title>
   <style>
     :root{
@@ -35,6 +39,8 @@
     }
     body{
       margin:0;
+      /* Safe area insets for notched devices */
+      padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
       background:radial-gradient(1200px 700px at 40% -10%, rgba(56,189,248,.15), transparent 60%),
                  radial-gradient(900px 500px at 120% 20%, rgba(168,85,247,.12), transparent 55%),
                  radial-gradient(600px 400px at 80% 100%, rgba(34,197,94,.08), transparent 50%),
@@ -42,6 +48,8 @@
       color:var(--txt);
       font-family:var(--sans);
       -webkit-font-smoothing:antialiased;
+      -webkit-tap-highlight-color:transparent; /* Remove tap highlight on mobile */
+      touch-action:manipulation; /* Prevent double-tap zoom */
       overflow:hidden;
     }
     header{
@@ -663,11 +671,235 @@
       margin-left:8px;
     }
 
-    /* Mobile-first -> on wide screens keep nice centered content */
-    @media (min-width: 960px){
-      main{max-width:980px; margin:0 auto}
-      .row{flex-wrap:nowrap}
-      .msg{max-width:70%}
+    /* ================================================
+       MOBILE-FIRST RESPONSIVE DESIGN
+       Base styles = Mobile (320px+)
+       Progressive enhancement for tablets/desktop
+       ================================================ */
+    
+    /* Mobile: Adjust header for small screens */
+    @media (max-width: 640px){
+      header{
+        padding:10px 12px;
+        flex-wrap:wrap;
+      }
+      header h1{
+        font-size:13px;
+      }
+      header .status{
+        font-size:10px;
+        padding:4px 8px;
+      }
+      header .right{
+        width:100%;
+        justify-content:flex-end;
+        margin-top:6px;
+      }
+      button{
+        padding:8px 12px;
+        font-size:11px;
+      }
+    }
+
+    /* Mobile: Stack form fields */
+    @media (max-width: 640px){
+      .row{
+        flex-direction:column;
+      }
+      .field{
+        min-width:100%;
+      }
+    }
+
+    /* Mobile: Optimize message display */
+    @media (max-width: 640px){
+      .msg{
+        max-width:90%;
+        padding:10px 12px;
+        font-size:14px;
+      }
+      .msg .text{
+        font-size:14px;
+        line-height:1.4;
+      }
+      .msg .meta{
+        font-size:11px;
+      }
+      .msgs{
+        padding:8px;
+      }
+    }
+
+    /* Mobile: Optimize composer */
+    @media (max-width: 640px){
+      .composer{
+        padding:10px;
+        gap:8px;
+      }
+      .composer textarea{
+        font-size:14px;
+        min-height:48px;
+        padding:12px;
+      }
+      button{
+        min-height:48px; /* Larger touch targets */
+      }
+    }
+
+    /* Mobile: Adjust chat header */
+    @media (max-width: 640px){
+      .chatHeader{
+        padding:10px;
+        flex-wrap:wrap;
+      }
+      .chatHeader .meta .room{
+        font-size:14px;
+      }
+      .chatHeader .meta .sub{
+        font-size:10px;
+      }
+      .chatHeader .people{
+        width:100%;
+        margin-top:4px;
+      }
+    }
+
+    /* Mobile: Toast positioning */
+    @media (max-width: 640px){
+      .toast-container{
+        top:10px;
+        right:10px;
+        left:10px;
+      }
+      .toast{
+        min-width:auto;
+        width:100%;
+      }
+    }
+
+    /* Mobile: Modal optimization */
+    @media (max-width: 640px){
+      .modalBackdrop, .modal-overlay{
+        padding:12px;
+      }
+      .modal{
+        width:100%;
+        max-width:100%;
+      }
+      .modal .top, .modal-header{
+        padding:10px 12px;
+      }
+      .modal .body, .modal-body{
+        padding:12px;
+      }
+    }
+
+    /* Mobile: Room browser */
+    @media (max-width: 640px){
+      .room-list{
+        max-height:60vh;
+      }
+      .room-item{
+        flex-direction:column;
+        align-items:flex-start;
+        padding:10px 12px;
+      }
+      .room-status{
+        width:100%;
+        justify-content:space-between;
+        margin-top:6px;
+      }
+    }
+
+    /* Mobile: Input fields larger for touch */
+    @media (max-width: 640px){
+      input, textarea{
+        font-size:16px; /* Prevents zoom on iOS */
+        padding:12px;
+      }
+    }
+
+    /* Mobile: Adjust main grid */
+    @media (max-width: 640px){
+      main{
+        padding:8px;
+        gap:8px;
+        height:calc(100% - 50px);
+      }
+      .panel{
+        border-radius:14px;
+      }
+    }
+
+    /* Mobile: Log panel */
+    @media (max-width: 640px){
+      .log{
+        font-size:10px;
+        max-height:80px;
+        padding:8px 10px;
+      }
+    }
+
+    /* Tablet: 641px - 1024px */
+    @media (min-width: 641px) and (max-width: 1024px){
+      main{
+        max-width:768px;
+        margin:0 auto;
+      }
+      .msg{
+        max-width:75%;
+      }
+    }
+
+    /* Desktop: 1025px+ */
+    @media (min-width: 1025px){
+      main{
+        max-width:980px;
+        margin:0 auto;
+      }
+      .row{
+        flex-wrap:nowrap;
+      }
+      .msg{
+        max-width:70%;
+      }
+    }
+
+    /* Landscape mobile optimization */
+    @media (max-width: 896px) and (orientation: landscape){
+      main{
+        height:calc(100% - 45px);
+      }
+      header{
+        padding:8px 12px;
+      }
+      .chatHeader{
+        padding:8px 10px;
+      }
+      .msgs{
+        max-height:45vh;
+      }
+    }
+
+    /* High DPI screens */
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi){
+      .panel::before{
+        opacity:.7;
+      }
+    }
+
+    /* Reduce motion for accessibility */
+    @media (prefers-reduced-motion: reduce){
+      *{
+        animation-duration:0.01ms !important;
+        animation-iteration-count:1 !important;
+        transition-duration:0.01ms !important;
+      }
+    }
+
+    /* Dark mode support (respects system preference) */
+    @media (prefers-color-scheme: light){
+      /* User can add light mode overrides here if needed */
     }
   </style>
 </head>
@@ -1007,8 +1239,7 @@ async function ghGetJsonWithSha(path){
     method:"GET",
     headers:{
       "Accept":"application/vnd.github+json",
-      "Authorization":`Bearer ${GH_TOKEN}`,
-      "Cache-Control": "no-cache"
+      "Authorization":`Bearer ${GH_TOKEN}`
     },
     cache: 'no-store' // Disable cache for real-time updates
   });
@@ -1572,6 +1803,200 @@ window._chat_activeUntil = Date.now() + ACTIVE_BURST_MS;
 window._chat_lastMarkAt = 0;
 window._chat_fastScrollingUntil = 0;
 
+/* ============================================================
+   === MOBILE GESTURE & EMOTION DETECTION ===
+   ============================================================ */
+const userBehavior = {
+  tapHistory: [],
+  dwellTimes: new Map(), // msgId -> {startTime, totalTime, visits}
+  scrollPatterns: [],
+  currentDwell: null,
+  engagement: {
+    rapidTaps: 0,        // Excitement indicator
+    longDwells: 0,       // Interest indicator
+    quickScrolls: 0,     // Disinterest/searching
+    slowScrolls: 0,      // Reading/interested
+    swipeLeft: 0,        // Dismissive gesture
+    swipeRight: 0,       // Engaging gesture
+    swipeUp: 0,          // Scrolling through
+    swipeDown: 0         // Revisiting
+  }
+};
+
+// Detect tap patterns (single, double, rapid rage taps)
+function detectTapPattern(x, y){
+  const now = Date.now();
+  const tap = { x, y, time: now };
+  
+  userBehavior.tapHistory.push(tap);
+  
+  // Keep only last 5 taps (2 second window)
+  userBehavior.tapHistory = userBehavior.tapHistory.filter(t => now - t.time < 2000);
+  
+  if(userBehavior.tapHistory.length >= 3){
+    const recentTaps = userBehavior.tapHistory.slice(-3);
+    const timeSpan = recentTaps[2].time - recentTaps[0].time;
+    
+    // Rapid taps within 1 second = excitement/frustration
+    if(timeSpan < 1000){
+      userBehavior.engagement.rapidTaps++;
+      log(`📱 Rapid tap detected (${userBehavior.engagement.rapidTaps}x) - High engagement!`, "INFO");
+      return 'rapid';
+    }
+  }
+  
+  if(userBehavior.tapHistory.length >= 2){
+    const lastTwo = userBehavior.tapHistory.slice(-2);
+    const timeDiff = lastTwo[1].time - lastTwo[0].time;
+    
+    // Double tap within 500ms
+    if(timeDiff < 500){
+      return 'double';
+    }
+  }
+  
+  return 'single';
+}
+
+// Track dwell time on messages (how long user looks at each message)
+function startMessageDwell(msgId){
+  if(!msgId) return;
+  
+  const now = Date.now();
+  
+  // End previous dwell if exists
+  if(userBehavior.currentDwell && userBehavior.currentDwell.msgId !== msgId){
+    endMessageDwell(userBehavior.currentDwell.msgId);
+  }
+  
+  userBehavior.currentDwell = { msgId, startTime: now };
+  
+  if(!userBehavior.dwellTimes.has(msgId)){
+    userBehavior.dwellTimes.set(msgId, {
+      startTime: now,
+      totalTime: 0,
+      visits: 0
+    });
+  }
+}
+
+function endMessageDwell(msgId){
+  if(!msgId) return;
+  
+  const dwell = userBehavior.dwellTimes.get(msgId);
+  if(!dwell) return;
+  
+  const now = Date.now();
+  const dwellTime = now - (userBehavior.currentDwell?.startTime || now);
+  
+  dwell.totalTime += dwellTime;
+  dwell.visits++;
+  
+  // Long dwell (>3 seconds) = high interest
+  if(dwellTime > 3000){
+    userBehavior.engagement.longDwells++;
+    log(`👀 Long dwell on message (${(dwellTime/1000).toFixed(1)}s) - User interested!`, "INFO");
+  }
+  
+  userBehavior.currentDwell = null;
+}
+
+// Analyze scroll behavior for emotional state
+function analyzeScrollBehavior(speed, direction, deltaY){
+  const now = Date.now();
+  
+  const pattern = {
+    speed,
+    direction, // 'up' or 'down'
+    deltaY,
+    time: now
+  };
+  
+  userBehavior.scrollPatterns.push(pattern);
+  
+  // Keep only last 10 scrolls (5 second window)
+  userBehavior.scrollPatterns = userBehavior.scrollPatterns.filter(p => now - p.time < 5000);
+  
+  // Fast scrolling (>2000px/s) = searching/disinterested
+  if(speed > 2000){
+    userBehavior.engagement.quickScrolls++;
+    if(userBehavior.engagement.quickScrolls > 5){
+      log(`⚡ Fast scrolling detected - User searching or disengaged`, "INFO");
+    }
+  }
+  // Slow scrolling (<500px/s) = reading carefully
+  else if(speed < 500 && Math.abs(deltaY) > 20){
+    userBehavior.engagement.slowScrolls++;
+    if(userBehavior.engagement.slowScrolls > 3){
+      log(`📖 Slow scrolling - User reading carefully`, "INFO");
+    }
+  }
+}
+
+// Detect swipe emotions
+function analyzeSwipe(direction, distance, speed){
+  const swipeMap = {
+    'left': 'swipeLeft',
+    'right': 'swipeRight',
+    'up': 'swipeUp',
+    'down': 'swipeDown'
+  };
+  
+  if(swipeMap[direction]){
+    userBehavior.engagement[swipeMap[direction]]++;
+    
+    // Fast aggressive swipes = dismissive/negative
+    if(speed > 1000 && (direction === 'left' || direction === 'up')){
+      log(`👎 Dismissive swipe ${direction} - Possible dislike`, "WARN");
+    }
+    // Slower, deliberate swipes = engaging
+    else if(speed < 500 && (direction === 'right' || direction === 'down')){
+      log(`👍 Engaging swipe ${direction} - User interested`, "INFO");
+    }
+  }
+}
+
+// Calculate overall engagement score
+function getEngagementScore(){
+  const e = userBehavior.engagement;
+  
+  // Positive signals
+  const positive = (e.longDwells * 3) + (e.slowScrolls * 2) + (e.swipeRight * 1.5) + (e.swipeDown * 1);
+  
+  // Negative signals
+  const negative = (e.quickScrolls * 2) + (e.swipeLeft * 1.5) + (e.swipeUp * 1);
+  
+  // Neutral/excitement
+  const excitement = e.rapidTaps * 1;
+  
+  const score = positive - negative + (excitement * 0.5);
+  
+  return {
+    score: Math.max(0, score),
+    sentiment: score > 10 ? 'highly engaged' : score > 5 ? 'engaged' : score > 0 ? 'neutral' : 'disengaged',
+    breakdown: { positive, negative, excitement }
+  };
+}
+
+// Log engagement summary periodically
+function logEngagementSummary(){
+  const engagement = getEngagementScore();
+  const dwellCount = userBehavior.dwellTimes.size;
+  
+  log(`📊 Engagement: ${engagement.sentiment} (score: ${engagement.score.toFixed(1)}) | Dwells: ${dwellCount} | Taps: ${userBehavior.engagement.rapidTaps}`, "INFO");
+}
+
+// Reset engagement tracking (e.g., when switching rooms)
+function resetBehaviorTracking(){
+  userBehavior.tapHistory = [];
+  userBehavior.dwellTimes.clear();
+  userBehavior.scrollPatterns = [];
+  userBehavior.currentDwell = null;
+  for(const key in userBehavior.engagement){
+    userBehavior.engagement[key] = 0;
+  }
+}
+
 function markInteraction(kind="unknown"){
   const now = Date.now();
   if(now - window._chat_lastMarkAt < INTERACTION_THROTTLE_MS) return;
@@ -1604,20 +2029,50 @@ function installInteractionListeners(){
     window.addEventListener(ev, ()=>markInteraction(ev), opts);
   });
 
-  // Touch events (tap, swipe, drag)
-  ["touchstart","touchmove","touchend","touchcancel"].forEach(ev=>{
+  // Touch events with tap pattern detection
+  window.addEventListener("touchstart", (e)=>{
+    const touch = e.touches[0];
+    if(touch){
+      const tapPattern = detectTapPattern(touch.clientX, touch.clientY);
+      if(tapPattern === 'rapid'){
+        markInteraction("rapid-tap");
+      }
+    }
+  }, opts);
+
+  ["touchmove","touchend","touchcancel"].forEach(ev=>{
     window.addEventListener(ev, ()=>markInteraction(ev), opts);
   });
 
-  // Long-press/hold (>= 350ms)
+  // Long-press/hold (>= 350ms) with dwell tracking
   let holdTimer = null;
-  window.addEventListener("touchstart", ()=>{
-    clearTimeout(holdTimer);
-    holdTimer = setTimeout(()=>markInteraction("long-press"), 350);
-  }, opts);
-  window.addEventListener("touchend", ()=>clearTimeout(holdTimer), opts);
+  let holdTarget = null;
   
-  // Mobile gesture detection: swipe
+  window.addEventListener("touchstart", (e)=>{
+    holdTarget = e.target.closest('.msg');
+    clearTimeout(holdTimer);
+    holdTimer = setTimeout(()=>{
+      markInteraction("long-press");
+      if(holdTarget){
+        const msgId = holdTarget.dataset.msgId;
+        if(msgId){
+          startMessageDwell(msgId);
+          log(`🔍 User dwelling on message`, "INFO");
+        }
+      }
+    }, 350);
+  }, opts);
+  
+  window.addEventListener("touchend", (e)=>{
+    clearTimeout(holdTimer);
+    if(holdTarget){
+      const msgId = holdTarget.dataset.msgId;
+      if(msgId) endMessageDwell(msgId);
+    }
+    holdTarget = null;
+  }, opts);
+  
+  // Mobile gesture detection: swipe with emotion analysis
   let touchStartX = 0;
   let touchStartY = 0;
   let touchStartTime = 0;
@@ -1631,12 +2086,25 @@ function installInteractionListeners(){
   window.addEventListener("touchend", (e)=>{
     const touchEndX = e.changedTouches[0]?.clientX || 0;
     const touchEndY = e.changedTouches[0]?.clientY || 0;
-    const deltaX = Math.abs(touchEndX - touchStartX);
-    const deltaY = Math.abs(touchEndY - touchStartY);
+    const deltaX = touchEndX - touchStartX;
+    const deltaY = touchEndY - touchStartY;
+    const absDeltaX = Math.abs(deltaX);
+    const absDeltaY = Math.abs(deltaY);
     const deltaTime = Date.now() - touchStartTime;
     
     // Detect swipe (fast gesture > 50px in < 500ms)
-    if(deltaTime < 500 && (deltaX > 50 || deltaY > 50)){
+    if(deltaTime < 500 && (absDeltaX > 50 || absDeltaY > 50)){
+      const distance = Math.sqrt(absDeltaX * absDeltaX + absDeltaY * absDeltaY);
+      const speed = distance / (deltaTime / 1000); // px/s
+      
+      let direction;
+      if(absDeltaX > absDeltaY){
+        direction = deltaX > 0 ? 'right' : 'left';
+      }else{
+        direction = deltaY > 0 ? 'down' : 'up';
+      }
+      
+      analyzeSwipe(direction, distance, speed);
       markInteraction("swipe");
     }
   }, opts);
@@ -1664,20 +2132,70 @@ function installInteractionListeners(){
     markInteraction("input-blur");
   });
 
-  // Fast-scroll detector for read receipts
+  // Fast-scroll detector with behavior analysis
   let lastScrollTop = 0;
   let lastT = performance.now();
   messagesEl.addEventListener("scroll", ()=>{
     const now = performance.now();
     const dt = Math.max(1, now - lastT);
-    const dy = Math.abs(messagesEl.scrollTop - lastScrollTop);
-    const speed = (dy / dt) * 1000; // px/s
-    lastScrollTop = messagesEl.scrollTop;
+    const currentScrollTop = messagesEl.scrollTop;
+    const dy = currentScrollTop - lastScrollTop;
+    const absDy = Math.abs(dy);
+    const speed = (absDy / dt) * 1000; // px/s
+    
+    // Determine scroll direction
+    const direction = dy > 0 ? 'down' : 'up';
+    
+    // Analyze scrolling behavior for emotions
+    analyzeScrollBehavior(speed, direction, dy);
+    
+    lastScrollTop = currentScrollTop;
     lastT = now;
-    if(speed > 1600){ // threshold
+    
+    if(speed > 1600){ // Fast scrolling threshold
       window._chat_fastScrollingUntil = Date.now() + 300;
     }
   }, opts);
+  
+  // Track message visibility (IntersectionObserver for dwell detection)
+  const dwellObserver = new IntersectionObserver((entries)=>{
+    entries.forEach(entry =>{
+      const msgId = entry.target.dataset.msgId;
+      if(!msgId) return;
+      
+      if(entry.isIntersecting && entry.intersectionRatio > 0.7){
+        // Message is 70%+ visible - start dwell tracking
+        startMessageDwell(msgId);
+      }else if(!entry.isIntersecting || entry.intersectionRatio < 0.3){
+        // Message left viewport or mostly hidden
+        endMessageDwell(msgId);
+      }
+    });
+  }, {
+    root: messagesEl,
+    threshold: [0, 0.3, 0.7, 1.0]
+  });
+  
+  // Observe all messages for dwell tracking
+  const observeMessages = ()=>{
+    messagesEl.querySelectorAll('.msg').forEach(msg => {
+      dwellObserver.observe(msg);
+    });
+  };
+  
+  // Initial observation
+  setTimeout(observeMessages, 500);
+  
+  // Re-observe when new messages arrive
+  const msgObserver = new MutationObserver(observeMessages);
+  msgObserver.observe(messagesEl, { childList: true });
+  
+  // Log engagement summary every 30 seconds
+  setInterval(()=>{
+    if(running && currentRoom){
+      logEngagementSummary();
+    }
+  }, 30000);
 }
 
 /* ============================================================
@@ -3116,6 +3634,10 @@ joinBtn.onclick = async ()=>{
     // Pull presence list
     await refreshPresence();
 
+    // Reset behavior tracking for new room
+    resetBehaviorTracking();
+    log(`📊 Behavior tracking initialized`, "INFO");
+
     log(`✨ Joined "${currentRoom}" as ${displayName}.`, "INFO");
   }catch(e){
     console.error("[Join ERROR]", e);
@@ -3127,6 +3649,11 @@ joinBtn.onclick = async ()=>{
 leaveBtn.onclick = async ()=>{
   try{
     if(!running) return;
+
+    // Show final engagement summary before leaving
+    const finalEngagement = getEngagementScore();
+    log(`📊 Final Engagement: ${finalEngagement.sentiment} (${finalEngagement.score.toFixed(1)})`, "INFO");
+    showToast(`Session ended: ${finalEngagement.sentiment} engagement`, 'info');
 
     // Presence offline once
     await presenceSetOnline(false, "leave");
@@ -3145,6 +3672,10 @@ leaveBtn.onclick = async ()=>{
     chatPanel.style.display = "none";
     syncBtn.style.display = "none";
     clearView();
+    
+    // Reset behavior tracking
+    resetBehaviorTracking();
+    
     log("Left room.","INFO");
   }catch(e){
     console.error("[Leave ERROR]", e);
@@ -3172,7 +3703,55 @@ syncBtn.onclick = async ()=>{
 };
 
 sendBtn.onclick = ()=>sendMessage();
-clearBtn.onclick = ()=>clearView();
+clearBtn.onclick = ()=>{
+  clearView();
+  // Also reset behavior tracking when clearing view
+  resetBehaviorTracking();
+};
+
+// Debug command: type "/engagement" to see current score
+const originalSendMessage = sendMessage;
+window.sendMessage = async function(){
+  const text = (msgInput.value||"").trim();
+  
+  // Check for engagement command
+  if(text === '/engagement'){
+    const engagement = getEngagementScore();
+    const dwells = Array.from(userBehavior.dwellTimes.entries())
+      .sort((a,b) => b[1].totalTime - a[1].totalTime)
+      .slice(0, 3);
+    
+    let report = `📊 Engagement Report\n`;
+    report += `Sentiment: ${engagement.sentiment}\n`;
+    report += `Score: ${engagement.score.toFixed(1)}\n`;
+    report += `\nSignals:\n`;
+    report += `  ✅ Positive: ${engagement.breakdown.positive.toFixed(1)}\n`;
+    report += `  ❌ Negative: ${engagement.breakdown.negative.toFixed(1)}\n`;
+    report += `  ⚡ Excitement: ${engagement.breakdown.excitement.toFixed(1)}\n`;
+    report += `\nMetrics:\n`;
+    report += `  👀 Long dwells: ${userBehavior.engagement.longDwells}\n`;
+    report += `  📖 Slow scrolls: ${userBehavior.engagement.slowScrolls}\n`;
+    report += `  ⚡ Quick scrolls: ${userBehavior.engagement.quickScrolls}\n`;
+    report += `  👆 Rapid taps: ${userBehavior.engagement.rapidTaps}\n`;
+    report += `  👈 Swipe left: ${userBehavior.engagement.swipeLeft}\n`;
+    report += `  👉 Swipe right: ${userBehavior.engagement.swipeRight}\n`;
+    
+    if(dwells.length > 0){
+      report += `\nTop dwelled messages:\n`;
+      dwells.forEach(([msgId, data], i) => {
+        report += `  ${i+1}. ${(data.totalTime/1000).toFixed(1)}s (${data.visits} visits)\n`;
+      });
+    }
+    
+    log(report, "INFO");
+    showToast(`Engagement: ${engagement.sentiment}`, 'info', 5000);
+    msgInput.value = '';
+    return;
+  }
+  
+  // Normal send
+  return originalSendMessage.call(this);
+};
 
 roomInput.addEventListener("keydown", (e)=>{
   if(e.key === "Enter"){
