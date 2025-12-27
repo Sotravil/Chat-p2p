@@ -1,2882 +1,3158 @@
 <!doctype html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>Chat: paste.rs ➜ GitHub DB (V2 - sin lag)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+  <title>Chat-p2p V3 (cells+boxes) — Sotravil</title>
   <style>
-    /* =================================================================================
-       UI (tu diseño original, con pequeños upgrades)
-       - Mantengo tu layout para que no se sienta “otro proyecto”
-       - Agrego botones edit/delete por mensaje (ligeros, sin filtros pesados)
-    ================================================================================= */
-
-    /* ====== RESET BÁSICO Y LAYOUT GLOBAL ====== */
-    *{
-      box-sizing:border-box;
-      margin:0;
-      padding:0;
+    :root{
+      --bg:#0b0f17;
+      --panel:#0f172a;
+      --panel2:#111c36;
+      --txt:#e5e7eb;
+      --muted:#94a3b8;
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --border:rgba(255,255,255,.08);
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+      --radius:16px;
+      --pad:14px;
+      --mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --accent-primary: #38bdf8;
+      --accent-secondary: #a855f7;
     }
-
+    *{box-sizing:border-box}
     html,body{
       height:100%;
+      /* Hide body scrollbar */
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
-
+    html::-webkit-scrollbar, body::-webkit-scrollbar {
+      display: none;
+    }
     body{
-      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      background:#020617;
-      color:#e5e7eb;
-      display:flex;
-      justify-content:center;
-    }
-
-    #app{
-      width:100%;
-      max-width:960px;
-      padding:12px 10px 16px;
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-    }
-
-    /* ====== ENCABEZADO ====== */
-    .app-header{
-      display:flex;
-      flex-wrap:wrap;
-      justify-content:space-between;
-      align-items:center;
-      gap:8px;
-    }
-
-    .app-title{
-      font-size:18px;
-      font-weight:700;
-    }
-
-    .app-subtitle{
-      font-size:12px;
-      color:#9ca3af;
-    }
-
-    /* ====== CONTROLES SUPERIORES (ROOM / SENDER) ====== */
-    #top{
-      display:flex;
-      flex-wrap:wrap;
-      gap:8px;
-      align-items:center;
-      padding:8px;
-      border-radius:12px;
-      background:#020617;
-      border:1px solid #1f2937;
-    }
-
-    .field{
-      display:flex;
-      flex-direction:column;
-      gap:3px;
-      font-size:11px;
-      color:#9ca3af;
-    }
-
-    .field-row{
-      display:flex;
-      flex-wrap:wrap;
-      gap:6px;
-      align-items:center;
-    }
-
-    input[type="text"]{
-      padding:6px 8px;
-      border-radius:999px;
-      border:1px solid #374151;
-      background:#020617;
-      color:#f9fafb;
-      font-size:13px;
-      min-width:120px;
-    }
-
-    input[type="text"]::placeholder{
-      color:#6b7280;
-    }
-
-    button{
-      padding:7px 14px;
-      border-radius:999px;
-      border:none;
-      background:#16a34a;
-      color:#f9fafb;
-      cursor:pointer;
-      font-size:13px;
-      font-weight:600;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      transition:transform .12s,box-shadow .12s,opacity .12s;
-      white-space:nowrap;
-    }
-
-    button:hover{
-      transform:translateY(-1px);
-      box-shadow:0 4px 12px rgba(34,197,94,.3);
-    }
-
-    button:disabled{
-      opacity:.35;
-      cursor:not-allowed;
-      box-shadow:none;
-      transform:none;
-    }
-
-    .btn-dark{
-      background:#111827;
-    }
-
-    .small{
-      font-size:11px;
-      color:#9ca3af;
-    }
-
-    /* ====== LAYOUT PRINCIPAL: CHAT + LADO DERECHO ====== */
-    #layout{
-      flex:1;
-      display:flex;
-      gap:10px;
-      min-height:0;
-    }
-
-    #leftColumn{
-      flex:1.6;
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      min-width:0;
-    }
-
-    #side{
-      flex:0.8;
-      max-width:260px;
-      font-size:11px;
-      color:#9ca3af;
-      border-radius:12px;
-      border:1px solid #1f2937;
-      background:#020617;
-      padding:10px;
-    }
-
-    /* ====== PANEL DE LOG DEL SISTEMA ====== */
-    #log{
-      background:#020617;
-      color:#e5e7eb;
-      padding:8px 10px;
-      border-radius:12px;
-      font-size:11px;
-      height:90px;
-      overflow-y:auto;
-      white-space:pre-wrap;
-      border:1px solid #1f2937;
-    }
-
-    /* ====== TARJETA DE CHAT ====== */
-    #chat{
-      margin-top:2px;
-      padding:0;
-      background:#020617;
-      border-radius:16px;
-      border:1px solid #1f2937;
-      display:none;
-      flex-direction:column;
-      min-height:260px;
-      max-height:calc(100vh - 230px);
+      margin:0;
+      background:radial-gradient(1200px 700px at 40% -10%, rgba(56,189,248,.15), transparent 60%),
+                 radial-gradient(900px 500px at 120% 20%, rgba(168,85,247,.12), transparent 55%),
+                 radial-gradient(600px 400px at 80% 100%, rgba(34,197,94,.08), transparent 50%),
+                 var(--bg);
+      color:var(--txt);
+      font-family:var(--sans);
+      -webkit-font-smoothing:antialiased;
       overflow:hidden;
     }
-
-    #chatHeader{
-      padding:8px 12px;
-      border-bottom:1px solid #111827;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      gap:6px;
+    header{
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 18px;
+      border-bottom:1px solid var(--border);
+      background:rgba(15,23,42,.85);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
     }
-
-    #chatHeader-left{
-      display:flex;
-      flex-direction:column;
-      gap:2px;
+    header .left{display:flex; align-items:center; gap:10px}
+    header h1{font-size:14px; margin:0; letter-spacing:.2px; opacity:.95}
+    header .status{
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:12px; color:var(--muted);
+      padding:6px 10px; border:1px solid var(--border); border-radius:999px;
+      background:rgba(255,255,255,.03);
     }
+    .dot{width:10px;height:10px;border-radius:99px;background:var(--warn)}
+    .dot.ok{background:var(--ok)}
+    .dot.bad{background:var(--bad)}
 
-    #chatRoomName{
-      font-size:14px;
-      font-weight:600;
+    header .right{display:flex; align-items:center; gap:8px}
+    button{
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      color:var(--txt);
+      padding:9px 14px;
+      border-radius:11px;
+      font-size:12px;
+      font-weight:500;
+      cursor:pointer;
+      box-shadow:0 2px 4px rgba(0,0,0,.1);
+      transition:all .2s cubic-bezier(0.4, 0, 0.2, 1);
     }
-
-    #chatHeader-meta{
-      font-size:11px;
-      color:#9ca3af;
+    button:hover:not(:disabled){
+      background:rgba(255,255,255,.08);
+      transform:translateY(-1px);
+      box-shadow:0 4px 8px rgba(0,0,0,.2);
     }
-
-    #chatStatus{
-      font-size:11px;
+    button:active:not(:disabled){
+      transform:translateY(0px);
+      box-shadow:0 1px 2px rgba(0,0,0,.15);
+    }
+    button.primary{
+      background:linear-gradient(135deg, rgba(34,197,94,.18), rgba(34,197,94,.12));
+      border-color:rgba(34,197,94,.4);
       color:#22c55e;
     }
-
-    /* ====== MENSAJES ====== */
-    #messages{
-      flex:1;
-      overflow-y:auto;
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-      padding:10px 10px 6px;
-      background:radial-gradient(circle at top,#111827 0,#020617 55%);
+    button.primary:hover:not(:disabled){
+      background:linear-gradient(135deg, rgba(34,197,94,.25), rgba(34,197,94,.18));
+      border-color:rgba(34,197,94,.5);
     }
+    button.danger{
+      background:linear-gradient(135deg, rgba(239,68,68,.18), rgba(239,68,68,.12));
+      border-color:rgba(239,68,68,.4);
+      color:#ef4444;
+    }
+    button.danger:hover:not(:disabled){
+      background:linear-gradient(135deg, rgba(239,68,68,.25), rgba(239,68,68,.18));
+      border-color:rgba(239,68,68,.5);
+    }
+    button:disabled{opacity:.4; cursor:not-allowed}
 
-    .msg{
-      padding:6px 9px;
-      border-radius:14px;
-      font-size:13px;
-      max-width:85%;
-      word-wrap:break-word;
-      display:flex;
-      flex-direction:column;
-      gap:2px;
+    main{
+      height:calc(100% - 50px);
+      display:grid;
+      grid-template-rows:auto 1fr auto;
+      gap:10px;
+      padding:12px;
+    }
+    .panel{
+      background:linear-gradient(180deg, rgba(17,28,54,.98), rgba(15,23,42,.95));
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      box-shadow:0 12px 40px rgba(0,0,0,.4), 0 0 1px rgba(255,255,255,.1);
+      overflow:hidden;
       position:relative;
     }
-
-    .msg.me{
-      align-self:flex-end;
-      background:#16a34a;
-      color:#ecfdf5;
-      border-bottom-right-radius:4px;
+    .panel::before{
+      content:'';
+      position:absolute;
+      inset:0;
+      border-radius:18px;
+      padding:1px;
+      background:linear-gradient(135deg, rgba(56,189,248,.2), transparent 40%, rgba(168,85,247,.15));
+      -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite:xor;
+      mask-composite:exclude;
+      pointer-events:none;
+      opacity:.5;
     }
-
-    .msg.other{
-      align-self:flex-start;
-      background:#111827;
-      color:#f9fafb;
-      border-bottom-left-radius:4px;
-    }
-
-    .msg .msg-meta{
-      font-size:10px;
-      opacity:.85;
-    }
-
-    .msg .msg-text{
-      white-space:pre-wrap;
-    }
-
-    /* ====== ACCIONES POR MENSAJE (EDIT / DELETE) ======
-       - Se muestran siempre en móvil (porque no hay hover)
-       - En desktop se ven al hover para no ensuciar
-    */
-    .msg-actions{
+    .join{
+      padding:12px;
       display:flex;
-      gap:6px;
-      margin-top:2px;
-      align-self:flex-end;
-      opacity:.92;
+      flex-direction:column;
+      gap:10px;
     }
-
-    .msg-actions button{
-      padding:3px 8px;
-      font-size:11px;
-      border-radius:999px;
-      box-shadow:none !important;
-      transform:none !important;
-      background:rgba(0,0,0,.25);
-      border:1px solid rgba(255,255,255,.14);
-    }
-
-    .msg-actions button:hover{
-      filter:brightness(1.08);
-    }
-
-    .msg-actions .danger{
-      border-color:rgba(255,255,255,.18);
-      background:rgba(185,28,28,.25);
-    }
-
-    @media (hover:hover){
-      .msg-actions{ display:none; }
-      .msg:hover .msg-actions{ display:flex; }
-    }
-
-    /* ====== INPUT (CAJA DE MENSAJE) ====== */
-    #bottomRow{
-      border-top:1px solid #111827;
-      padding:8px;
-      display:flex;
-      gap:6px;
-      align-items:flex-end;
-      background:#020617;
-    }
-
-    textarea{
-      flex:1;
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .field{display:flex; flex-direction:column; gap:6px; flex:1; min-width:140px}
+    label{font-size:11px; color:var(--muted)}
+    input{
       width:100%;
-      box-sizing:border-box;
-      padding:7px 9px;
+      padding:11px 12px;
       border-radius:12px;
-      border:1px solid #374151;
-      background:#020617;
-      color:#f9fafb;
-      resize:none;
-      font-size:13px;
-      max-height:96px;
-      min-height:40px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.25);
+      color:var(--txt);
+      outline:none;
+      transition:all .2s ease;
     }
-
-    textarea::placeholder{
-      color:#6b7280;
+    input:focus{
+      border-color:rgba(56,189,248,.5);
+      background:rgba(0,0,0,.35);
+      box-shadow:0 0 0 3px rgba(56,189,248,.1);
     }
-
-    #sendBtn{
-      background:#16a34a;
+    .hint{font-size:11px;color:var(--muted); line-height:1.25}
+    .chat{
+      display:flex;
+      flex-direction:column;
+      min-height:0;
     }
-
-    #clearBtn{
-      background:#111827;
+    .chatHeader{
+      padding:10px 12px;
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
     }
-
-    /* ====== LADO DERECHO (INFO REPO / PASTE) ====== */
-    #side strong{
-      color:#e5e7eb;
+    .chatHeader .meta{display:flex; flex-direction:column; gap:2px; min-width:0}
+    .chatHeader .meta .room{font-size:13px; font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .chatHeader .meta .sub{font-size:11px;color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .chatHeader .people{font-size:11px;color:var(--muted); white-space:nowrap}
+    .msgs{
+      padding:12px;
+      overflow:auto;
+      scroll-behavior:smooth;
+      -webkit-overflow-scrolling:touch;
+      min-height:0;
+      /* Hide scrollbar but keep functionality */
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
     }
-
-    #lastPasteUrl{
-      margin-top:4px;
-      word-break:break-all;
+    .msgs::-webkit-scrollbar {
+      display: none; /* Chrome/Safari/Opera */
     }
-
-    code{
-      font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+    .msg{
+      max-width:85%;
+      padding:11px 13px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.06);
+      margin:10px 0;
+      word-wrap:break-word;
+      transition:all .2s ease;
+      box-shadow:0 2px 8px rgba(0,0,0,.15);
+    }
+    .msg:hover{
+      border-color:rgba(255,255,255,.12);
+      box-shadow:0 4px 12px rgba(0,0,0,.25);
+      transform:translateY(-1px);
+    }
+    .msg.me{
+      margin-left:auto;
+      background:linear-gradient(135deg, rgba(56,189,248,.15), rgba(56,189,248,.08));
+      border-color:rgba(56,189,248,.3);
+    }
+    .msg.me:hover{
+      background:linear-gradient(135deg, rgba(56,189,248,.2), rgba(56,189,248,.12));
+      border-color:rgba(56,189,248,.4);
+    }
+    .msg .text{font-size:13px; line-height:1.35}
+    .msg .meta{font-size:10px; color:var(--muted); margin-top:6px; display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+    .msg .reads{font-size:10px;color:rgba(34,197,94,.85)}
+    .msg-status{
       font-size:11px;
-      background:#0b1120;
-      padding:1px 4px;
-      border-radius:4px;
+      color:var(--muted);
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      margin-left:auto;
+    }
+    .msg-status.status-sending{
+      color:rgba(245,158,11,.85);
+    }
+    .msg-status.status-sending::before{
+      content:'\23F3';
+      animation:statusPulse 1.5s ease-in-out infinite;
+    }
+    .msg-status.status-sent{
+      color:var(--muted);
+    }
+    .msg-status.status-sent::before{
+      content:'\2713';
+    }
+    .msg-status.status-delivered{
+      color:rgba(56,189,248,.75);
+    }
+    .msg-status.status-delivered::before{
+      content:'\2713\2713';
+    }
+    .msg-status.status-read{
+      color:rgba(34,197,94,.85);
+    }
+    .msg-status.status-read::before{
+      content:'\2713\2713';
+    }
+    .msg-status.status-failed{
+      color:rgba(239,68,68,.85);
+      cursor:pointer;
+    }
+    .msg-status.status-failed::before{
+      content:'\26A0';
+    }
+    .msg-retry{
+      display:none;
+      font-size:10px;
+      padding:3px 8px;
+      margin-left:6px;
+      border-radius:6px;
+      background:rgba(239,68,68,.15);
+      border:1px solid rgba(239,68,68,.35);
+      color:#ef4444;
+      cursor:pointer;
+      transition:all .2s ease;
+    }
+    .msg-retry:hover{
+      background:rgba(239,68,68,.25);
+      border-color:rgba(239,68,68,.5);
+    }
+    .msg.msg-failed .msg-retry{
+      display:inline-block;
+    }
+    .msg.msg-failed{
+      opacity:.85;
+      border-color:rgba(239,68,68,.3);
+    }
+    @keyframes statusPulse{
+      0%, 100%{opacity:.5}
+      50%{opacity:1}
+    }
+    .composer{
+      display:flex;
+      gap:10px;
+      padding:12px;
+      border-top:1px solid var(--border);
+    }
+    .composer textarea{
+      flex:1;
+      min-height:44px;
+      max-height:120px;
+      resize:none;
+      padding:11px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.25);
+      color:var(--txt);
+      outline:none;
+      font-family:var(--sans);
+      transition:all .2s ease;
+      /* Hide scrollbar */
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .composer textarea::-webkit-scrollbar {
+      display: none;
+    }
+    .composer textarea:focus{
+      border-color:rgba(56,189,248,.5);
+      background:rgba(0,0,0,.35);
+      box-shadow:0 0 0 3px rgba(56,189,248,.1);
+    }
+    .log{
+      padding:10px 12px;
+      font-family:var(--mono);
+      font-size:11px;
+      color:var(--muted);
+      max-height:110px;
+      overflow:auto;
+      border-top:1px solid var(--border);
+      background:rgba(0,0,0,.12);
+      /* Hide scrollbar */
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .log::-webkit-scrollbar {
+      display: none;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.03);
+      font-size:11px; color:var(--muted);
+    }
+    .modalBackdrop{
+      position:fixed; inset:0;
+      display:none;
+      align-items:center; justify-content:center;
+      padding:18px;
+      background:rgba(0,0,0,.55);
+      z-index:50;
+    }
+    .modal{
+      width:min(420px, 100%);
+      background:linear-gradient(180deg, rgba(17,28,54,.98), rgba(15,23,42,.98));
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,.6), 0 0 1px rgba(255,255,255,.2);
+      overflow:hidden;
+      animation:modalSlideIn .25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes modalSlideIn {
+      from {
+        opacity:0;
+        transform:translateY(-20px) scale(0.95);
+      }
+      to {
+        opacity:1;
+        transform:translateY(0) scale(1);
+      }
+    }
+    .modal .top{padding:12px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between}
+    .modal .top b{font-size:13px}
+    .modal .body{padding:14px; display:flex; flex-direction:column; gap:10px}
+    .modal .footer{padding:12px 14px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end}
+
+    /* Modal overlay styles for edit/delete confirmations */
+    .modal-overlay{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      background:rgba(0,0,0,.65);
+      z-index:100;
+      backdrop-filter:blur(4px);
+    }
+    .modal-overlay.modal-hidden{
+      display:none !important;
+    }
+    .modal-overlay:not(.modal-hidden){
+      display:flex;
+    }
+    .modal-header{
+      padding:14px 16px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .modal-title{
+      font-size:15px;
+      font-weight:600;
+    }
+    .modal-close{
+      width:28px;
+      height:28px;
+      border:none;
+      background:rgba(255,255,255,.05);
+      color:var(--txt);
+      border-radius:8px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:16px;
+      transition:all .2s ease;
+    }
+    .modal-close:hover{
+      background:rgba(255,255,255,.1);
+    }
+    .modal-body{
+      padding:18px 16px;
+    }
+    .modal-body p{
+      margin:0 0 12px 0;
+      line-height:1.5;
+    }
+    .modal-body textarea{
+      width:100%;
+      min-height:120px;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.25);
+      color:var(--txt);
+      outline:none;
+      font-family:var(--sans);
+      resize:vertical;
+      transition:all .2s ease;
+    }
+    .modal-body textarea:focus{
+      border-color:rgba(56,189,248,.5);
+      background:rgba(0,0,0,.35);
+      box-shadow:0 0 0 3px rgba(56,189,248,.1);
+    }
+    .modal-footer{
+      padding:12px 16px;
+      border-top:1px solid var(--border);
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+    }
+    .btn-ghost{
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--border);
+    }
+    .btn-ghost:hover:not(:disabled){
+      background:rgba(255,255,255,.08);
     }
 
-    /* ====== RESPONSIVE ====== */
-    @media (max-width:768px){
-      #layout{
-        flex-direction:column;
-      }
+    /* Message action buttons (edit/delete) */
+    .msg-actions{
+      margin-top:8px;
+      display:flex;
+      gap:6px;
+      opacity:.6;
+      transition:opacity .2s ease;
+    }
+    .msg:hover .msg-actions{
+      opacity:1;
+    }
+    .msg-actions button{
+      padding:5px 10px;
+      font-size:11px;
+      border-radius:8px;
+    }
 
-      #side{
-        max-width:none;
-        width:100%;
-        order:-1;
+    /* Toast Notifications */
+    .toast-container{
+      position:fixed;
+      top:20px;
+      right:20px;
+      z-index:200;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      pointer-events:none;
+    }
+    .toast{
+      min-width:280px;
+      max-width:420px;
+      padding:14px 16px;
+      background:linear-gradient(135deg, rgba(17,28,54,.98), rgba(15,23,42,.95));
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:14px;
+      box-shadow:0 8px 24px rgba(0,0,0,.5), 0 0 1px rgba(255,255,255,.2);
+      color:var(--txt);
+      font-size:13px;
+      line-height:1.4;
+      pointer-events:auto;
+      animation:toastSlideIn .3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter:blur(10px);
+      display:flex;
+      align-items:flex-start;
+      gap:10px;
+    }
+    .toast.toast-success{
+      border-color:rgba(34,197,94,.4);
+      background:linear-gradient(135deg, rgba(34,197,94,.15), rgba(17,28,54,.95));
+    }
+    .toast.toast-error{
+      border-color:rgba(239,68,68,.4);
+      background:linear-gradient(135deg, rgba(239,68,68,.15), rgba(17,28,54,.95));
+    }
+    .toast.toast-warning{
+      border-color:rgba(245,158,11,.4);
+      background:linear-gradient(135deg, rgba(245,158,11,.15), rgba(17,28,54,.95));
+    }
+    .toast.toast-info{
+      border-color:rgba(56,189,248,.4);
+      background:linear-gradient(135deg, rgba(56,189,248,.15), rgba(17,28,54,.95));
+    }
+    .toast-icon{
+      font-size:18px;
+      flex-shrink:0;
+      margin-top:1px;
+    }
+    .toast-success .toast-icon{color:#22c55e}
+    .toast-error .toast-icon{color:#ef4444}
+    .toast-warning .toast-icon{color:#f59e0b}
+    .toast-info .toast-icon{color:#38bdf8}
+    .toast-message{
+      flex:1;
+      word-wrap:break-word;
+    }
+    .toast-close{
+      width:20px;
+      height:20px;
+      border:none;
+      background:rgba(255,255,255,.08);
+      color:var(--muted);
+      border-radius:6px;
+      cursor:pointer;
+      font-size:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-shrink:0;
+      transition:all .2s ease;
+    }
+    .toast-close:hover{
+      background:rgba(255,255,255,.15);
+      color:var(--txt);
+    }
+    .toast.toast-out{
+      animation:toastSlideOut .25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    @keyframes toastSlideIn{
+      from{
+        opacity:0;
+        transform:translateX(100%) scale(0.9);
       }
-
-      #top{
-        padding:6px;
-      }
-
-      #chat{
-        max-height:calc(100vh - 260px);
-      }
-
-      .app-title{
-        font-size:16px;
+      to{
+        opacity:1;
+        transform:translateX(0) scale(1);
       }
     }
-  
+    @keyframes toastSlideOut{
+      from{
+        opacity:1;
+        transform:translateX(0) scale(1);
+      }
+      to{
+        opacity:0;
+        transform:translateX(120%) scale(0.9);
+      }
+    }
 
-/* ============================
-   MODALES (sin alert/prompt)
-   ============================ */
-.modal-overlay{
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.55);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 16px;
-}
-.modal-hidden{ display: none !important; }
+    /* Room Browser */
+    .room-list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      max-height:400px;
+      overflow-y:auto;
+      scrollbar-width:none;
+      -ms-overflow-style:none;
+    }
+    .room-list::-webkit-scrollbar{
+      display:none;
+    }
+    .room-item{
+      padding:12px 14px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      border-radius:12px;
+      cursor:pointer;
+      transition:all .2s ease;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .room-item:hover{
+      background:rgba(255,255,255,.08);
+      border-color:rgba(56,189,248,.35);
+      transform:translateX(4px);
+    }
+    .room-item.last-joined{
+      border-color:rgba(34,197,94,.4);
+      background:linear-gradient(135deg, rgba(34,197,94,.12), rgba(255,255,255,.04));
+    }
+    .room-item.last-joined::before{
+      content:'\2B50';
+      margin-right:8px;
+    }
+    .room-info{
+      flex:1;
+      min-width:0;
+    }
+    .room-name{
+      font-size:14px;
+      font-weight:600;
+      color:var(--txt);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .room-meta{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:2px;
+    }
+    .room-status{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:12px;
+      color:var(--muted);
+      flex-shrink:0;
+    }
+    .room-status.active{
+      color:rgba(34,197,94,.85);
+    }
+    .room-status .user-count{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      padding:4px 8px;
+      background:rgba(56,189,248,.12);
+      border:1px solid rgba(56,189,248,.3);
+      border-radius:8px;
+      font-weight:600;
+    }
+    .room-status.active .user-count{
+      background:rgba(34,197,94,.12);
+      border-color:rgba(34,197,94,.3);
+      color:rgba(34,197,94,.95);
+    }
+    .empty-rooms{
+      padding:40px 20px;
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .browse-btn{
+      margin-left:8px;
+    }
 
-.modal{
-  width: min(560px, 100%);
-  background: rgba(12,16,26,.95);
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 16px;
-  box-shadow: 0 24px 70px rgba(0,0,0,.55);
-  overflow: hidden;
-  backdrop-filter: blur(10px);
-}
-.modal-header{
-  display:flex;
-  align-items:center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px;
-  border-bottom: 1px solid rgba(255,255,255,.08);
-}
-.modal-title{
-  font-weight: 700;
-  letter-spacing: .2px;
-}
-.modal-close{
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  border: 1px solid rgba(255,255,255,.10);
-  background: rgba(255,255,255,.06);
-  color: rgba(255,255,255,.85);
-  cursor: pointer;
-}
-.modal-body{ padding: 14px 16px; }
-.modal-body p{ margin: 0 0 10px 0; color: rgba(255,255,255,.80); }
-.modal-body textarea{
-  width: 100%;
-  min-height: 120px;
-  resize: vertical;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.12);
-  background: rgba(0,0,0,.28);
-  color: rgba(255,255,255,.92);
-  padding: 12px;
-  outline: none;
-}
-.modal-footer{
-  display:flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 14px 16px;
-  border-top: 1px solid rgba(255,255,255,.08);
-}
-.btn-ghost{
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.12);
-  color: rgba(255,255,255,.88);
-}
-</style>
+    /* Mobile-first -> on wide screens keep nice centered content */
+    @media (min-width: 960px){
+      main{max-width:980px; margin:0 auto}
+      .row{flex-wrap:nowrap}
+      .msg{max-width:70%}
+    }
+  </style>
 </head>
 <body>
-<div id="app">
+<header>
+  <div class="left">
+    <h1>Chat‑p2p V3 (cells + boxes + indexes)</h1>
+    <span class="status"><span id="netDot" class="dot"></span><span id="netText">booting…</span></span>
+  </div>
+  <div class="right">
+    <span class="pill" id="authPill">Guest</span>
+    <button id="browseRoomsBtn" class="browse-btn" style="display:none">📁 Browse Rooms</button>
+    <button id="loginBtn">Login</button>
+    <button id="registerBtn" class="primary">Register</button>
+    <button id="logoutBtn" class="danger" style="display:none">Logout</button>
+  </div>
+</header>
 
-  <!-- HEADER PRINCIPAL -->
-  <header class="app-header">
-    <div>
-      <div class="app-title">Chat paste.rs ➜ GitHub (V2)</div>
-      <div class="app-subtitle">Sin backend propio · multi-plataforma · sin freeze</div>
-    </div>
-    <div class="app-subtitle">Status: <span id="headerStatus">Desconectado</span></div>
-  </header>
-
-  <!-- CONTROLES DE ROOM / SENDER -->
-  <section id="top">
-    <div class="field">
-      <span>Room</span>
-      <input id="room" type="text" value="mainroom">
-    </div>
-
-    <div class="field">
-      <span>Nombre</span>
-      <input id="sender" type="text" placeholder="Tu nick">
-    </div>
-
-    <div class="field">
-      <span>&nbsp;</span>
-      <button id="joinBtn">Unirse / Crear</button>
-    </div>
-
-    <div class="field">
-      <span>Intervalo de actualización</span>
-      <div class="field-row">
-        <input id="interval" type="text" value="1200" style="width:70px">
-        <span class="small">ms</span>
+<main>
+  <section class="panel join">
+    <div class="row">
+      <div class="field">
+        <label>Room</label>
+        <input id="roomInput" placeholder="e.g. general" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label>Display name</label>
+        <input id="nameInput" placeholder="e.g. Sotravil" autocomplete="off"/>
+      </div>
+      <div class="field" style="max-width:170px">
+        <label>Poll ms (active)</label>
+        <input id="pollInput" type="number" value="1073" min="250" step="1"/>
       </div>
     </div>
-
-    <div class="field">
-      <span>Vista local</span>
-      <div class="field-row">
-        <button id="trimBtn" class="btn-dark" title="Deja solo los últimos 4 mensajes en tu pantalla">Trim (últimos 4)</button>
-        <button id="resetBtn" class="btn-dark" title="Recarga la página (reset visual)">Reset</button>
+    <div class="row" style="align-items:center; justify-content:space-between">
+      <div class="hint">
+        No backend: <b>Writes</b> via GitHub Contents API, <b>Reads</b> via raw + ETag cache with API fallback.
+        Idle = zero network. Active = fast sync.
+      </div>
+      <div style="display:flex; gap:10px">
+        <button id="joinBtn" class="primary">Join</button>
+        <button id="leaveBtn">Leave</button>
       </div>
     </div>
   </section>
 
-  <!-- CONTENIDO PRINCIPAL: CHAT + INFO -->
-  <main id="layout">
-    <div id="leftColumn">
-      <div id="log">💬 Elige una sala, pon tu nombre y pulsa "Unirse / Crear".</div>
-
-      <section id="chat">
-        <div id="chatHeader">
-          <div id="chatHeader-left">
-            <div id="chatRoomName">Sala</div>
-            <div id="chatHeader-meta" class="small">Conectado como <span id="chatSenderName">—</span></div>
-          </div>
-          <div id="chatStatus">● Conectado</div>
-        </div>
-
-        <div id="messages"></div>
-
-        <div id="bottomRow">
-          <textarea id="input" rows="2" placeholder="Escribe un mensaje (Ctrl+Enter para enviar)"></textarea>
-          <button id="sendBtn">Enviar</button>
-          <button id="clearBtn">Clear local</button>
-        </div>
-      </section>
+  <section class="panel chat" id="chatPanel" style="display:none">
+    <div class="chatHeader">
+      <div class="meta">
+        <div class="room" id="roomTitle">—</div>
+        <div class="sub" id="roomSub">—</div>
+      </div>
+      <div class="people" id="presenceSummary">presence: —</div>
     </div>
 
-    <aside id="side">
-      <div><strong>Último paste URL:</strong></div>
-      <div id="lastPasteUrl" class="small">—</div>
+    <div class="msgs" id="messages"></div>
 
-      <div style="margin-top:10px;">
-        <strong>Repo:</strong><br/>
-        Sotravil/chat-db<br/>
-        <span class="small">
-          Manifest por room (pequeño):<br/>
-          <code>rooms/&lt;room&gt;.json</code><br/>
-          Celdas (chunks):<br/>
-          <code>rooms-cells/&lt;room&gt;/cells/cell-000001.json</code>
-        </span>
-      </div>
+    <div class="composer">
+      <textarea id="msgInput" placeholder="Type… (Enter to send — Shift+Enter for newline)"></textarea>
+      <button id="sendBtn" class="primary">Send</button>
+      <button id="clearBtn">Clear view</button>
+    </div>
 
-      <div style="margin-top:10px;">
-        <strong>Cómo funciona (V2 anti-lag):</strong>
-        <p class="small" style="margin-top:4px;">
-          ✅ Ya NO descargamos ni renderizamos todo el chat en cada poll.<br/>
-          Leemos un <b>manifest</b> pequeño + <b>celdas</b> pequeñas.<br/>
-          El <b>master</b> ahora es un timestamp, no un boolean (sin reset).</p>
-      </div>
+    <div class="log" id="log"></div>
+  </section>
+</main>
 
-      <div style="margin-top:10px;">
-        <strong>Info sala:</strong><br/>
-        <div id="roomInfo" class="small">—</div>
+<!-- AUTH MODAL -->
+<div class="modalBackdrop" id="authModalBack">
+  <div class="modal">
+    <div class="top">
+      <b id="authModalTitle">Auth</b>
+      <button id="authCloseBtn">✕</button>
+    </div>
+    <div class="body">
+      <div class="field">
+        <label>Username (global)</label>
+        <input id="authUserInput" placeholder="username" autocomplete="username"/>
       </div>
-    </aside>
-  </main>
+      <div class="field">
+        <label>Password (dictionary‑validated)</label>
+        <input id="authPassInput" type="password" placeholder="password" autocomplete="current-password"/>
+        <div class="hint" id="dictHint">Loading password dictionary…</div>
+      </div>
+      <div class="hint" id="authMsg"></div>
+    </div>
+    <div class="footer">
+      <button id="authActionBtn" class="primary">OK</button>
+    </div>
+  </div>
 </div>
 
-<script defer>
-/* =====================================================================================
-   ✅ REPARACIONES PRINCIPALES (lo que te estaba dando lag)
-   1) YA NO hacemos fullRerender cada vez que master cambia
-      -> Ahora hacemos “delta apply”: append / update por msg.id
-   2) YA NO guardamos/recargamos el archivo entero rooms/<room>.json (arrays gigantes)
-      -> rooms/<room>.json ahora es un MANIFEST pequeño (V2)
-      -> Los mensajes viven en celdas: rooms-cells/<room>/cells/cell-xxxxx.json
-   3) YA NO usamos master boolean true/false (race conditions y writes extra)
-      -> master<room>.json ahora es un timestamp (número)
-      -> Los clientes SOLO leen; NO resetean master
-   4) “Clear” ya NO borra para todos:
-      -> Clear local: limpia solo TU pantalla (y mantiene caches)
-      -> Trim: deja solo últimos 4 mensajes en tu pantalla
-      -> Reset: recarga la página (anti-bug visual)
-===================================================================================== */
+<script>
+/* ============================================================
+   CONFIG
+   ============================================================ */
 
-/* ---------- Datos del repo ---------- */
-const GH_OWNER  = 'Sotravil';
-const GH_REPO   = 'chat-db';
-const GH_BRANCH = 'main';
+// Repo target (your "backend")
+const GH_OWNER  = "Sotravil";
+const GH_REPO   = "chat-db";
+const GH_BRANCH = "main";
 
-// Cache de sha por path (GitHub requiere sha al actualizar archivos existentes)
-const GH_SHA_CACHE = new Map();
+// Token from paste.rs (read-only) via CORS proxy
+const TOKEN_PASTE_URL = "https://paste.rs/4UElW.txt";
+const CORS_PROXY      = "https://corsproxy.io/?";
 
+// Read receipts / presence
+const PRESENCE_ACTIVE_HEARTBEAT_MS = 10_000;   // 10s while ACTIVE
+const PRESENCE_RECENT_MS           = 5 * 60_000; // 5 min "recent"
 
-/* ---------- Carpeta para celdas (chunks) ---------- */
-const CELLS_BASE_DIR = 'rooms-cells';            // NO choca con rooms/<room>.json
-const CELLS_DIR_NAME = 'cells';                 // subcarpeta
+// === ACTIVITY TRACKER ===
+const POLL_MS_ACTIVE_DEFAULT = 1073;    // target behavior
+const POLL_MS_IDLE           = 90_000;  // 90s
+const IDLE_THRESHOLD_MS      = 2_000;   // 2s since last interaction => idle
+const ACTIVE_BURST_MS        = 2_000;   // keep active for 2s after last interaction
+const INTERACTION_THROTTLE_MS= 150;     // update timestamps at most every 150ms
 
-/* ---------- Tamaño de celda (mensajes por archivo) ---------- */
-// Micro-segmentation: very small cells, grouped into boxes
-const CELL_MAX_MESSAGES = 4;                    // mensajes por celda (muy pequeño)
-// Boxes group a number of MESSAGES (not cells). BOX_MAX_MESSAGES controls how many messages
-// are stored per box file. We compute cells-per-box dynamically from CELL_MAX_MESSAGES.
-const BOX_MAX_MESSAGES = 100;                   // mensajes por box (approx)
-const CELLS_PER_BOX = Math.ceil(BOX_MAX_MESSAGES / CELL_MAX_MESSAGES); // computed cells per box
-// Boxes live inside the cells tree so paths look like:
-// rooms-cells/<room>/boxes/box-000001.json
-const BOXES_BASE_DIR = `${CELLS_BASE_DIR}`;     // base for boxes: rooms-cells
-const DOM_MAX_MESSAGES  = 220;                  // cap para scroll fluido en móvil
+// === V3 STORAGE ===
+const MANIFEST_VERSION_V3 = 3;
 
-/* ---------- Polling ---------- */
-const POLL_MS_DEFAULT   = 1200;                 // estable (100ms era demasiado agresivo)
-const POLL_MS_MIN       = 350;
-const POLL_MS_MAX       = 10000;
-const IDLE_TIMEOUT_MS   = 60 * 1000;            // si no hay interacción, reducir polling
+// micro-segmentation
+const CELL_MAX_MESSAGES = 4;         // 4 messages per cell (you requested)
+const BOX_MAX_CELLS     = 100;       // 100 cells per box (you requested)
+const CELLS_PER_BOX     = BOX_MAX_CELLS;
 
-/* ---------- Token desde paste.rs ---------- */
-const TOKEN_PASTE_URL = 'https://paste.rs/4UElW.txt';
+// Paths
+const ROOMS_DIR        = "rooms";
+const ROOMS_META_DIR   = "rooms-meta";
+const ROOMS_CELLS_BASE = "rooms-cells"; // V3 base
+const MASTER_ROOMS_DIR = "master-rooms"; // Master sync files
 
-/* ---------- paste.rs + proxy ---------- */
-const PASTE_BASE = 'https://paste.rs';
-const CORS_PROXY = 'https://corsproxy.io/?';
+// Password dictionary (immutable / READ ONLY)
+const PASSWORD_DICTIONARY_PATH = "config/password_dictionary_v1.json";
 
-/* =====================================================================================
-   ESTADO GLOBAL
-===================================================================================== */
-let GH_TOKEN        = null;      // PAT actual
-let ghTokenReady    = false;
-let ghTokenPromise  = null;
+/* ============================================================
+   DOM
+   ============================================================ */
+const el = (id)=>document.getElementById(id);
+const netDot = el("netDot");
+const netText= el("netText");
 
-let room            = null;
-let sender          = null;
-let running         = false;
+const authPill   = el("authPill");
+const loginBtn   = el("loginBtn");
+const registerBtn= el("registerBtn");
+const logoutBtn  = el("logoutBtn");
+const browseRoomsBtn = el("browseRoomsBtn");
 
-let currentUser = {
-  userId:      null,
-  fingerprint: null,
-  createdAt:   null
-};
+const authModalBack = el("authModalBack");
+const authModalTitle= el("authModalTitle");
+const authCloseBtn  = el("authCloseBtn");
+const authActionBtn = el("authActionBtn");
+const authUserInput = el("authUserInput");
+const authPassInput = el("authPassInput");
+const dictHint      = el("dictHint");
+const authMsg       = el("authMsg");
 
-/* ---------- Caches de lectura (anti-lag) ---------- */
-const cache = {
-  // ETag para master y manifest (evita re-parsing cuando no cambia)
-  masterEtag: null,
-  manifestEtag: null,
+const roomInput  = el("roomInput");
+const nameInput  = el("nameInput");
+const pollInput  = el("pollInput");
+const joinBtn    = el("joinBtn");
+const leaveBtn   = el("leaveBtn");
 
-  // Último valor master (timestamp)
-  lastMasterStamp: 0,
+const chatPanel  = el("chatPanel");
+const roomTitle  = el("roomTitle");
+const roomSub    = el("roomSub");
+const presenceSummary = el("presenceSummary");
 
-  // Manifest actual
-  manifest: null,      // {v:2, latestCell, totalMessages, ...}
+const messagesEl = el("messages");
+const msgInput   = el("msgInput");
+const sendBtn    = el("sendBtn");
+const clearBtn   = el("clearBtn");
+const logEl      = el("log");
 
-  // Qué celda cargamos y hasta qué cantidad
-  lastLoadedCell: 0,   // número
-  lastLoadedCountInCell: 0, // cantidad de mensajes en esa celda ya aplicados
-
-  // msgId -> DOM element, para UPDATE (edit/delete) sin rerender
-  msgElById: new Map(),
-  // msgId -> message object (in-memory index)
-  msgById: new Map(),
-
-  // Protección anti-overlap de polling
-  pollInFlight: false
-};
-
-/* =====================================================================================
-   DOM refs
-===================================================================================== */
-let messagesEl, logEl, inputEl, roomInputEl, senderInputEl, intervalEl;
-let joinBtnEl, sendBtnEl, clearBtnEl, lastPasteEl, roomInfoEl;
-let chatEl, headerStatusEl, chatRoomNameEl, chatSenderNameEl, chatStatusEl;
-let trimBtnEl, resetBtnEl;
-
-/* =====================================================================================
-   UTILIDADES
-===================================================================================== */
-
-/** Inicializa elementos del DOM */
-function initDom(){
-  messagesEl     = document.getElementById('messages');
-  logEl          = document.getElementById('log');
-  inputEl        = document.getElementById('input');
-  roomInputEl    = document.getElementById('room');
-  senderInputEl  = document.getElementById('sender');
-  intervalEl     = document.getElementById('interval');
-
-  joinBtnEl      = document.getElementById('joinBtn');
-  sendBtnEl      = document.getElementById('sendBtn');
-  clearBtnEl     = document.getElementById('clearBtn');
-  lastPasteEl    = document.getElementById('lastPasteUrl');
-  roomInfoEl     = document.getElementById('roomInfo');
-
-  chatEl         = document.getElementById('chat');
-  headerStatusEl = document.getElementById('headerStatus');
-  chatRoomNameEl = document.getElementById('chatRoomName');
-  chatSenderNameEl = document.getElementById('chatSenderName');
-  chatStatusEl   = document.getElementById('chatStatus');
-
-  trimBtnEl      = document.getElementById('trimBtn');
-  resetBtnEl     = document.getElementById('resetBtn');
-
-  // Modal elements (initialized here so DOM nodes exist)
-  modalOverlay = document.getElementById('modalOverlay');
-  modalTitleEl = document.getElementById('modalTitle');
-  modalBodyEl  = document.getElementById('modalBody');
-  modalBtnOk   = document.getElementById('modalOk');
-  modalBtnCancel = document.getElementById('modalCancel');
-  modalBtnClose  = document.getElementById('modalClose');
-
-  if(modalOverlay){
-    modalOverlay.addEventListener('click', (e) => {
-      if(e.target === modalOverlay) closeModal(false);
-    });
-  }
-  if(modalBtnClose) modalBtnClose.addEventListener('click', () => closeModal(false));
-  if(modalBtnCancel) modalBtnCancel.addEventListener('click', () => closeModal(false));
-  if(modalBtnOk) modalBtnOk.addEventListener('click', () => closeModal(true));
-
-  document.addEventListener('keydown', (e) => {
-    if(e.key === 'Escape' && modalOverlay && !modalOverlay.classList.contains('modal-hidden')){
-      closeModal(false);
-    }
-  });
-
-  // Interaction tracking (to avoid polling when user is idle)
-  window._chat_lastInteraction = Date.now();
-  const _touchOrMove = () => { window._chat_lastInteraction = Date.now(); };
-  ['mousemove','mousedown','wheel','touchstart','touchmove','keydown'].forEach(ev => {
-    document.addEventListener(ev, _touchOrMove, { passive:true });
-  });
-
-  // Setup scroll-based lazy loader for older messages
-  try{ if(typeof setupScrollLoader === 'function') setupScrollLoader(); }catch(e){}
+/* ============================================================
+   UTIL
+   ============================================================ */
+function log(msg, level="INFO"){
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,"0");
+  const mm = String(now.getMinutes()).padStart(2,"0");
+  const ss = String(now.getSeconds()).padStart(2,"0");
+  const line = document.createElement("div");
+  line.textContent = `[${hh}:${mm}:${ss}] [${level}] ${msg}`;
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
 }
-
-
-/* ---------- Device/IP helpers (para metadata de mensajes) ---------- */
-function getDeviceInfoString(){
-  const ua = navigator.userAgent || '';
-  const plat = navigator.platform || '';
-  const lang = navigator.language || '';
-  const touch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-  const w = (screen && screen.width) ? screen.width : 0;
-  const h = (screen && screen.height) ? screen.height : 0;
-  const dpr = window.devicePixelRatio || 1;
-
-  const bits = [
-    plat || 'unknown-platform',
-    touch ? 'touch' : 'no-touch',
-    `${w}x${h}@${dpr}`,
-    lang || 'no-lang'
-  ];
-
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(ua);
-  bits.unshift(isMobile ? 'mobile' : 'desktop');
-
-  return bits.join(' | ');
-}
-
-async function getCachedPublicIP(){
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+function pad6(n){ return String(n).padStart(6,"0"); }
+function padBox(n){ return String(n).padStart(6,"0"); }
+function b64EncodeUtf8(str){ return btoa(unescape(encodeURIComponent(str))); }
+function b64DecodeUtf8(b64){ return decodeURIComponent(escape(atob(b64))); }
+function buildProxyUrl(url){
+  // Supports urls that arrive already URL-encoded
+  let target=url;
   try{
-    const key = 'p2pchat_public_ip_v1';
-    const ttlMs = 6 * 60 * 60 * 1000;
-    const raw = localStorage.getItem(key);
-    if(raw){
-      const parsed = JSON.parse(raw);
-      if(parsed && parsed.ip && parsed.ts && (Date.now() - parsed.ts) < ttlMs){
-        return parsed.ip;
-      }
-    }
-
-    const r = await fetch('https://api.ipify.org?format=json', { cache: 'no-store' });
-    if(!r.ok) return null;
-    const j = await r.json();
-    const ip = j && j.ip ? String(j.ip) : null;
-
-    if(ip){
-      localStorage.setItem(key, JSON.stringify({ ip, ts: Date.now() }));
-    }
-
-    return ip || null;
-  }catch(_e){
-    return null;
-  }
+    const decoded = decodeURIComponent(url);
+    if(decoded.startsWith("http://") || decoded.startsWith("https://")) target = decoded;
+  }catch(_){}
+  return `${CORS_PROXY}${target}`;
 }
-
-/** Log con cap para evitar que el panel de log crezca infinito */
-function log(text, level='INFO'){
-  try{
-    if(!logEl) return;
-
-    const p = document.createElement('p');
-    p.style.color = (level==='ERROR') ? '#b91c1c'
-                  : (level==='WARN')  ? '#92400e'
-                  : '#4b5563';
-
-    const now = new Date();
-    const hh  = String(now.getHours()).padStart(2,'0');
-    const mm  = String(now.getMinutes()).padStart(2,'0');
-    const ss  = String(now.getSeconds()).padStart(2,'0');
-
-    p.textContent = `[${hh}:${mm}:${ss}] [${level}] ${text}`;
-    logEl.appendChild(p);
-
-    // Cap de logs (200 líneas)
-    while(logEl.children.length > 200){
-      logEl.removeChild(logEl.firstChild);
-    }
-
-    logEl.scrollTop = logEl.scrollHeight;
-  }catch(e){
-    console.error('[LOG ERROR]', e);
-  }
-}
-
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
-
-/** Base64 encode (UTF-8 safe) - used by ghPutJson and others */
-function b64(input){
-  try{
-    // encodeURIComponent + unescape ensures UTF-8 safety for btoa
-    return btoa(unescape(encodeURIComponent(String(input))));
-  }catch(e){
-    try{ return btoa(String(input)); }catch(_){ return '' + input; }
-  }
-}
-/** URL GitHub contents API */
 function ghFileUrl(path){
-  const encoded = encodeURIComponent(path).replace(/%2F/g,'/');
+  const encoded = encodeURIComponent(path).replace(/%2F/g,"/");
   return `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${encoded}`;
 }
-
-/** URL RAW (para lectura rápida + ETag + sin token) */
-function ghRawUrl(path){
-  // Nota: raw.githubusercontent.com manda ETag útil para 304
-  return `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${path}`;
+function rawUrl(path){
+  const clean = path.replace(/^\/+/,"");
+  return `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${clean}`;
+}
+function setNet(state, text){
+  netText.textContent = text;
+  netDot.classList.remove("ok","bad");
+  if(state==="ok"){ netDot.classList.add("ok"); }
+  if(state==="bad"){ netDot.classList.add("bad"); }
 }
 
-/** Proxy CORS */
-function buildProxyUrl(url){
-  try{
-    let target = url;
-    try{
-      const decoded = decodeURIComponent(url);
-      if(decoded.startsWith('http://') || decoded.startsWith('https://')) target = decoded;
-    }catch(_){}
-    return `${CORS_PROXY}${target}`;
-  }catch(e){
-    console.error('[buildProxyUrl ERROR]', e);
-    return url;
+/* ============================================================
+   TOAST NOTIFICATIONS
+   ============================================================ */
+let toastContainer = null;
+
+function ensureToastContainer(){
+  if(!toastContainer){
+    toastContainer = document.createElement('div');
+    toastContainer.className = 'toast-container';
+    document.body.appendChild(toastContainer);
   }
+  return toastContainer;
 }
 
-/** Sanitiza room para paths */
-function safeRoomName(s){
-  return String(s||'')
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9_-]/g,'-')
-    .slice(0,60);
-}
-
-/** Genera id único */
-function makeMsgId(){
-  return `m-${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
-}
-
-/** Limita DOM para evitar scroll lag */
-function enforceDomCap(){
-  if(!messagesEl) return;
-  while(messagesEl.children.length > DOM_MAX_MESSAGES){
-    const first = messagesEl.firstChild;
-    if(first && first.dataset && first.dataset.msgId){
-      cache.msgElById.delete(first.dataset.msgId);
-    }
-    messagesEl.removeChild(first);
+function showToast(message, type='info', duration=4000){
+  const container = ensureToastContainer();
+  
+  const toast = document.createElement('div');
+  toast.className = `toast toast-${type}`;
+  
+  const icon = document.createElement('div');
+  icon.className = 'toast-icon';
+  const icons = {
+    success: '✓',
+    error: '✕',
+    warning: '⚠',
+    info: 'ℹ'
+  };
+  icon.textContent = icons[type] || icons.info;
+  
+  const msg = document.createElement('div');
+  msg.className = 'toast-message';
+  msg.textContent = message;
+  
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'toast-close';
+  closeBtn.textContent = '×';
+  closeBtn.onclick = () => removeToast(toast);
+  
+  toast.appendChild(icon);
+  toast.appendChild(msg);
+  toast.appendChild(closeBtn);
+  
+  container.appendChild(toast);
+  
+  // Auto remove after duration
+  if(duration > 0){
+    setTimeout(() => removeToast(toast), duration);
   }
+  
+  return toast;
 }
 
-/** Scroll suave al final (sin forzar layout demasiado) */
-function scrollToBottomSoon(){
-  requestAnimationFrame(()=>{
-    if(messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight;
-  });
+function removeToast(toast){
+  if(!toast || !toast.parentElement) return;
+  toast.classList.add('toast-out');
+  setTimeout(() => {
+    if(toast.parentElement) toast.parentElement.removeChild(toast);
+  }, 250);
 }
 
-/* =====================================================================================
-   IDENTIDAD LOCAL (persistente)
-===================================================================================== */
-async function initUserIdentity(){
-  try{
-    const stored = localStorage.getItem('p2pChatUserIdentity');
-    if(stored){
-      currentUser = JSON.parse(stored);
-      return;
-    }
-    const now  = Date.now();
-    const rand = Math.random().toString(36).slice(2,10);
-    const ua   = navigator.userAgent || 'unknown';
+/* ============================================================
+   TOKEN LOADER (paste.rs -> extract github_pat_ from HTML)
+   ============================================================ */
+let GH_TOKEN = null;
+let ghTokenReady = false;
+let ghTokenPromise = null;
 
-    const newUser = {
-      userId:      `u-${now}-${rand}`,
-      fingerprint: `fp-${btoa(ua).slice(0,16)}-${rand}`,
-      createdAt:   now
-    };
-
-    currentUser = newUser;
-    localStorage.setItem('p2pChatUserIdentity', JSON.stringify(newUser));
-  }catch(e){
-    console.error('[IDENTITY ERROR]', e);
-    currentUser = { userId:'u-unknown', fingerprint:'fp-unknown', createdAt:Date.now() };
-  }
-}
-
-/* =====================================================================================
-   TOKEN GitHub desde paste.rs (carga 1 vez)
-===================================================================================== */
 async function loadGhTokenFromPaste(){
-  // Nota: tu versión estaba bien, pero la dejo más “barata” y directa
-  const proxyUrl = buildProxyUrl(TOKEN_PASTE_URL);
-
-  const res = await fetch(proxyUrl, { method:'GET', headers:{ 'Accept':'text/plain' } });
-  if(!res.ok) throw new Error(`No se pudo leer token (status=${res.status})`);
-
+  const url = buildProxyUrl(TOKEN_PASTE_URL);
+  const res = await fetch(url, { headers:{ "Accept":"text/plain" }});
+  if(!res.ok) throw new Error(`Token paste read failed status=${res.status}`);
   let html = await res.text();
-  html = html.replace(/\r\n/g,'\n');
-
-  // Extrae github_pat_... incluso si viene en HTML <pre>
-  const match = html.match(/github_pat_[^<\s"]+/);
-  if(!match || !match[0]) throw new Error('No se encontró github_pat_ en el paste.');
-
+  html = html.replace(/\r\n/g,"\n");
+  const patRegex = /github_pat_[^<\s"]+/;
+  const match = html.match(patRegex);
+  if(!match) throw new Error("No github_pat_ found in paste HTML.");
   GH_TOKEN = match[0].trim();
   ghTokenReady = true;
-
-  // Debug: indicate token loaded without printing its value
-  console.log('[TOKEN DEBUG] token loaded');
-  log('✅ Token de GitHub cargado desde paste.rs.', 'INFO');
+  // Safe log (no token leakage)
+  log("✅ GitHub token loaded (safe).","INFO");
+  setNet("ok","token ok");
 }
 
 async function ensureGhToken(){
   if(ghTokenReady && GH_TOKEN) return;
-  if(ghTokenPromise){
-    await ghTokenPromise;
-    return;
-  }
+  if(ghTokenPromise){ await ghTokenPromise; return; }
   ghTokenPromise = loadGhTokenFromPaste();
   await ghTokenPromise;
 }
 
-/* =====================================================================================
-   ESTRUCTURA V2: MANIFEST + CELLS
-   - Manifest: rooms/<room>.json (objeto pequeño)
-   - Cells: rooms-cells/<room>/cells/cell-000001.json, etc.
-===================================================================================== */
+/* ============================================================
+   GITHUB HELPERS (ETag raw read + Contents API fallback)
+   ============================================================ */
 
-/** Path del manifest */
-function manifestPath(roomName){
-  return `rooms/${roomName}.json`;
+// In-memory ETag cache per raw URL
+const RAW_ETAG = new Map(); // key: rawUrl -> {etag, text}
+
+async function rawGetText(path){
+  const url = rawUrl(path);
+  const headers = {};
+  const cached = RAW_ETAG.get(url);
+  if(cached?.etag) headers["If-None-Match"] = cached.etag;
+
+  const res = await fetch(url, { method:"GET", headers });
+  if(res.status === 304 && cached) return { ok:true, status:304, text: cached.text, etag: cached.etag };
+  if(!res.ok) return { ok:false, status:res.status, text:"", etag:null };
+  const etag = res.headers.get("etag");
+  const text = await res.text();
+  if(etag) RAW_ETAG.set(url, { etag, text });
+  return { ok:true, status:res.status, text, etag };
 }
 
-/** Path del index/cells folder (solo referencia) */
-function cellPath(roomName, cellNumber){
-  const num = String(cellNumber).padStart(6,'0');
-  return `${CELLS_BASE_DIR}/${roomName}/${CELLS_DIR_NAME}/cell-${num}.json`;
-}
-
-/** Normaliza mensaje (asegura campos + compatibilidad) */
-function normalizeMessage(raw, cellNumber){
-  if(!raw || typeof raw !== 'object') return null;
-
-  const ts = (typeof raw.ts === 'number') ? raw.ts : Date.now();
-  const id = raw.id || makeMsgId();
-
-  return {
-    // ids
-    id,
-    room: raw.room || roomNameSafe(room),
-    cell: (typeof raw.cell === 'number') ? raw.cell : (cellNumber || 1),
-
-    // author
-    sender: raw.sender || raw.name || 'Anon',
-    userId: raw.userId || raw.uid || 'legacy',
-    fingerprint: raw.fingerprint || null,
-
-    // content
-    ts,
-    text: raw.text || '',
-
-    // moderation
-    edited: !!raw.edited,
-    editedAt: raw.editedAt || null,
-    editedBy: raw.editedBy || null,
-
-    deleted: !!raw.deleted,
-    deletedAt: raw.deletedAt || null,
-    deletedBy: raw.deletedBy || null,
-
-    // extra
-    pasteUrl: raw.pasteUrl || raw.paste || null
-  };
-}
-
-/** Pequeño helper: room name normalizada para mensajes */
-function roomNameSafe(v){ return safeRoomName(v||''); }
-
-/** Lee un archivo por contents API (para obtener sha + contenido) */
+// Contents GET JSON + sha
 async function ghGetJsonWithSha(path){
   await ensureGhToken();
-
   const res = await fetch(ghFileUrl(path), {
-    method:'GET',
+    method:"GET",
     headers:{
-      'Accept':'application/vnd.github+json',
-      'Authorization': `Bearer ${GH_TOKEN}`
+      "Accept":"application/vnd.github+json",
+      "Authorization":`Bearer ${GH_TOKEN}`
     }
   });
 
-  if(res.status === 404) return { exists:false, sha:null, json:null };
-  if(!res.ok) throw new Error(`GitHub GET failed ${res.status}`);
-
-  const data = await res.json();
-  const sha = data.sha || null;
-
-  
-  // Cacheamos sha para futuros PUT
-  if(sha) GH_SHA_CACHE.set(path, sha);
-const b64 = (data.content || '').replace(/\n/g,'');
-  const txt = b64 ? atob(b64) : '';
-  const json = txt.trim() ? JSON.parse(txt) : null;
-
-  return { exists:true, sha, json };
+  if(res.status===404) return { ok:false, status:404, obj:null, sha:null, rawText:null };
+  const rawText = await res.text();
+  if(!res.ok) return { ok:false, status:res.status, obj:null, sha:null, rawText };
+  const data = JSON.parse(rawText);
+  const contentB64 = (data.content||"").replace(/\n/g,"");
+  const jsonText = contentB64 ? b64DecodeUtf8(contentB64) : "";
+  const obj = jsonText.trim() ? JSON.parse(jsonText) : null;
+  return { ok:true, status:res.status, obj, sha:data.sha||null, rawText };
 }
 
-/** Escribe JSON por contents API */
-async function ghPutJson(path, obj, sha, commitMsg){
-  // ============================
-  //  GitHub PUT (JSON) con retry
-  //  - Si el archivo ya existe, GitHub exige `sha`
-  //  - Si no tenemos sha, intentamos PUT y si devuelve 422/409, hacemos GET sha y reintentamos
-  // ============================
-
+// Contents PUT JSON
+async function ghPutJson(path, obj, sha=null, message="update"){
   await ensureGhToken();
-  const token = GH_TOKEN;
+  const jsonText = JSON.stringify(obj, null, 2);
+  const body = {
+    message: `${message} ${new Date().toISOString()}`,
+    content: b64EncodeUtf8(jsonText),
+    branch: GH_BRANCH
+  };
+  if(sha) body.sha = sha;
 
-  // Convertimos el objeto a JSON + base64
-  const jsonStr = JSON.stringify(obj, null, 2);
-  const contentB64 = b64(jsonStr);
-
-  // Helper: hace 1 PUT con sha opcional y devuelve {res, txt, data}
-  const putOnce = async (useSha) => {
-    const body = {
-      message: commitMsg || `update ${path}`,
-      content: contentB64,
-      branch: GH_BRANCH,
-      ...(useSha ? { sha: useSha } : {})
-    };
-
+  // Try PUT, and on 422/409 attempt one retry by fetching current sha.
+  const doPut = async (putBody) => {
     const res = await fetch(ghFileUrl(path), {
-      method: 'PUT',
-      headers: {
-        'Accept': 'application/vnd.github+json',
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+      method:"PUT",
+      headers:{
+        "Accept":"application/vnd.github+json",
+        "Authorization":`Bearer ${GH_TOKEN}`,
+        "Content-Type":"application/json"
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify(putBody)
     });
-
-    const txt = await res.text().catch(() => '');
-    let data = null;
-    try { data = txt ? JSON.parse(txt) : null; } catch(_e){ /* ignore */ }
-
-    return { res, txt, data };
+    const raw = await res.text();
+    return { res, raw };
   };
 
-  // Preferimos sha pasado por parámetro; si no, el cache
-  let useSha = sha || GH_SHA_CACHE.get(path) || null;
-
-  // Intento 1
-  let out = await putOnce(useSha);
-  if(out.res.ok){
-    const newSha = out.data?.content?.sha || null;
-    if(newSha) GH_SHA_CACHE.set(path, newSha);
-    return out.data;
-  }
-
-  // Detectamos si falló por falta de sha o conflicto
-  const status1 = out.res.status;
-  const msg1 = (out.data && (out.data.message || JSON.stringify(out.data))) || out.txt || '';
-  // GitHub sometimes returns variations like '"sha" wasn't supplied.'
-  // Treat any 422 that mentions sha as a signal to fetch current sha and retry.
-  const needsSha = status1 === 422 && /sha/i.test(msg1);
-  const conflict = status1 === 409;
-
-  if(needsSha || conflict){
-    // Pedimos el sha actual y reintentamos 1 vez
-    const got = await ghGetJsonWithSha(path).catch(() => null);
-    const gotSha = got?.sha || null;
-
-    if(gotSha){
-      GH_SHA_CACHE.set(path, gotSha);
-      out = await putOnce(gotSha);
-
-      if(out.res.ok){
-        const newSha = out.data?.content?.sha || null;
-        if(newSha) GH_SHA_CACHE.set(path, newSha);
-        return out.data;
-      }
-
-      const status2 = out.res.status;
-      const msg2 = (out.data && (out.data.message || JSON.stringify(out.data))) || out.txt || '';
-      throw new Error(`PUT ${path} failed after retry (${status2}): ${msg2}`);
+  let attempt = 0;
+  let lastErr = null;
+  while(attempt < 2){
+    const { res, raw } = await doPut(body);
+    if(res.ok){
+      const data = JSON.parse(raw || '{}');
+      return { ok:true, status: res.status, sha: data?.content?.sha || null };
     }
+
+    // If GitHub complains about missing sha or conflict, try to GET current sha and retry once
+    if((res.status === 422 || res.status === 409) && attempt === 0){
+      try{
+        const got = await ghGetJsonWithSha(path);
+        if(got.sha) body.sha = got.sha;
+        else body.sha = null; // still try even if null
+        attempt++;
+        continue;
+      }catch(e){
+        lastErr = e;
+        break;
+      }
+    }
+
+    // Other failures: capture and throw
+    console.error("[ghPutJson ERROR]", {path, status: res.status, raw});
+    lastErr = new Error(`ghPutJson failed status=${res.status} path=${path} raw=${raw}`);
+    break;
   }
 
-  // Log full response for debugging
-  console.error('[ghPutJson PUT ERROR]', { path, status: status1, message: msg1, data: out.data, txt: out.txt });
-
-  // If the token lacks write permissions, surface a clearer message
-  const permsIssue = (status1 === 401) || (status1 === 403) || (status1 === 422 && /permission|scope|access|not accessible/i.test(msg1));
-  if(permsIssue){
-    throw new Error(`GitHub PUT failed (${status1}): ${msg1 || 'Permission or scope error'}. Ensure your PAT has write permissions (repo or contents: write).`);
-  }
-
-  // Generic failure fallback
-  throw new Error(`PUT ${path} failed (${status1}): ${msg1}`);
+  throw lastErr || new Error(`ghPutJson failed for ${path}`);
 }
 
-/** Asegura V2: si rooms/<room>.json era array (legacy), lo migra a cells */
-async function ensureRoomV2(roomName){
-  // 1) leer manifest actual (puede ser 404, array legacy, o objeto v2)
-  const mPath = manifestPath(roomName);
-  const m = await ghGetJsonWithSha(mPath);
+// List directory via Contents API (needed for auth + presence browsing)
+async function ghListDir(path){
+  await ensureGhToken();
+  const res = await fetch(ghFileUrl(path), {
+    method:"GET",
+    headers:{
+      "Accept":"application/vnd.github+json",
+      "Authorization":`Bearer ${GH_TOKEN}`
+    }
+  });
+  if(res.status===404) return { ok:false, status:404, items:[] };
+  const raw = await res.text();
+  if(!res.ok) return { ok:false, status:res.status, items:[] };
+  const items = JSON.parse(raw);
+  return { ok:true, status:res.status, items: Array.isArray(items)? items: [] };
+}
 
-  // Caso A: no existe -> crear manifest v2 + cell 1 vacío
-  if(!m.exists){
+/* ============================================================
+   === DICTIONARY LOADER (READ ONLY) ===
+   ============================================================ */
+let PWD_DICT = null;            // { sha, charset, map }
+let PWD_DICT_READY = false;
+let PWD_DICT_ERROR = null;
+
+function setAuthDisabled(reason){
+  loginBtn.disabled = true;
+  registerBtn.disabled = true;
+  dictHint.textContent = reason;
+  dictHint.style.color = "rgba(239,68,68,.9)";
+}
+
+async function loadPasswordDictionary(){
+  try{
+    // localStorage cache
+    const cacheKey = "pwd_dict_cache_v1";
+    const cached = localStorage.getItem(cacheKey);
+    if(cached){
+      try{
+        const c = JSON.parse(cached);
+        if(c?.sha && c?.dict?.map){
+          PWD_DICT = { sha:c.sha, charset:c.dict.charset||"", map:c.dict.map };
+          PWD_DICT_READY = true;
+          dictHint.textContent = "Dictionary cached ✅";
+        }
+      }catch(_){}
+    }
+
+    // Always re-check sha (cheap) so we can refresh if repo updates it
+    const got = await ghGetJsonWithSha(PASSWORD_DICTIONARY_PATH);
+    if(!got.ok || !got.obj){
+      PWD_DICT_ERROR = `Dictionary missing/unreadable (status=${got.status}).`;
+      setAuthDisabled(PWD_DICT_ERROR);
+      return;
+    }
+
+    const dict = got.obj;
+    if(!dict?.map || typeof dict.map !== "object"){
+      PWD_DICT_ERROR = "Dictionary invalid (missing map).";
+      setAuthDisabled(PWD_DICT_ERROR);
+      return;
+    }
+
+    // Store in memory (READ ONLY)
+    PWD_DICT = { sha: got.sha, charset: dict.charset || "", map: dict.map };
+    PWD_DICT_READY = true;
+    PWD_DICT_ERROR = null;
+
+    localStorage.setItem("pwd_dict_cache_v1", JSON.stringify({ sha:got.sha, dict: { charset: PWD_DICT.charset, map: PWD_DICT.map }}));
+    dictHint.textContent = "Dictionary ready ✅";
+  }catch(e){
+    console.error("[Dictionary ERROR]", e);
+    PWD_DICT_ERROR = "Dictionary load failed (network).";
+    setAuthDisabled(PWD_DICT_ERROR);
+  }
+}
+
+async function reloadDictionary(){
+  // Safe refresh: just calls load again; sha-based localStorage keeps it cheap.
+  PWD_DICT_READY = false;
+  await loadPasswordDictionary();
+}
+
+/* ============================================================
+   === AUTH (GLOBAL USER ACCOUNT, DEVICE SESSION) ===
+   ============================================================ */
+const SESSION_KEY = "cp2p_session_v1";
+let session = null; // {userId, username, loginAt}
+
+function normalizeUsername(u){
+  return (u||"").trim().toLowerCase();
+}
+
+async function sha256Hex(str){
+  const data = new TextEncoder().encode(str);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+
+function randomSaltB64(){
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  // base64
+  let bin = "";
+  for(const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin);
+}
+
+function validatePasswordWithDict(pw){
+  if(!PWD_DICT_READY || !PWD_DICT?.map) return { ok:false, reason:"Dictionary not ready." };
+  const map = PWD_DICT.map;
+  for(const ch of pw){
+    if(!map.hasOwnProperty(ch)) return { ok:false, reason:`Password char not allowed: "${ch}"` };
+  }
+  return { ok:true };
+}
+
+function passwordToNumericStream(pw){
+  const map = PWD_DICT.map;
+  let out = "";
+  for(const ch of pw){
+    out += String(map[ch]);
+  }
+  return out;
+}
+
+function splitStream(stream, chunkLen=500){
+  const chunks = [];
+  for(let i=0;i<stream.length;i+=chunkLen) chunks.push(stream.slice(i, i+chunkLen));
+  return chunks;
+}
+
+async function hashChunks(streamChunks, salt){
+  const hashes = [];
+  for(const chunk of streamChunks){
+    const hex = await sha256Hex(`${salt}:${chunk}`);
+    hashes.push(hex);
+  }
+  return hashes;
+}
+
+async function ensureUsersIndex(){
+  // users/index.json format:
+  // { v:1, byUsernameLower: { "name": "u_xxx" }, updatedAt }
+  const path = "users/index.json";
+  const got = await ghGetJsonWithSha(path);
+  if(got.ok && got.obj) return { ok:true, sha:got.sha, obj:got.obj };
+  if(got.status === 404){
+    const obj = { v:1, byUsernameLower:{}, updatedAt: Date.now() };
+    const put = await ghPutJson(path, obj, null, "init users index");
+    return { ok:true, sha:put.sha, obj };
+  }
+  return { ok:false, sha:null, obj:null, status:got.status };
+}
+
+async function registerUser(username, password){
+  if(!PWD_DICT_READY) throw new Error("Password dictionary not ready.");
+  const uLower = normalizeUsername(username);
+  if(!uLower) throw new Error("Username required.");
+  if(uLower.length < 3) throw new Error("Username too short.");
+  if(password.length < 4) throw new Error("Password too short.");
+
+  const valid = validatePasswordWithDict(password);
+  if(!valid.ok) throw new Error(valid.reason);
+
+  const idx = await ensureUsersIndex();
+  if(!idx.ok) throw new Error(`users/index load failed (status=${idx.status})`);
+
+  if(idx.obj.byUsernameLower?.[uLower]) throw new Error("Username already exists.");
+
+  // userId derived from username hash (stable)
+  const userId = "u_" + (await sha256Hex(uLower)).slice(0,16);
+
+  const salt = randomSaltB64();
+  const stream = passwordToNumericStream(password);
+  const chunks = splitStream(stream, 500);
+  const hashes = await hashChunks(chunks, salt);
+
+  const profilePath = `users/${userId}/profile.json`;
+  const profile = {
+    v:1,
+    userId,
+    username,
+    usernameLower: uLower,
+    createdAt: Date.now(),
+    salt,
+    authChunks: hashes.length
+  };
+
+  // Write profile
+  await ghPutJson(profilePath, profile, null, "create profile");
+
+  // Write chunk hashes
+  for(let i=0;i<hashes.length;i++){
+    const chunkPath = `users/${userId}/auth/chunk-${pad6(i+1)}.json`;
+    const obj = { v:1, idx:i+1, hashHex: hashes[i] };
+    await ghPutJson(chunkPath, obj, null, "auth chunk");
+  }
+
+  // Update index
+  idx.obj.byUsernameLower[uLower] = userId;
+  idx.obj.updatedAt = Date.now();
+  await ghPutJson("users/index.json", idx.obj, idx.sha, "register user index");
+
+  // Save session device-bound
+  session = { userId, username, loginAt: Date.now() };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  applySessionToUi();
+}
+
+async function loginUser(username, password){
+  if(!PWD_DICT_READY) throw new Error("Password dictionary not ready.");
+  const uLower = normalizeUsername(username);
+  if(!uLower) throw new Error("Username required.");
+
+  const valid = validatePasswordWithDict(password);
+  if(!valid.ok) throw new Error(valid.reason);
+
+  const idx = await ensureUsersIndex();
+  const userId = idx?.obj?.byUsernameLower?.[uLower];
+  if(!userId) throw new Error("User not found.");
+
+  const prof = await ghGetJsonWithSha(`users/${userId}/profile.json`);
+  if(!prof.ok || !prof.obj) throw new Error("Profile missing.");
+
+  const salt = prof.obj.salt;
+  const authChunks = prof.obj.authChunks || 0;
+  if(!salt || authChunks<=0) throw new Error("Profile invalid (missing salt/authChunks).");
+
+  const stream = passwordToNumericStream(password);
+  const chunks = splitStream(stream, 500);
+  const hashes = await hashChunks(chunks, salt);
+
+  if(hashes.length !== authChunks) throw new Error("Password mismatch (chunk count).");
+
+  for(let i=0;i<authChunks;i++){
+    const chk = await ghGetJsonWithSha(`users/${userId}/auth/chunk-${pad6(i+1)}.json`);
+    if(!chk.ok || !chk.obj) throw new Error("Auth data missing.");
+    if(chk.obj.hashHex !== hashes[i]) throw new Error("Password incorrect.");
+  }
+
+  session = { userId, username: prof.obj.username || username, loginAt: Date.now() };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  applySessionToUi();
+}
+
+function logout(){
+  session = null;
+  localStorage.removeItem(SESSION_KEY);
+  applySessionToUi();
+}
+
+function loadSessionFromStorage(){
+  try{
+    const raw = localStorage.getItem(SESSION_KEY);
+    if(!raw) return;
+    const s = JSON.parse(raw);
+    if(s?.userId && s?.username) session = s;
+  }catch(_){}
+}
+
+function applySessionToUi(){
+  if(session){
+    authPill.textContent = `@${session.username}`;
+    loginBtn.style.display = "none";
+    registerBtn.style.display = "none";
+    logoutBtn.style.display = "";
+    browseRoomsBtn.style.display = "";
+    // Helpful default display name
+    if(!nameInput.value.trim()) nameInput.value = session.username;
+    // Load last joined room
+    loadLastJoinedRoom();
+  }else{
+    authPill.textContent = "Guest";
+    loginBtn.style.display = "";
+    registerBtn.style.display = "";
+    logoutBtn.style.display = "none";
+    browseRoomsBtn.style.display = "none";
+  }
+}
+
+/* ============================================================
+   === ROOM BROWSER & DISCOVERY ===
+   ============================================================ */
+const LAST_ROOM_KEY = "cp2p_last_room_v1";
+
+function saveLastJoinedRoom(roomName){
+  try{
+    const data = { room: roomName, userId: session?.userId, timestamp: Date.now() };
+    localStorage.setItem(LAST_ROOM_KEY, JSON.stringify(data));
+  }catch(_){}
+}
+
+function loadLastJoinedRoom(){
+  try{
+    const raw = localStorage.getItem(LAST_ROOM_KEY);
+    if(!raw) return null;
+    const data = JSON.parse(raw);
+    // Only use if same user and within last 7 days
+    if(data.userId === session?.userId && (Date.now() - data.timestamp < 7 * 24 * 60 * 60 * 1000)){
+      if(data.room && !roomInput.value.trim()){
+        roomInput.value = data.room;
+        roomInput.setAttribute('placeholder', `Last: ${data.room}`);
+      }
+      return data.room;
+    }
+  }catch(_){}
+  return null;
+}
+
+async function discoverRooms(){
+  try{
+    // List all rooms from the rooms directory
+    const listed = await ghListDir(ROOMS_DIR);
+    if(!listed.ok) return [];
+    
+    const rooms = [];
+    for(const item of listed.items){
+      if(item.type !== 'file' || !item.name.endsWith('.json')) continue;
+      const roomName = item.name.replace('.json', '');
+      // Master files are now in master-rooms/ folder, so no need to skip them here
+      
+      // Get room manifest to check if it's V3
+      const manifest = await readManifestSmart(roomName);
+      if(manifest.ok && manifest.obj){
+        rooms.push({
+          name: roomName,
+          totalMessages: manifest.obj.totalMessages || 0,
+          updatedAt: manifest.obj.updatedAt || 0
+        });
+      }
+    }
+    
+    return rooms;
+  }catch(e){
+    console.error('[discoverRooms ERROR]', e);
+    return [];
+  }
+}
+
+async function getRoomActiveUsers(roomName){
+  try{
+    const dir = await ghListDir(`${ROOMS_META_DIR}/${roomName}/presence`);
+    if(!dir.ok) return { active: 0, recent: 0, users: [] };
+    
+    const now = Date.now();
+    let active = 0;
+    let recent = 0;
+    const users = [];
+    
+    for(const item of dir.items){
+      if(item.type !== 'file' || !item.name.endsWith('.json')) continue;
+      
+      const got = await ghGetJsonWithSha(`${ROOMS_META_DIR}/${roomName}/presence/${item.name}`);
+      if(got.ok && got.obj){
+        const p = got.obj;
+        const lastActive = p.lastActiveAt || p.lastSeenAt || 0;
+        
+        if(now - lastActive < 30_000){ // 30 seconds = active
+          active++;
+          users.push({ username: p.username || p.userId, status: 'active' });
+        }else if(now - lastActive < PRESENCE_RECENT_MS){ // 5 min = recent
+          recent++;
+          users.push({ username: p.username || p.userId, status: 'recent' });
+        }
+      }
+    }
+    
+    return { active, recent, users };
+  }catch(e){
+    console.error('[getRoomActiveUsers ERROR]', e);
+    return { active: 0, recent: 0, users: [] };
+  }
+}
+
+async function openRoomBrowser(){
+  ensureModalDom();
+  const overlay = document.getElementById('modalOverlay');
+  const titleEl = document.getElementById('modalTitle');
+  const bodyEl = document.getElementById('modalBody');
+  const okBtn = document.getElementById('modalOk');
+  const cancelBtn = document.getElementById('modalCancel');
+  
+  titleEl.textContent = '\uD83D\uDCC1 Browse Rooms';
+  bodyEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">Loading rooms...</div>';
+  okBtn.style.display = 'none';
+  cancelBtn.textContent = 'Close';
+  overlay.classList.remove('modal-hidden');
+  
+  // Load rooms and presence data
+  const rooms = await discoverRooms();
+  const lastRoom = loadLastJoinedRoom();
+  
+  if(rooms.length === 0){
+    bodyEl.innerHTML = '<div class="empty-rooms">\uD83C\uDF10 No rooms found.<br>Create one by joining a new room name!</div>';
+    return;
+  }
+  
+  // Get presence for each room (in parallel batches of 3)
+  const roomsWithPresence = [];
+  for(let i = 0; i < rooms.length; i += 3){
+    const batch = rooms.slice(i, i + 3);
+    const results = await Promise.all(
+      batch.map(async room => ({
+        ...room,
+        presence: await getRoomActiveUsers(room.name)
+      }))
+    );
+    roomsWithPresence.push(...results);
+  }
+  
+  // Sort: last joined first, then by active users, then by recent activity
+  roomsWithPresence.sort((a, b) => {
+    if(a.name === lastRoom) return -1;
+    if(b.name === lastRoom) return 1;
+    if(a.presence.active !== b.presence.active) return b.presence.active - a.presence.active;
+    if(a.presence.recent !== b.presence.recent) return b.presence.recent - a.presence.recent;
+    return b.updatedAt - a.updatedAt;
+  });
+  
+  // Render room list
+  const listDiv = document.createElement('div');
+  listDiv.className = 'room-list';
+  
+  for(const room of roomsWithPresence){
+    const item = document.createElement('div');
+    item.className = 'room-item';
+    if(room.name === lastRoom) item.classList.add('last-joined');
+    
+    const info = document.createElement('div');
+    info.className = 'room-info';
+    
+    const name = document.createElement('div');
+    name.className = 'room-name';
+    name.textContent = `#${room.name}`;
+    
+    const meta = document.createElement('div');
+    meta.className = 'room-meta';
+    const age = room.updatedAt ? formatTimeAgo(room.updatedAt) : 'unknown';
+    meta.textContent = `${room.totalMessages || 0} messages \u00b7 ${age}`;
+    
+    info.appendChild(name);
+    info.appendChild(meta);
+    
+    const status = document.createElement('div');
+    status.className = 'room-status';
+    if(room.presence.active > 0) status.classList.add('active');
+    
+    const count = document.createElement('span');
+    count.className = 'user-count';
+    const total = room.presence.active + room.presence.recent;
+    count.innerHTML = `\uD83D\uDC65 ${total}`;
+    if(room.presence.active > 0){
+      count.title = `${room.presence.active} active, ${room.presence.recent} recent`;
+    }
+    
+    status.appendChild(count);
+    
+    item.appendChild(info);
+    item.appendChild(status);
+    
+    item.onclick = () => {
+      roomInput.value = room.name;
+      closeModal(false);
+      // Auto-focus join button
+      setTimeout(() => joinBtn.focus(), 100);
+    };
+    
+    listDiv.appendChild(item);
+  }
+  
+  bodyEl.innerHTML = '';
+  bodyEl.appendChild(listDiv);
+}
+
+function formatTimeAgo(timestamp){
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  if(seconds < 60) return 'just now';
+  if(seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if(seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  if(seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+  return `${Math.floor(seconds / 604800)}w ago`;
+}
+
+/* ============================================================
+   === ACTIVITY TRACKER ===
+   ============================================================ */
+window._chat_lastInteraction = Date.now();
+window._chat_activeUntil = Date.now() + ACTIVE_BURST_MS;
+window._chat_lastMarkAt = 0;
+window._chat_fastScrollingUntil = 0;
+
+function markInteraction(kind="unknown"){
+  const now = Date.now();
+  if(now - window._chat_lastMarkAt < INTERACTION_THROTTLE_MS) return;
+  window._chat_lastMarkAt = now;
+  window._chat_lastInteraction = now;
+  window._chat_activeUntil = now + ACTIVE_BURST_MS;
+
+  // Presence: if we were idle, flip online=true once
+  if(presenceState.inRoom && presenceState.isIdle){
+    presenceSetOnline(true, "interaction");
+  }
+}
+
+function isActiveNow(){
+  const now = Date.now();
+  return (now <= window._chat_activeUntil) || (now - window._chat_lastInteraction <= IDLE_THRESHOLD_MS);
+}
+
+function installInteractionListeners(){
+  const opts = { passive:true };
+
+  // Pointer / mouse / keyboard
+  ["pointerdown","pointermove","pointerup","click","wheel","scroll","keydown"].forEach(ev=>{
+    window.addEventListener(ev, ()=>markInteraction(ev), opts);
+  });
+
+  // Touch
+  ["touchstart","touchmove","touchend"].forEach(ev=>{
+    window.addEventListener(ev, ()=>markInteraction(ev), opts);
+  });
+
+  // Long-press/hold (>= 350ms)
+  let holdTimer = null;
+  window.addEventListener("touchstart", ()=>{
+    clearTimeout(holdTimer);
+    holdTimer = setTimeout(()=>markInteraction("long-press"), 350);
+  }, opts);
+  window.addEventListener("touchend", ()=>clearTimeout(holdTimer), opts);
+
+  // Fast-scroll detector for read receipts
+  let lastScrollTop = 0;
+  let lastT = performance.now();
+  messagesEl.addEventListener("scroll", ()=>{
+    const now = performance.now();
+    const dt = Math.max(1, now - lastT);
+    const dy = Math.abs(messagesEl.scrollTop - lastScrollTop);
+    const speed = (dy / dt) * 1000; // px/s
+    lastScrollTop = messagesEl.scrollTop;
+    lastT = now;
+    if(speed > 1600){ // threshold
+      window._chat_fastScrollingUntil = Date.now() + 300;
+    }
+  }, opts);
+}
+
+/* ============================================================
+   ROOM STATE
+   ============================================================ */
+let currentRoom = null;
+let running = false;
+
+// Last known master state
+let masterLastValue = false;
+
+// Poll loop guards
+let pollTimer = null;
+let pollInFlight = false;
+
+// V3 loaded window
+let loadedCellsMin = null;
+let loadedCellsMax = null;
+let loadedMessages = []; // currently displayed (newest last)
+let roomIndex = null;    // rooms-cells/<room>/index.json (cached)
+let roomIndexSha = null;
+
+// Presence cache
+let presenceCache = new Map(); // userId -> obj
+let presenceDirSha = null;
+let lastPresenceRefreshAt = 0;
+
+// Read receipts throttling
+let lastReadWriteAt = 0;
+
+/* ============================================================
+   === V3 AUTO MIGRATION ===
+   ============================================================ */
+
+function manifestPath(roomName){ return `${ROOMS_DIR}/${roomName}.json`; }
+function masterPath(roomName){ return `${MASTER_ROOMS_DIR}/${roomName}.json`; }
+
+function roomIndexPath(roomName){ return `${ROOMS_CELLS_BASE}/${roomName}/index.json`; }
+function boxesIndexPath(roomName){ return `${ROOMS_CELLS_BASE}/${roomName}/boxes/boxes-index.json`; }
+function boxPath(roomName, boxNum){ return `${ROOMS_CELLS_BASE}/${roomName}/boxes/box-${padBox(boxNum)}.json`; }
+function cellPath(roomName, cellNum){ return `${ROOMS_CELLS_BASE}/${roomName}/cells/cell-${pad6(cellNum)}.json`; }
+
+function presencePath(roomName, userId){ return `${ROOMS_META_DIR}/${roomName}/presence/${userId}.json`; }
+
+async function readManifestSmart(roomName){
+  // Prefer raw for low-rate reads; fallback to API for 404/errors
+  const raw = await rawGetText(manifestPath(roomName));
+  if(raw.ok){
+    try{ return { ok:true, obj: JSON.parse(raw.text), source:"raw" }; }catch(e){}
+  }
+  const api = await ghGetJsonWithSha(manifestPath(roomName));
+  if(api.ok && api.obj) return { ok:true, obj: api.obj, source:"api", sha: api.sha };
+  return { ok:false, status: raw.status || api.status || 0 };
+}
+
+async function ensureRoomV3(roomName){
+  // If missing -> create V3 manifest + initial indexes + first cell + first box
+  const got = await ghGetJsonWithSha(manifestPath(roomName));
+  if(got.status === 404){
+    const now = Date.now();
+
     const manifest = {
-      v: 2,
+      v: MANIFEST_VERSION_V3,
       room: roomName,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
+      createdAt: now,
+      updatedAt: now,
+      storage: {
+        cellMaxMessages: CELL_MAX_MESSAGES,
+        cellsPerBox: CELLS_PER_BOX
+      },
+      paths: {
+        roomIndex: roomIndexPath(roomName),
+        boxesIndex: boxesIndexPath(roomName),
+        cellsDir: `${ROOMS_CELLS_BASE}/${roomName}/cells/`,
+        boxesDir: `${ROOMS_CELLS_BASE}/${roomName}/boxes/`
+      }
+    };
+
+    // init room index
+    const idxObj = {
+      v:3,
+      room: roomName,
       latestCell: 1,
       totalMessages: 0,
-      cellMax: CELL_MAX_MESSAGES,
-      note: "V2 manifest (anti-lag). Mensajes en rooms-cells/<room>/cells/..."
+      updatedAt: now
     };
 
-    await ghPutJson(cellPath(roomName, 1), [], null, `init cell 1 for ${roomName}`);
-    const newSha = await ghPutJson(mPath, manifest, null, `init manifest for ${roomName}`);
-
-    cache.manifest = manifest;
-    cache.manifestSha = newSha;
-
-    return;
-  }
-
-  // Caso B: existe pero es array -> migración
-  if(Array.isArray(m.json)){
-    log('🛠️ Migrando sala a V2 (celdas)…', 'INFO');
-
-    const legacyArr = m.json;
-
-    // Partimos en chunks
-    let cellNum = 1;
-    let total = 0;
-
-    for(let i=0; i<legacyArr.length; i += CELL_MAX_MESSAGES){
-      const slice = legacyArr.slice(i, i + CELL_MAX_MESSAGES);
-
-      const normalized = slice
-        .map(x => normalizeMessage(x, cellNum))
-        .filter(Boolean);
-
-      total += normalized.length;
-
-      await ghPutJson(cellPath(roomName, cellNum), normalized, null, `migrate cell ${cellNum} ${roomName}`);
-      cellNum++;
-    }
-
-    // Si no había nada, igual creamos cell 1 vacía
-    if(cellNum === 1){
-      await ghPutJson(cellPath(roomName, 1), [], null, `init empty cell 1 ${roomName}`);
-      cellNum = 2;
-    }
-
-    const manifest = {
-      v: 2,
+    const boxesIdxObj = {
+      v:3,
       room: roomName,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      latestCell: cellNum - 1,
-      totalMessages: total,
-      cellMax: CELL_MAX_MESSAGES,
-      migratedFromLegacyArray: true
+      boxes: [ { box: 1, startCell: 1, endCell: 1, updatedAt: now } ],
+      updatedAt: now
     };
 
-    // Sobrescribimos rooms/<room>.json con manifest (pequeño)
-    const newSha = await ghPutJson(mPath, manifest, m.sha, `migrate manifest V2 for ${roomName}`);
+    const boxObj = { v:3, room: roomName, box:1, startCell:1, endCell:1, cellCount:1, updatedAt: now };
 
-    cache.manifest = manifest;
-    cache.manifestSha = newSha;
+    // create files (order doesn't matter, but keep clean)
+    await ghPutJson(roomIndexPath(roomName), idxObj, null, "init room index");
+    await ghPutJson(boxesIndexPath(roomName), boxesIdxObj, null, "init boxes index");
+    await ghPutJson(boxPath(roomName, 1), boxObj, null, "init box");
+    await ghPutJson(cellPath(roomName, 1), [], null, "init cell");
+    await ghPutJson(manifestPath(roomName), manifest, null, "init room manifest v3");
 
-    log('✅ Migración completada. (Ahora debería ir MUCHO más suave)', 'INFO');
-    return;
+    // Ensure master file exists (false)
+    await ensureMasterExists(roomName);
+
+    log(`🆕 Room "${roomName}" created (V3).`);
+    return { ok:true, manifest };
   }
 
-  // Caso C: ya es objeto v2 (o algo)
-  if(m.json && typeof m.json === 'object'){
-    // Si no trae v, lo consideramos legacy raro y lo “empaquetamos”
-    if(m.json.v !== 2){
-      log('⚠️ Manifest raro detectado; intentando normalizar a V2…', 'WARN');
-
-      const manifest = {
-        v: 2,
-        room: roomName,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-        latestCell: 1,
-        totalMessages: 0,
-        cellMax: CELL_MAX_MESSAGES,
-        note: "Recreado por normalización (archivo no era array ni v2)."
-      };
-
-      await ghPutJson(cellPath(roomName, 1), [], null, `normalize cell 1 ${roomName}`);
-      const newSha = await ghPutJson(mPath, manifest, m.sha, `normalize manifest V2 for ${roomName}`);
-
-      cache.manifest = manifest;
-      cache.manifestSha = newSha;
-      return;
-    }
-
-    cache.manifest = m.json;
-    cache.manifestSha = m.sha;
-    return;
+  // If exists but not v3 -> migrate silently
+  if(got.ok && got.obj && got.obj.v === 3){
+    await ensureMasterExists(roomName);
+    return { ok:true, manifest: got.obj };
   }
 
-  // Fallback total: recrear V2
-  log('⚠️ Manifest inválido; recreando V2 vacío…', 'WARN');
+  // Migration path: we will attempt to load all messages and rebuild V3 structure
+  log(`🔧 Migrating room "${roomName}" to V3 (silent)…`, "INFO");
+  const all = await loadAllMessagesAny(roomName, got.obj);
+  await rebuildV3FromMessages(roomName, all);
+
+  // Overwrite manifest to V3
+  const now = Date.now();
   const manifest = {
-    v: 2,
+    v: MANIFEST_VERSION_V3,
     room: roomName,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
-    latestCell: 1,
-    totalMessages: 0,
-    cellMax: CELL_MAX_MESSAGES
+    createdAt: (got.obj?.createdAt || now),
+    updatedAt: now,
+    migratedFrom: (got.obj?.v || "legacy"),
+    storage: { cellMaxMessages: CELL_MAX_MESSAGES, cellsPerBox: CELLS_PER_BOX },
+    paths: {
+      roomIndex: roomIndexPath(roomName),
+      boxesIndex: boxesIndexPath(roomName),
+      cellsDir: `${ROOMS_CELLS_BASE}/${roomName}/cells/`,
+      boxesDir: `${ROOMS_CELLS_BASE}/${roomName}/boxes/`
+    }
   };
-  await ghPutJson(cellPath(roomName, 1), [], null, `fallback init cell 1 ${roomName}`);
-  const newSha = await ghPutJson(mPath, manifest, m.sha, `fallback init manifest ${roomName}`);
-  cache.manifest = manifest;
-  cache.manifestSha = newSha;
+  await ghPutJson(manifestPath(roomName), manifest, got.sha || null, "migrate manifest v3");
+  await ensureMasterExists(roomName);
+
+  log(`✅ Migration done (${all.length} msgs).`, "INFO");
+  return { ok:true, manifest };
 }
 
-/* =====================================================================================
-   MASTER V2 (timestamp)
-   - master<room>.json contiene un número (Date.now())
-   - Los clientes SOLO leen; el emisor escribe al cambiar algo
-===================================================================================== */
-
-/** path master */
-function masterPath(roomName){
-  return `master${roomName}.json`;
-}
-
-/** Escribe master con timestamp actual (sin reset) */
-async function bumpMaster(roomName){
-  try{
-    const path = masterPath(roomName);
-
-    // Para PUT necesitas sha si existe
-    const existing = await ghGetJsonWithSha(path).catch(()=>({exists:false, sha:null, json:null}));
-    const stamp = Date.now();
-
-    // Guardamos como texto, pero usando JSON put (string) simplifica
-    // -> lo escribimos como número (JSON), así parse es trivial
-    const sha = await ghPutJson(path, stamp, existing.sha, `master bump ${roomName} ${stamp}`);
-
-    // Actualizamos cache local para no auto-dispararnos
-    cache.lastMasterStamp = stamp;
-    return sha;
-  }catch(e){
-    console.warn('[bumpMaster WARN]', e);
+async function loadAllMessagesAny(roomName, existingManifestObj){
+  // 1) If rooms/<room>.json is an array (legacy), treat it as history
+  if(Array.isArray(existingManifestObj)){
+    return existingManifestObj.map(normalizeMessage).filter(Boolean).sort((a,b)=>a.ts-b.ts);
   }
-}
 
-/** Lee master por RAW con ETag y devuelve stamp (number) */
-async function readMasterStampRaw(roomName){
-  const url = ghRawUrl(masterPath(roomName));
+  // 2) If manifest looks like V2 that stored messages in the manifest itself
+  // (some earlier builds used rooms/<room>.json as an array)
+  const got = await ghGetJsonWithSha(manifestPath(roomName));
+  if(got.ok && Array.isArray(got.obj)){
+    return got.obj.map(normalizeMessage).filter(Boolean).sort((a,b)=>a.ts-b.ts);
+  }
 
-  const headers = {};
-  if(cache.masterEtag) headers['If-None-Match'] = cache.masterEtag;
-
-  try{
-    const res = await fetch(url, { headers, cache:'no-store' });
-
-    if(res.status === 304){
-      return { unchanged:true, stamp: cache.lastMasterStamp };
-    }
-
-    // If raw returns 404, try the GitHub Contents API as a fallback
-    if(res.status === 404){
-      try{
-        const got = await ghGetJsonWithSha(masterPath(roomName)).catch(()=>null);
-        if(got && got.exists && got.json != null){
-          const stamp = Number(got.json || 0) || 0;
-          return { unchanged:false, stamp };
+  // 3) Try list cells directory (v2)
+  const listed = await ghListDir(`${ROOMS_CELLS_BASE}/${roomName}/cells`);
+  if(listed.ok){
+    const cellFiles = listed.items
+      .filter(it=>it.type==="file" && /^cell-\d{6}\.json$/.test(it.name))
+      .sort((a,b)=>a.name.localeCompare(b.name));
+    const out = [];
+    for(const f of cellFiles){
+      const gotCell = await ghGetJsonWithSha(`${ROOMS_CELLS_BASE}/${roomName}/cells/${f.name}`);
+      if(gotCell.ok && Array.isArray(gotCell.obj)){
+        for(const raw of gotCell.obj){
+          const msg = normalizeMessage(raw);
+          if(msg) out.push(msg);
         }
-        return { unchanged:false, stamp: cache.lastMasterStamp, error: `HTTP 404` };
-      }catch(e){
-        return { unchanged:false, stamp: cache.lastMasterStamp, error: `HTTP 404` };
       }
     }
+    out.sort((a,b)=>a.ts-b.ts);
+    return out;
+  }
 
-    if(!res.ok){
-      return { unchanged:false, stamp: cache.lastMasterStamp, error:`HTTP ${res.status}` };
+  return [];
+}
+
+async function rebuildV3FromMessages(roomName, messages){
+  const now = Date.now();
+  // Split into cells of 4
+  const cells = [];
+  for(let i=0;i<messages.length;i+=CELL_MAX_MESSAGES){
+    cells.push(messages.slice(i, i+CELL_MAX_MESSAGES));
+  }
+  const totalCells = Math.max(1, cells.length);
+
+  // Write cells
+  for(let c=1;c<=totalCells;c++){
+    const arr = cells[c-1] || [];
+    await ghPutJson(cellPath(roomName, c), arr, null, `migrate cell ${c}`);
+  }
+
+  // Build boxes: 100 cells per box
+  const totalBoxes = Math.max(1, Math.ceil(totalCells / CELLS_PER_BOX));
+  const boxesIndex = { v:3, room:roomName, boxes:[], updatedAt: now };
+
+  for(let b=1;b<=totalBoxes;b++){
+    const startCell = (b-1)*CELLS_PER_BOX + 1;
+    const endCell = Math.min(totalCells, b*CELLS_PER_BOX);
+    const boxObj = { v:3, room:roomName, box:b, startCell, endCell, cellCount:(endCell-startCell+1), updatedAt: now };
+    await ghPutJson(boxPath(roomName,b), boxObj, null, `migrate box ${b}`);
+    boxesIndex.boxes.push({ box:b, startCell, endCell, updatedAt: now });
+  }
+  await ghPutJson(boxesIndexPath(roomName), boxesIndex, null, "migrate boxes index");
+
+  // Room index
+  const idxObj = { v:3, room: roomName, latestCell: totalCells, totalMessages: messages.length, updatedAt: now };
+  await ghPutJson(roomIndexPath(roomName), idxObj, null, "migrate room index");
+}
+
+/* ============================================================
+   MESSAGE NORMALIZATION
+   ============================================================ */
+function normalizeMessage(raw){
+  if(!raw || typeof raw !== "object") return null;
+  const ts = (typeof raw.ts === "number") ? raw.ts : Date.now();
+  return {
+    id: raw.id || `m-${ts}-${Math.random().toString(36).slice(2,8)}`,
+    room: raw.room || currentRoom || "unknown",
+    sender: raw.sender || "Anon",
+    userId: raw.userId || "legacy",
+    ts,
+    text: String(raw.text || ""),
+    edited: !!raw.edited,
+    editedAt: raw.editedAt || null,
+    deleted: !!raw.deleted,
+    createdAt: raw.createdAt || ts
+  };
+}
+
+/* ============================================================
+   V3 LOAD / APPEND
+   ============================================================ */
+async function loadRoomIndex(roomName){
+  const got = await ghGetJsonWithSha(roomIndexPath(roomName));
+  if(got.ok && got.obj){
+    roomIndex = got.obj;
+    roomIndexSha = got.sha;
+    return roomIndex;
+  }
+  // If missing (shouldn't), rebuild from scratch empty
+  const now = Date.now();
+  roomIndex = { v:3, room:roomName, latestCell:1, totalMessages:0, updatedAt: now };
+  const put = await ghPutJson(roomIndexPath(roomName), roomIndex, null, "repair room index");
+  roomIndexSha = put.sha;
+  return roomIndex;
+}
+
+async function saveRoomIndex(roomName){
+  if(!roomIndex) return;
+  roomIndex.updatedAt = Date.now();
+  const put = await ghPutJson(roomIndexPath(roomName), roomIndex, roomIndexSha, "update room index");
+  roomIndexSha = put.sha;
+}
+
+async function ensureCellExists(roomName, cellNum){
+  const got = await ghGetJsonWithSha(cellPath(roomName, cellNum));
+  if(got.status === 404){
+    const put = await ghPutJson(cellPath(roomName, cellNum), [], null, `init cell ${cellNum}`);
+    return { ok:true, arr:[], sha: put.sha || null };
+  }
+  if(!got.ok || !Array.isArray(got.obj)) return { ok:false, arr:[], sha:null };
+  return { ok:true, arr:got.obj, sha: got.sha };
+}
+
+async function loadCellsRange(roomName, startCell, endCell){
+  const out = [];
+  for(let c=startCell;c<=endCell;c++){
+    const got = await ghGetJsonWithSha(cellPath(roomName,c));
+    if(got.ok && Array.isArray(got.obj)){
+      for(const raw of got.obj){
+        const msg = normalizeMessage(raw);
+        if(msg) out.push(msg);
+      }
     }
+  }
+  out.sort((a,b)=>a.ts-b.ts);
+  return out;
+}
 
-    const etag = res.headers.get('ETag') || res.headers.get('etag') || null;
-    if(etag) cache.masterEtag = etag;
+async function loadLatestMessages(roomName, wantCount=50){
+  await loadRoomIndex(roomName);
+  const latestCell = roomIndex.latestCell || 1;
+  const needCells = Math.max(1, Math.ceil(wantCount / CELL_MAX_MESSAGES));
+  const startCell = Math.max(1, latestCell - needCells + 1);
+  const msgs = await loadCellsRange(roomName, startCell, latestCell);
+  loadedCellsMin = startCell;
+  loadedCellsMax = latestCell;
+  return msgs;
+}
 
-    // Puede ser número JSON (ej: 1700000000) o texto
-    const txt = (await res.text()).trim();
-    let stamp = 0;
+async function loadOlderByMessages(roomName, count){
+  await loadRoomIndex(roomName);
+  if(loadedCellsMin === null) return [];
+  if(loadedCellsMin <= 1) return [];
 
+  const needCells = Math.max(1, Math.ceil(count / CELL_MAX_MESSAGES));
+  const newStart = Math.max(1, loadedCellsMin - needCells);
+  const msgs = await loadCellsRange(roomName, newStart, loadedCellsMin-1);
+  loadedCellsMin = newStart;
+  return msgs;
+}
+
+async function appendMessageV3(roomName, msgObj){
+  await loadRoomIndex(roomName);
+  let cellNum = roomIndex.latestCell || 1;
+
+  const cell = await ensureCellExists(roomName, cellNum);
+  let arr = cell.arr || [];
+  let sha = cell.sha;
+
+  // If cell full -> next cell
+  if(arr.length >= CELL_MAX_MESSAGES){
+    cellNum += 1;
+    arr = [];
+    sha = null;
+    roomIndex.latestCell = cellNum;
+
+    // ensure new cell file exists
+    await ghPutJson(cellPath(roomName, cellNum), [], null, `init cell ${cellNum}`);
+
+    // update boxes structures when crossing box boundary
+    await ensureBoxForCell(roomName, cellNum);
+  }
+
+  // write the cell index into the message for later edits
+  msgObj.cell = cellNum;
+  arr.push(msgObj);
+  const put = await ghPutJson(cellPath(roomName, cellNum), arr, sha, `append msg cell ${cellNum}`);
+  roomIndex.totalMessages = (roomIndex.totalMessages || 0) + 1;
+  await saveRoomIndex(roomName);
+
+  // notify master
+  await saveMasterValue(roomName, true);
+
+  return { cellNum, cellSha: put.sha };
+}
+
+async function ensureBoxForCell(roomName, cellNum){
+  const boxNum = Math.max(1, Math.ceil(cellNum / CELLS_PER_BOX));
+  const startCell = (boxNum-1)*CELLS_PER_BOX + 1;
+  const endCell = cellNum;
+
+  // boxes-index
+  const gotIdx = await ghGetJsonWithSha(boxesIndexPath(roomName));
+  let idxObj = gotIdx.ok && gotIdx.obj ? gotIdx.obj : { v:3, room:roomName, boxes:[], updatedAt: Date.now() };
+  let idxSha = gotIdx.sha || null;
+  if(!Array.isArray(idxObj.boxes)) idxObj.boxes = [];
+
+  let entry = idxObj.boxes.find(b=>b.box===boxNum);
+  if(!entry){
+    entry = { box: boxNum, startCell, endCell, updatedAt: Date.now() };
+    idxObj.boxes.push(entry);
+    idxObj.boxes.sort((a,b)=>a.box-b.box);
+  }else{
+    entry.endCell = Math.max(entry.endCell||endCell, endCell);
+    entry.updatedAt = Date.now();
+  }
+  idxObj.updatedAt = Date.now();
+  const putIdx = await ghPutJson(boxesIndexPath(roomName), idxObj, idxSha, "update boxes-index");
+  // box file
+  const gotBox = await ghGetJsonWithSha(boxPath(roomName, boxNum));
+  const boxObj = gotBox.ok && gotBox.obj ? gotBox.obj : { v:3, room:roomName, box:boxNum, startCell, endCell, cellCount:(endCell-startCell+1), updatedAt:Date.now() };
+  boxObj.startCell = startCell;
+  boxObj.endCell = Math.max(boxObj.endCell||endCell, endCell);
+  boxObj.cellCount = (boxObj.endCell - boxObj.startCell + 1);
+  boxObj.updatedAt = Date.now();
+  await ghPutJson(boxPath(roomName, boxNum), boxObj, gotBox.sha||null, "update box");
+}
+
+/* ============================================================
+   MASTER (raw read + API fallback) + POLL LOOP (activity/idle)
+   ============================================================ */
+async function ensureMasterExists(roomName){
+  // Only use new path: master-rooms/<room>.json
+  const path = masterPath(roomName);
+  
+  // Check if exists via raw read (fast)
+  const raw = await rawGetText(path);
+  if(raw.ok) return;
+  
+  // Create new master file if doesn't exist
+  const got = await ghGetJsonWithSha(path);
+  if(got.status === 404){
+    await ghPutJson(path, false, null, "init master");
+  }
+}
+
+async function readMasterValue(roomName){
+  const path = masterPath(roomName);
+  
+  // 1) Try raw read (fast)
+  const raw = await rawGetText(path);
+  if(raw.ok){
+    const t = raw.text.trim().toLowerCase();
+    if(t==="true" || t==="false") return { ok:true, value: t==="true", source:"raw" };
+    // Some builds store JSON "true"
     try{
-      stamp = Number(JSON.parse(txt));
-    }catch(_){
-      stamp = Number(txt);
-    }
-
-    if(Number.isNaN(stamp)) stamp = 0;
-
-    return { unchanged:false, stamp };
-  }catch(e){
-    return { unchanged:false, stamp: cache.lastMasterStamp, error: e && e.message ? e.message : String(e) };
-  }
-}
-
-/* =====================================================================================
-   LECTURA: manifest + cells (RAW con ETag)
-===================================================================================== */
-
-/** Lee manifest por RAW y cachea ETag */
-async function readManifestRaw(roomName){
-  const url = ghRawUrl(manifestPath(roomName));
-
-  const headers = {};
-  if(cache.manifestEtag) headers['If-None-Match'] = cache.manifestEtag;
-
-  const res = await fetch(url, { headers, cache:'no-store' });
-
-  if(res.status === 304){
-    return { unchanged:true, manifest: cache.manifest };
+      const v = JSON.parse(raw.text);
+      return { ok:true, value: !!v, source:"raw-json" };
+    }catch(_){}
   }
 
-  if(!res.ok){
-    return { unchanged:false, manifest: cache.manifest, error:`HTTP ${res.status}` };
-  }
-
-  const etag = res.headers.get('ETag') || res.headers.get('etag') || null;
-  if(etag) cache.manifestEtag = etag;
-
-  const manifest = await res.json();
-  cache.manifest = manifest;
-
-  return { unchanged:false, manifest };
-}
-
-/** Lee cell por RAW (sin ETag individual para mantener simple) */
-async function readCellRaw(roomName, cellNumber){
-  const url = ghRawUrl(cellPath(roomName, cellNumber));
-  const res = await fetch(url, { cache:'no-store' });
-
-  if(!res.ok){
-    return { ok:false, messages:[], error:`HTTP ${res.status}` };
-  }
-
-  const arr = await res.json().catch(()=>[]);
-  if(!Array.isArray(arr)) return { ok:true, messages:[] };
-
-  // Normalizamos con cellNumber para que msg.cell exista
-  const normalized = arr.map(x => normalizeMessage(x, cellNumber)).filter(Boolean);
-
-  return { ok:true, messages: normalized };
-}
-
-/* =====================================================================================
-   RENDER: append + update (sin full rerender)
-===================================================================================== */
-
-/** Crea DOM de un mensaje */
-function buildMessageElement(msg){
-  const wrapper = document.createElement('div');
-  wrapper.classList.add('msg');
-
-  const isMine = (msg.userId === currentUser.userId);
-  wrapper.classList.add(isMine ? 'me' : 'other');
-
-  wrapper.dataset.msgId = msg.id;
-  wrapper.dataset.cell  = String(msg.cell || 1);
-
-  const textEl = document.createElement('div');
-  textEl.className = 'msg-text';
-
-  const metaEl = document.createElement('div');
-  metaEl.className = 'msg-meta';
-  // Click en la barra meta => abre detalles del mensaje
-  metaEl.title = 'Toca para ver detalles';
-  metaEl.style.cursor = 'pointer';
-  metaEl.addEventListener('click', (ev) => {
-    ev.stopPropagation();
-    openMessageDetailsById(msg.id);
-  });
-
-
-  const actions = document.createElement('div');
-  actions.className = 'msg-actions';
-
-  // Botón editar (solo para mis mensajes)
-  const editBtn = document.createElement('button');
-  editBtn.textContent = '✏️ Edit';
-  editBtn.dataset.action = 'edit';
-  editBtn.dataset.msgId = msg.id;
-
-  // Botón delete (para todos, “delete for everyone”)
-  const delBtn = document.createElement('button');
-  delBtn.textContent = '🗑️ Delete';
-  delBtn.classList.add('danger');
-  delBtn.dataset.action = 'delete';
-  delBtn.dataset.msgId = msg.id;
-
-  // En mensajes ajenos, ocultamos edit y delete (solo puedes tocar tus mensajes)
-  if(!isMine){
-    editBtn.style.display = 'none';
-    delBtn.style.display = 'none';
-  }
-
-  actions.appendChild(editBtn);
-  actions.appendChild(delBtn);
-
-  wrapper.appendChild(textEl);
-  wrapper.appendChild(metaEl);
-  wrapper.appendChild(actions);
-
-  // Inicializamos contenido
-  updateMessageElement(wrapper, msg);
-
-  return wrapper;
-}
-
-/** Actualiza un mensaje ya existente en DOM (edit/delete) */
-function updateMessageElement(wrapper, msg){
-  const textEl = wrapper.querySelector('.msg-text');
-  const metaEl = wrapper.querySelector('.msg-meta');
-
-  // Texto (si está eliminado, mostramos placeholder)
-  if(textEl){
-    textEl.textContent = msg.deleted ? '[mensaje eliminado]' : (msg.text || '');
-  }
-
-  // Meta: hora + nombre + flags
-  if(metaEl){
-    const d  = new Date(msg.ts || Date.now());
-    const hh = String(d.getHours()).padStart(2,'0');
-    const mm = String(d.getMinutes()).padStart(2,'0');
-
-    let metaText = `${hh}:${mm} · ${msg.sender || 'Anon'}`;
-
-    if(msg.edited && !msg.deleted) metaText += ' · editado';
-    if(msg.deleted) metaText += ' · eliminado';
-
-    metaEl.textContent = metaText;
-  }
-
-  // Si es mío, edit visible; si no, edit oculto
-  const editBtn = wrapper.querySelector('button[data-action="edit"]');
-  if(editBtn){
-    editBtn.style.display = (msg.userId === currentUser.userId) ? '' : 'none';
-  }
-}
-
-/** Aplica una lista de mensajes: append si no existe, update si ya existe */
-function applyMessagesDelta(messages){
-  if(!messagesEl) return;
-  if(!Array.isArray(messages) || messages.length === 0) return;
-
-  for(const msg of messages){
-    const existingEl = cache.msgElById.get(msg.id);
-
-    if(existingEl){
-      // Update (edit/delete, etc.)
-      updateMessageElement(existingEl, msg);
-      cache.msgById.set(msg.id, msg);
-      continue;
-    }
-
-    // Append nuevo
-    const elMsg = buildMessageElement(msg);
-    cache.msgElById.set(msg.id, elMsg);
-    cache.msgById.set(msg.id, msg);
-    messagesEl.appendChild(elMsg);
-  }
-
-  enforceDomCap();
-  scrollToBottomSoon();
-}
-
-/** Trim local view: deja últimos N mensajes en DOM (no toca GitHub) */
-function trimLocalView(n){
+  // 2) Fallback to API
   try{
-    if(!messagesEl) return;
-
-    // Si ya está corto, no hace nada
-    if(messagesEl.children.length <= n) return;
-
-    const keep = [];
-    const children = Array.from(messagesEl.children);
-    for(let i = Math.max(0, children.length - n); i < children.length; i++){
-      keep.push(children[i]);
+    const api = await ghGetJsonWithSha(path);
+    if(api.ok){
+      return { ok:true, value: !!api.obj, source:"api" };
     }
+    return { ok:false, status: api.status, value:false, source:"api" };
+  }catch(e){
+    return { ok:false, status:0, value:false, source:"error" };
+  }
+}
 
-    // Limpiamos
-    messagesEl.innerHTML = '';
-    cache.msgElById.clear();
+async function saveMasterValue(roomName, value){
+  const p = masterPath(roomName);
+  const got = await ghGetJsonWithSha(p);
+  const sha = got.ok ? got.sha : null;
+  await ghPutJson(p, !!value, sha, "set master");
+}
 
-    // Reinsertamos
-    for(const node of keep){
-      messagesEl.appendChild(node);
-      if(node.dataset && node.dataset.msgId){
-        cache.msgElById.set(node.dataset.msgId, node);
+function scheduleNextPoll(ms){
+  clearTimeout(pollTimer);
+  pollTimer = setTimeout(pollLoop, ms);
+}
+
+async function pollLoop(){
+  try{
+    if(!running || !currentRoom) return;
+    if(pollInFlight) return;
+
+    // ====== Activity/idle gating (NO network if idle) ======
+    const active = isActiveNow();
+    if(!active){
+      // if we are idle and presence still online -> flip offline once
+      if(presenceState.inRoom && !presenceState.isIdle){
+        await presenceSetOnline(false, "idle");
       }
-    }
-
-    scrollToBottomSoon();
-    log(`🧹 Vista local recortada a últimos ${n} mensajes (solo tu pantalla).`, 'INFO');
-  }catch(e){
-    console.error('[trimLocalView ERROR]', e);
-  }
-}
-
-/* =====================================================================================
-   ESCRITURA: enviar, editar, borrar (solo celdas pequeñas)
-===================================================================================== */
-
-/** Lee cell por API (sha + contenido) para poder editar/append */
-async function ghGetCellWithSha(roomName, cellNumber){
-  const p = cellPath(roomName, cellNumber);
-  const c = await ghGetJsonWithSha(p);
-  const arr = Array.isArray(c.json) ? c.json : [];
-  return { path:p, sha:c.sha, arr };
-}
-
-/** Lee manifest por API (sha + contenido) para poder actualizar counters */
-async function ghGetManifestWithSha(roomName){
-  const p = manifestPath(roomName);
-  const m = await ghGetJsonWithSha(p);
-  const obj = (m.json && typeof m.json === 'object') ? m.json : null;
-  return { path:p, sha:m.sha, obj };
-}
-
-/** Envía mensaje (optimistic UI + write chunk pequeño) */
-async function sendMessage(){
-  try{
-    if(!running || !room){
-      log('Debes unirte a una sala antes de enviar.', 'WARN');
+      scheduleNextPoll(POLL_MS_IDLE);
       return;
     }
 
-    const text = (inputEl.value || '').trim();
-    if(!text) return;
+    // active => ensure presence online + heartbeat running
+    if(presenceState.inRoom && presenceState.isIdle){
+      await presenceSetOnline(true, "active");
+    }
 
-    // UX: limpiamos input inmediatamente (se siente instantáneo)
-    inputEl.value = '';
+    pollInFlight = true;
 
-    const now = Date.now();
-    const msg = {
-      id: makeMsgId(),
-      room: roomNameSafe(room),
-      sender: sender || 'Anon',
-      userId: currentUser.userId,
-    userCreatedAt: currentUser.createdAt,
-    ip: currentUser.ip,
-    device: currentUser.device,
-    ua: currentUser.ua,
-    lang: currentUser.lang,
-    tz: currentUser.tz,
-    screen: currentUser.screen,
+    // Read master flag; if true -> sync latest
+    const master = await readMasterValue(currentRoom);
+    if(!master.ok){
+      // Still active: mild backoff (but not idle mode)
+      scheduleNextPoll(Math.min(10_000, Number(pollInput.value||POLL_MS_ACTIVE_DEFAULT) + 900));
+      pollInFlight = false;
+      return;
+    }
 
-      fingerprint: currentUser.fingerprint,
-      ts: now,
-      text,
-      edited:false,
-      editedAt:null,
-      editedBy:null,
-      deleted:false,
-      deletedAt:null,
-      deletedBy:null,
-      pasteUrl:null
-    };
+    // If master toggled true OR (cheap) we can also periodically refresh presence
+    if(master.value){
+      await syncLatestFromStorage();
+      // Reset master (give other clients time)
+      await sleep(250);
+      await saveMasterValue(currentRoom, false);
+    }else{
+      // Even if master false, we still fetch presence sometimes
+      await maybeRefreshPresence();
+    }
 
-    // ✅ Render optimista (cero lag visual)
-    applyMessagesDelta([normalizeMessage(msg, cache.manifest?.latestCell || 1)]);
-
-    // (Opcional) paste.rs: NO lo esperamos para no meter lag
-    createPasteAsync(text).then(url=>{
-      if(url && lastPasteEl) lastPasteEl.textContent = url;
-    });
-
-    // Guardamos en GitHub (celdas)
-    await appendMessageToCells(room, msg);
-
-    // Avisamos a todos (master bump)
-    await bumpMaster(room);
-
+    // Poll cadence (active)
+    const activeMs = Math.max(250, parseInt(pollInput.value||POLL_MS_ACTIVE_DEFAULT,10));
+    scheduleNextPoll(activeMs);
   }catch(e){
-    console.error('[sendMessage ERROR]', e);
-    log('⚠️ No se pudo enviar el mensaje.', 'ERROR');
+    console.error("[pollLoop ERROR]", e);
+    // fallback to slower active retry
+    scheduleNextPoll(5_000);
+  }finally{
+    pollInFlight = false;
   }
 }
 
-/** Append en celdas (lee SOLO la última celda, no todo el chat) */
-async function appendMessageToCells(roomName, msg){
-  // 1) Asegura manifest/celdas v2 (si usuario entró a sala nueva)
-  await ensureRoomV2(roomName);
+/* ============================================================
+   RENDER + LAZY LOAD (gesture speed based)
+   ============================================================ */
+function renderAll(messages){
+  messagesEl.innerHTML = "";
+  loadedMessages = [];
+  for(const m of messages) addMessageToDom(m, true);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  setupReadObserver(); // attach read receipts to current DOM nodes
+}
 
-  // 2) Lee manifest actual por API (sha), porque vamos a actualizar contadores
-  const m = await ghGetManifestWithSha(roomName);
-  const manifest = (m.obj && m.obj.v === 2) ? m.obj : cache.manifest;
+function addMessageToDom(m, silent=false, prepend=false){
+  // Store to loaded list
+  if(prepend) loadedMessages.unshift(m);
+  else loadedMessages.push(m);
 
-  let latestCell = Number(manifest?.latestCell || 1);
-  if(Number.isNaN(latestCell) || latestCell < 1) latestCell = 1;
+  const wrap = document.createElement("div");
+  wrap.className = "msg" + ((session && m.userId===session.userId) ? " me" : "");
+  wrap.dataset.msgId = m.id;
+  if(m.cell) wrap.dataset.cell = String(m.cell);
+  wrap.dataset.ts = String(m.ts);
 
-  // 3) Lee celda actual (pequeña)
-  const cell = await ghGetCellWithSha(roomName, latestCell);
+  const text = document.createElement("div");
+  text.className = "text";
+  text.textContent = m.deleted ? "[deleted]" : m.text;
 
-  let arr = Array.isArray(cell.arr) ? cell.arr : [];
+  const meta = document.createElement("div");
+  meta.className = "meta";
+  const d = new Date(m.ts);
+  const hh = String(d.getHours()).padStart(2,"0");
+  const mm = String(d.getMinutes()).padStart(2,"0");
+  const timeText = document.createElement("span");
+  timeText.textContent = `${hh}:${mm} · ${m.sender}${m.edited ? " · edited":""}`;
+  meta.appendChild(timeText);
 
-  // 4) Si celda llena, crear nueva
-  if(arr.length >= (manifest.cellMax || CELL_MAX_MESSAGES)){
-    latestCell += 1;
+  // Message status indicator (for own messages only)
+  if(session && m.userId === session.userId){
+    const status = document.createElement("span");
+    status.className = `msg-status status-${m.status || 'sending'}`;
+    status.dataset.msgId = m.id;
+    meta.appendChild(status);
 
-    // Crear celda nueva vacía
-    await ghPutJson(cellPath(roomName, latestCell), [], null, `new cell ${latestCell} ${roomName}`);
+    // Retry button for failed messages
+    if(m.status === 'failed'){
+      const retry = document.createElement("button");
+      retry.className = "msg-retry";
+      retry.textContent = "Retry";
+      retry.onclick = (e) => { e.stopPropagation(); retryMessage(m); };
+      meta.appendChild(retry);
+      wrap.classList.add('msg-failed');
+    }
+  }
 
-    // Si corresponde, registra inicio de nueva "box" (grupo de celdas)
+  const reads = document.createElement("div");
+  reads.className = "reads";
+  reads.textContent = ""; // filled by updateReadBadges()
+
+  wrap.appendChild(text);
+  wrap.appendChild(meta);
+  wrap.appendChild(reads);
+
+  // Actions (edit/delete) for my messages
+  if(session && m.userId === session.userId){
+    const actions = document.createElement('div');
+    actions.className = 'msg-actions';
+
+    const editBtn = document.createElement('button');
+    editBtn.textContent = 'Edit';
+    editBtn.addEventListener('click', (e)=>{ e.stopPropagation(); editMessageById(m.id); });
+
+    const delBtn = document.createElement('button');
+    delBtn.textContent = 'Delete';
+    delBtn.className = 'danger';
+    delBtn.addEventListener('click', (e)=>{ e.stopPropagation(); deleteMessageById(m.id); });
+
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
+    wrap.appendChild(actions);
+  }
+
+  if(prepend){
+    messagesEl.insertBefore(wrap, messagesEl.firstChild);
+  }else{
+    messagesEl.appendChild(wrap);
+    if(!silent) messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  // Observe for read receipts
+  if(readObserver) readObserver.observe(wrap);
+}
+
+function clearView(){
+  messagesEl.innerHTML = "";
+  loadedMessages = [];
+  loadedCellsMin = null;
+  loadedCellsMax = null;
+  log("🧹 Cleared view (history still in GitHub).","INFO");
+}
+
+function pickLoadCountFromScrollSpeed(pxPerSec){
+  // Mobile flick / fast wheel -> bigger batch
+  if(pxPerSec >= 2400) return 100;
+  if(pxPerSec >= 1200) return 50;
+  return 20;
+}
+
+function installLazyLoader(){
+  let lastTop = messagesEl.scrollTop;
+  let lastT = performance.now();
+
+  messagesEl.addEventListener("scroll", async ()=>{
+    // If near top -> load older
+    if(messagesEl.scrollTop > 90) return;
+
+    const now = performance.now();
+    const dt = Math.max(1, now-lastT);
+    const dy = Math.abs(messagesEl.scrollTop-lastTop);
+    const speed = (dy/dt)*1000; // px/s
+    lastTop = messagesEl.scrollTop;
+    lastT = now;
+
+    const want = pickLoadCountFromScrollSpeed(speed);
+
+    // Preserve current viewport anchor so content doesn't jump
+    const prevHeight = messagesEl.scrollHeight;
+
+    const older = await loadOlderByMessages(currentRoom, want);
+    if(!older.length) return;
+
+    // Prepend older
+    for(let i=older.length-1;i>=0;i--){
+      addMessageToDom(older[i], true, true);
+    }
+    // Keep scroll position steady (so user doesn't get yeeted)
+    const newHeight = messagesEl.scrollHeight;
+    messagesEl.scrollTop = newHeight - prevHeight;
+    setupReadObserver();
+    updateReadBadges();
+  }, { passive:true });
+}
+
+/* ============================================================
+   MESSAGE EDIT / DELETE helpers
+   - editMessageById: allow owner to change text; write back to correct cell
+   - deleteMessageById: mark deleted=true (delete for everyone)
+ ============================================================ */
+
+async function findMessageLocation(msgId){
+  // Try loadedMessages first
+  for(const m of loadedMessages){
+    if(m.id === msgId){
+      // If message has cell stored, return quickly
+      if(m.cell) return { cell: m.cell, msg: m };
+    }
+  }
+
+  // Fallback: scan last few cells from roomIndex.latestCell downwards
+  await loadRoomIndex(currentRoom);
+  const latest = roomIndex?.latestCell || 1;
+  const scanCount = Math.min(6, latest); // scan up to last 6 cells
+  for(let c = latest; c >= Math.max(1, latest - scanCount + 1); c--){
     try{
-      await updateBoxIndexIfNeeded(roomName, latestCell);
-      // compact and rebuild room index in background (best-effort)
-      (async()=>{
-        await compactBoxForStartCell(roomName, latestCell).catch(()=>null);
-        await rebuildRoomCellsIndex(roomName).catch(()=>null);
-      })();
-    }catch(e){}
-
-    // Actualizamos referencia para escribir ahí
-    arr = [];
+      const got = await ghGetJsonWithSha(cellPath(currentRoom, c));
+      if(!got.ok || !Array.isArray(got.obj)) continue;
+      for(const raw of got.obj){
+        if(raw && raw.id === msgId){
+          const msg = normalizeMessage(raw);
+          msg.cell = c;
+          return { cell: c, msg, cellArr: got.obj, cellSha: got.sha };
+        }
+      }
+    }catch(_){/* ignore */}
   }
-
-  // 5) Guardamos msg con campo cell correcto
-  msg.cell = latestCell;
-  arr.push(msg);
-
-  // 6) PUT celda
-  const targetCellPath = cellPath(roomName, latestCell);
-
-  // Si es la misma celda que leímos, usamos su sha; si es nueva, sha = null
-  const shaToUse = (latestCell === Number(manifest.latestCell)) ? cell.sha : null;
-  await ghPutJson(targetCellPath, arr, shaToUse, `append msg ${msg.id} ${roomName}`);
-
-  // 7) Actualizamos manifest pequeño
-  const newManifest = {
-    ...(manifest || {}),
-    v: 2,
-    room: roomName,
-    latestCell,
-    updatedAt: Date.now(),
-    totalMessages: Number(manifest?.totalMessages || 0) + 1,
-    cellMax: Number(manifest?.cellMax || CELL_MAX_MESSAGES)
-  };
-
-  const newSha = await ghPutJson(manifestPath(roomName), newManifest, m.sha, `update manifest ${roomName}`);
-  cache.manifest = newManifest;
-  cache.manifestSha = newSha;
+  return null;
 }
 
-/** Edita un mensaje (solo si es mío) */
-/* ============================
-   MODALES (sin alert/prompt)
-   ============================ */
-let modalOverlay;
-let modalTitleEl;
-let modalBodyEl;
-let modalBtnOk;
-let modalBtnCancel;
-let modalBtnClose;
+/* =========================
+   Modal UI (v3 style) — openModal / closeModal / showEditModal / showConfirmModal
+   These avoid alerts/prompts and use the DOM modal overlay.
+   Requires elements with ids: modalOverlay, modalTitle, modalBody, modalOk, modalCancel, modalClose
+   If not present, we create a minimal modal markup now.
+========================= */
 
 let _modalResolve = null;
+function ensureModalDom(){
+  if(document.getElementById('modalOverlay')) return;
+  const html = `
+  <div id="modalOverlay" class="modal-overlay modal-hidden" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="modal-header">
+        <div id="modalTitle" class="modal-title">Modal</div>
+        <button id="modalClose" class="modal-close">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer">
+        <button id="modalCancel" class="btn-ghost">Cancel</button>
+        <button id="modalOk" class="primary">OK</button>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+  const mo = document.getElementById('modalOverlay');
+  document.getElementById('modalClose').addEventListener('click', ()=> closeModal(false));
+  document.getElementById('modalCancel').addEventListener('click', ()=> closeModal(false));
+  document.getElementById('modalOk').addEventListener('click', ()=> closeModal(true));
+}
+
+function openModal({ title, bodyNode, okText='OK', cancelText='Cancel', showCancel=true }){
+  ensureModalDom();
+  const overlay = document.getElementById('modalOverlay');
+  const titleEl = document.getElementById('modalTitle');
+  const bodyEl = document.getElementById('modalBody');
+  const okBtn = document.getElementById('modalOk');
+  const cancelBtn = document.getElementById('modalCancel');
+
+  titleEl.textContent = title || 'Modal';
+  bodyEl.innerHTML = '';
+  if(bodyNode) bodyEl.appendChild(bodyNode);
+  okBtn.textContent = okText;
+  cancelBtn.textContent = cancelText;
+  cancelBtn.style.display = showCancel ? '' : 'none';
+  overlay.classList.remove('modal-hidden');
+  return new Promise((resolve)=>{ _modalResolve = resolve; });
+}
 
 function closeModal(result){
-  try{
-    if(_modalResolve) _modalResolve(result);
-  } finally {
-    _modalResolve = null;
-    modalOverlay.classList.add('modal-hidden');
-    modalBodyEl.innerHTML = '';
-    modalTitleEl.textContent = 'Modal';
-    modalBtnOk.textContent = 'OK';
-    modalBtnCancel.textContent = 'Cancelar';
-    modalBtnCancel.style.display = '';
-    modalBtnOk.disabled = false;
-  }
+  const overlay = document.getElementById('modalOverlay');
+  if(overlay) overlay.classList.add('modal-hidden');
+  try{ if(_modalResolve) _modalResolve(result); }finally{ _modalResolve = null; }
 }
-
-function openModal({ title, bodyNode, okText='OK', cancelText='Cancelar', showCancel=true }){
-  // Cerramos cualquier modal anterior (por si acaso)
-  if(_modalResolve) closeModal(false);
-
-  modalTitleEl.textContent = title || 'Modal';
-  modalBodyEl.innerHTML = '';
-  if(bodyNode) modalBodyEl.appendChild(bodyNode);
-
-  modalBtnOk.textContent = okText;
-  modalBtnCancel.textContent = cancelText;
-  modalBtnCancel.style.display = showCancel ? '' : 'none';
-
-  modalOverlay.classList.remove('modal-hidden');
-
-  return new Promise((resolve) => {
-    _modalResolve = resolve;
-  });
-}
-
 
 async function showEditModal(oldText){
   const wrap = document.createElement('div');
-
-  const p = document.createElement('p');
-  p.textContent = 'Edita tu mensaje:';
-  wrap.appendChild(p);
-
-  const ta = document.createElement('textarea');
-  ta.value = oldText || '';
+  const p = document.createElement('p'); p.textContent = 'Edit your message:'; wrap.appendChild(p);
+  const ta = document.createElement('textarea'); ta.value = oldText || ''; ta.style.width = '100%'; ta.style.minHeight = '120px';
   wrap.appendChild(ta);
-
-  // Abrimos modal y esperamos OK/Cancel
-  const ok = await openModal({
-    title: 'Editar mensaje',
-    bodyNode: wrap,
-    okText: 'Guardar',
-    cancelText: 'Cancelar',
-    showCancel: true
-  });
-
+  const ok = await openModal({ title:'Edit message', bodyNode: wrap, okText:'Save', cancelText:'Cancel', showCancel:true });
   if(!ok) return null;
-
-  const newText = (ta.value || '').trim();
-  return newText.length ? newText : null;
+  const val = (ta.value||'').trim();
+  return val.length ? val : null;
 }
 
 async function showConfirmModal(text){
   const wrap = document.createElement('div');
-  const p = document.createElement('p');
-  p.textContent = text || '¿Confirmas?';
-  wrap.appendChild(p);
-
-  const ok = await openModal({
-    title: 'Confirmar',
-    bodyNode: wrap,
-    okText: 'Sí',
-    cancelText: 'No',
-    showCancel: true
-  });
-
+  const p = document.createElement('p'); p.textContent = text || 'Confirm?'; wrap.appendChild(p);
+  const ok = await openModal({ title:'Confirm', bodyNode: wrap, okText:'Yes', cancelText:'No', showCancel:true });
   return !!ok;
 }
 
-
-function openMessageDetailsById(msgId){
-  try{
-    const msg = cache.msgById.get(msgId);
-    if(!msg){
-      log('warn', `No encontré mensaje ${msgId} en memoria.`);
-      return;
-    }
-
-    const pre = document.createElement('pre');
-    pre.style.whiteSpace = 'pre-wrap';
-    pre.style.wordBreak = 'break-word';
-    pre.textContent = JSON.stringify(msg, null, 2);
-
-    openModal({
-      title: 'Detalles del mensaje',
-      bodyNode: pre,
-      okText: 'Cerrar',
-      cancelText: null
-    });
-  }catch(e){
-    log('error', `Detalles fallaron: ${e}`);
-  }
-}
-
 async function editMessageById(msgId){
-  try{
-    const msg = cache.msgById.get(msgId);
+  if(!currentRoom) return;
+  // Find message in loadedMessages or storage
+  const loc = await findMessageLocation(msgId);
+  if(!loc) { log('Message not found','WARN'); return; }
+  const orig = loc.msg;
 
-    if(!msg){
-      log('warn', `No encontré el mensaje ${msgId} en cache local.`);
-      return;
-    }
+  const userId = session?.userId || localGuest.userId;
+  if(orig.userId !== userId){ log('You can only edit your own messages','WARN'); return; }
 
-    // Seguridad: bloqueamos aunque el botón esté oculto
-    const mine = (msg.userId && msg.userId === currentUser.userId);
-    if(!mine){
-      openModal({
-        title: 'Sin permiso',
-        bodyText: 'Solo puedes modificar tus propios mensajes.',
-        okText: 'OK',
-        cancelText: null
-      });
-      return;
-    }
+  const newText = await showEditModal(orig.text || '');
+  if(!newText) return; // canceled or empty
+  const trimmed = String(newText).trim();
 
-    // Seguridad: solo puedes editar tus mensajes
-    if(msg.userId !== currentUser.userId){
-      log('warn', 'No puedes editar mensajes de otros usuarios.');
-      await openModal({
-        title: 'Acción bloqueada',
-        bodyNode: (() => {
-          const p = document.createElement('p');
-          p.textContent = 'Solo puedes editar tus propios mensajes.';
-          return p;
-        })(),
-        okText: 'OK',
-        showCancel: false
-      });
-      return;
-    }
-
-    // Modal (sin prompt)
-    const newText = await showEditModal(msg.text || '');
-
-    if(newText === null){
-      // Cancel o vacío
-      return;
-    }
-
-    if((newText || '').trim() === (msg.text || '').trim()){
-      log('info', 'Sin cambios (mismo texto).');
-      return;
-    }
-
-    // Actualizamos en storage (GitHub)
-    await updateMessageInStorage(msgId, (m) => {
-      // Doble seguridad (por si el cache estaba raro)
-      if(m.userId !== currentUser.userId) return m;
-
-      return normalizeMessage({
-        ...m,
-        text: newText,
-        edited: true,
-        editedAt: Date.now(),
-        editedBy: currentUser.userId
-      });
-    });
-
-    log('ok', `Mensaje editado: ${msgId}`);
-  } catch(err){
-    log('error', `Edit error: ${err?.message || err}`);
+  // Load the cell array if we don't have it
+  let cellArr = loc.cellArr;
+  let cellSha = loc.cellSha;
+  if(!cellArr){
+    const got = await ghGetJsonWithSha(cellPath(currentRoom, loc.cell));
+    if(!got.ok || !Array.isArray(got.obj)){ showToast('Failed to read cell for edit', 'error'); return; }
+    cellArr = got.obj;
+    cellSha = got.sha;
   }
+
+  // Find message inside cellArr
+  const idx = cellArr.findIndex(x => x && x.id === msgId);
+  if(idx === -1){ showToast('Message not found in storage', 'error'); return; }
+
+  // Update fields
+  cellArr[idx].text = trimmed;
+  cellArr[idx].edited = true;
+  cellArr[idx].editedAt = Date.now();
+  cellArr[idx].editedBy = userId;
+
+  // PUT back
+  try{
+    const put = await ghPutJson(cellPath(currentRoom, loc.cell), cellArr, cellSha, `edit msg ${msgId}`);
+    // Update in-memory loadedMessages and DOM
+    for(const m of loadedMessages){ if(m.id === msgId){ m.text = trimmed; m.edited = true; m.editedAt = cellArr[idx].editedAt; } }
+    const el = messagesEl.querySelector(`[data-msg-id="${msgId}"]`);
+    if(el){
+      const textEl = el.querySelector('.text'); if(textEl) textEl.textContent = trimmed;
+      const meta = el.querySelector('.meta'); if(meta){
+        const d = new Date(cellArr[idx].ts||Date.now());
+        const hh = String(d.getHours()).padStart(2,'0');
+        const mm = String(d.getMinutes()).padStart(2,'0');
+        meta.textContent = `${hh}:${mm} · ${cellArr[idx].sender} · edited`;
+      }
+    }
+    showToast('Message edited successfully', 'success');
+  }catch(e){ console.error('[editMessage ERROR]', e); showToast('Edit failed: '+String(e), 'error'); }
 }
 
-/** Delete for everyone (marca deleted=true) */
 async function deleteMessageById(msgId){
+  if(!currentRoom) return;
+  const loc = await findMessageLocation(msgId);
+  if(!loc) { log('Message not found','WARN'); return; }
+  const orig = loc.msg;
+  const userId = session?.userId || localGuest.userId;
+  if(orig.userId !== userId){ log('You can only delete your own messages','WARN'); return; }
+
+  const ok = await showConfirmModal('Delete this message for everyone? This will mark it deleted.');
+  if(!ok) return;
+
+  let cellArr = loc.cellArr;
+  let cellSha = loc.cellSha;
+  if(!cellArr){
+    const got = await ghGetJsonWithSha(cellPath(currentRoom, loc.cell));
+    if(!got.ok || !Array.isArray(got.obj)){ showToast('Failed to read cell for delete', 'error'); return; }
+    cellArr = got.obj;
+    cellSha = got.sha;
+  }
+
+  const idx = cellArr.findIndex(x => x && x.id === msgId);
+  if(idx === -1){ showToast('Message not found in storage', 'error'); return; }
+
+  cellArr[idx].deleted = true;
+  cellArr[idx].deletedAt = Date.now();
+  cellArr[idx].deletedBy = userId;
+
   try{
-    const msg = cache.msgById.get(msgId);
-
-    if(!msg){
-      log('warn', `No encontré el mensaje ${msgId} en cache local.`);
-      return;
+    const put = await ghPutJson(cellPath(currentRoom, loc.cell), cellArr, cellSha, `delete msg ${msgId}`);
+    // Update in-memory and DOM
+    for(const m of loadedMessages){ if(m.id === msgId){ m.deleted = true; } }
+    const el = messagesEl.querySelector(`[data-msg-id="${msgId}"]`);
+    if(el){
+      const textEl = el.querySelector('.text'); if(textEl) textEl.textContent = '[deleted]';
+      const meta = el.querySelector('.meta'); if(meta){ meta.textContent = `deleted`; }
     }
+    log('Message deleted','INFO');
+    showToast('Message deleted successfully', 'success');
+  }catch(e){ console.error('[deleteMessage ERROR]', e); log('Delete failed: '+String(e),'ERROR'); showToast('Delete failed: '+String(e), 'error'); }
+}
 
-    // Seguridad: bloqueamos aunque el botón esté oculto
-    const mine = (msg.userId && msg.userId === currentUser.userId);
-    if(!mine){
-      openModal({
-        title: 'Sin permiso',
-        bodyText: 'Solo puedes modificar tus propios mensajes.',
-        okText: 'OK',
-        cancelText: null
-      });
-      return;
+/* ============================================================
+   === PRESENCE ===
+   ============================================================ */
+const presenceState = {
+  inRoom:false,
+  isIdle:true,
+  heartbeatTimer:null,
+  lastOnlineWriteAt:0,
+  lastPresenceWriteSha:null
+};
+
+async function presenceWrite(obj){
+  if(!currentRoom) return;
+  const p = presencePath(currentRoom, obj.userId);
+  const got = await ghGetJsonWithSha(p);
+  const sha = got.ok ? got.sha : null;
+  await ghPutJson(p, obj, sha, "presence");
+}
+
+async function presenceSetOnline(online, reason=""){
+  if(!currentRoom) return;
+
+  const now = Date.now();
+  const userId = session?.userId || localGuest.userId;
+  const username = session?.username || localGuest.name || "Guest";
+
+  const base = presenceCache.get(userId) || {
+    v:1, room: currentRoom, userId, username,
+    online:false,
+    lastSeenAt: now,
+    lastActiveAt: now,
+    lastReadTs: 0,
+    lastReadMsgId: null,
+    device: { ua: navigator.userAgent, platform: navigator.platform || "" }
+  };
+
+  if(online){
+    base.online = true;
+    base.lastActiveAt = now;
+    base.lastSeenAt = now;
+    presenceState.isIdle = false;
+
+    // Start heartbeat if not running
+    if(!presenceState.heartbeatTimer){
+      presenceState.heartbeatTimer = setInterval(async ()=>{
+        if(!running || !currentRoom) return;
+        if(!isActiveNow()){
+          // Stop on idle
+          await presenceSetOnline(false, "idle-heartbeat");
+          return;
+        }
+        await presenceSetOnline(true, "heartbeat");
+      }, PRESENCE_ACTIVE_HEARTBEAT_MS);
     }
+  }else{
+    base.online = false;
+    base.lastSeenAt = now;
+    presenceState.isIdle = true;
 
-    // Seguridad: solo puedes borrar tus mensajes (para todos)
-    if(msg.userId !== currentUser.userId){
-      log('warn', 'No puedes borrar mensajes de otros usuarios.');
-      await openModal({
-        title: 'Acción bloqueada',
-        bodyNode: (() => {
-          const p = document.createElement('p');
-          p.textContent = 'Solo puedes borrar tus propios mensajes.';
-          return p;
-        })(),
-        okText: 'OK',
-        showCancel: false
-      });
-      return;
+    // Stop heartbeat
+    if(presenceState.heartbeatTimer){
+      clearInterval(presenceState.heartbeatTimer);
+      presenceState.heartbeatTimer = null;
     }
+  }
 
-    const ok = await showConfirmModal('¿Borrar este mensaje para todos?');
-    if(!ok) return;
+  // Throttle "online/offline" writes so we don't spam
+  if(now - presenceState.lastOnlineWriteAt < 700 && reason!=="heartbeat") return;
+  presenceState.lastOnlineWriteAt = now;
 
-    await updateMessageInStorage(msgId, (m) => {
-      if(m.userId !== currentUser.userId) return m;
+  presenceCache.set(userId, base);
+  await presenceWrite(base);
+}
 
-      return normalizeMessage({
-        ...m,
-        deleted: true,
-        deletedAt: Date.now(),
-        deletedBy: currentUser.userId
-      });
-    });
+async function refreshPresence(){
+  if(!currentRoom) return;
 
-    log('ok', `Mensaje eliminado: ${msgId}`);
-  } catch(err){
-    log('error', `Delete error: ${err?.message || err}`);
+  const dir = await ghListDir(`${ROOMS_META_DIR}/${currentRoom}/presence`);
+  if(!dir.ok) return;
+
+  // Pull each presence file (small)
+  const now = Date.now();
+  const next = new Map();
+
+  for(const it of dir.items){
+    if(it.type!=="file" || !it.name.endsWith(".json")) continue;
+    const got = await ghGetJsonWithSha(`${ROOMS_META_DIR}/${currentRoom}/presence/${it.name}`);
+    if(got.ok && got.obj && got.obj.userId){
+      next.set(got.obj.userId, got.obj);
+    }
+  }
+
+  presenceCache = next;
+  lastPresenceRefreshAt = now;
+  renderPresenceSummary();
+  updateReadBadges();
+}
+
+async function maybeRefreshPresence(){
+  const now = Date.now();
+  if(now - lastPresenceRefreshAt < 10_000) return; // at most every 10s active
+  await refreshPresence();
+}
+
+function renderPresenceSummary(){
+  if(!currentRoom) return;
+  const now = Date.now();
+  let active=0, recent=0;
+  for(const p of presenceCache.values()){
+    const lastActiveAt = p.lastActiveAt||0;
+    const lastSeenAt = p.lastSeenAt||0;
+    if(now - lastActiveAt < 10_000) active++;
+    else if(now - lastSeenAt < PRESENCE_RECENT_MS) recent++;
+  }
+  presenceSummary.textContent = `presence: ${active} active · ${recent} recent`;
+}
+
+/* ============================================================
+   === READ RECEIPTS ===
+   ============================================================ */
+let readObserver = null;
+let readHoldTimers = new Map(); // msgId -> timer
+
+function setupReadObserver(){
+  if(!messagesEl) return;
+  if(readObserver) return; // install once
+
+  readObserver = new IntersectionObserver((entries)=>{
+    for(const ent of entries){
+      const node = ent.target;
+      const msgId = node.dataset.msgId;
+      const ts = Number(node.dataset.ts||0);
+
+      // Only consider if visible enough
+      if(ent.intersectionRatio < 0.60){
+        // cancel pending
+        if(readHoldTimers.has(msgId)){
+          clearTimeout(readHoldTimers.get(msgId));
+          readHoldTimers.delete(msgId);
+        }
+        continue;
+      }
+
+      // If fast scrolling, ignore
+      if(Date.now() < window._chat_fastScrollingUntil) continue;
+
+      // Hold 250ms visible
+      if(readHoldTimers.has(msgId)) continue;
+
+      const t = setTimeout(async ()=>{
+        readHoldTimers.delete(msgId);
+        // Re-check visibility by bounding box within container
+        if(Date.now() < window._chat_fastScrollingUntil) return;
+
+        // Zone weighting (TOP/CENTER/BOTTOM) – we only store monotonic lastReadTs
+        const rect = node.getBoundingClientRect();
+        const rootRect = messagesEl.getBoundingClientRect();
+        const centerY = rect.top + rect.height/2;
+        const rel = (centerY - rootRect.top) / Math.max(1, rootRect.height);
+        // Zones: [0..0.33]=TOP, (0.33..0.66]=CENTER, (0.66..1]=BOTTOM
+        const zone = (rel <= 0.33) ? "TOP" : (rel <= 0.66 ? "CENTER" : "BOTTOM");
+
+        await markRead(ts, msgId, zone);
+      }, 250);
+
+      readHoldTimers.set(msgId, t);
+    }
+  }, { root: messagesEl, threshold: [0,0.6,1] });
+
+  // Observe existing nodes
+  for(const node of messagesEl.querySelectorAll(".msg")){
+    readObserver.observe(node);
   }
 }
 
-/** Actualiza un mensaje en su celda (sin leer todo el chat) */
-async function updateMessageInStorage(msgId, updaterFn){
-  if(!room) return;
+async function markRead(ts, msgId, zone){
+  if(!currentRoom) return;
 
-  // Intento rápido: sacamos cell desde el DOM
-  const elMsg = cache.msgElById.get(msgId);
-  const cellNumber = elMsg && elMsg.dataset && elMsg.dataset.cell ? Number(elMsg.dataset.cell) : null;
+  // If user is reading old messages (scrolled up), we still only store monotonic lastReadTs
+  const userId = session?.userId || localGuest.userId;
 
-  // Si no sabemos celda, caemos a escaneo de pocas celdas (solo cerca del final)
-  const manifest = cache.manifest;
-  const latestCell = Number(manifest?.latestCell || 1);
+  const p = presenceCache.get(userId);
+  if(!p) return;
 
-  const candidates = [];
+  const prev = p.lastReadTs || 0;
+  const next = Math.max(prev, ts);
 
-  if(cellNumber && !Number.isNaN(cellNumber)){
-    candidates.push(cellNumber);
-  }else{
-    // Escaneamos: última celda, y las 2 anteriores (esto es barato)
-    candidates.push(latestCell);
-    if(latestCell-1 >= 1) candidates.push(latestCell-1);
-    if(latestCell-2 >= 1) candidates.push(latestCell-2);
-  }
+  if(next === prev) return; // no change
 
-  // Para no repetir
-  const uniq = Array.from(new Set(candidates));
+  p.lastReadTs = next;
+  p.lastReadMsgId = msgId;
+  p.lastSeenAt = Date.now();
+  if(zone !== "TOP") p.lastActiveAt = Date.now(); // center/bottom implies more "engaged"
 
-  for(const cnum of uniq){
-    const cell = await ghGetCellWithSha(room, cnum);
+  presenceCache.set(userId, p);
 
-    // Si la celda no existe, seguimos
-    if(!cell || !Array.isArray(cell.arr)) continue;
+  // Throttle writes
+  const now = Date.now();
+  if(now - lastReadWriteAt < 1500) return;
+  lastReadWriteAt = now;
 
-    const idx = cell.arr.findIndex(m => m && m.id === msgId);
-    if(idx === -1) continue;
+  await presenceWrite(p);
+  updateReadBadges();
+}
 
-    // Aplicamos updater
-    const updated = updaterFn({ ...cell.arr[idx] });
-    updated.cell = cnum;
+function updateReadBadges(){
+  // Show "read by" if presence.lastReadTs >= msg.ts
+  const nodes = messagesEl.querySelectorAll(".msg");
+  const selfId = session?.userId || localGuest.userId;
+  
+  for(const node of nodes){
+    const ts = Number(node.dataset.ts||0);
+    const msgId = node.dataset.msgId;
+    const readsEl = node.querySelector(".reads");
+    if(!readsEl) continue;
 
-    cell.arr[idx] = updated;
-
-    // Guardamos celda
-    await ghPutJson(cellPath(room, cnum), cell.arr, cell.sha, `update msg ${msgId} ${room}`);
-
-    // Actualizamos UI local sin esperar al poll
-    const normalized = normalizeMessage(updated, cnum);
-    const domEl = cache.msgElById.get(msgId);
-    if(domEl){
-      updateMessageElement(domEl, normalized);
+    const readers = [];
+    let hasOtherReaders = false;
+    
+    for(const p of presenceCache.values()){
+      if(!p.userId) continue;
+      if((p.lastReadTs||0) >= ts){
+        // don't show self
+        if(p.userId !== selfId){
+          readers.push(p.username || p.userId);
+          hasOtherReaders = true;
+        }
+      }
     }
+    readsEl.textContent = readers.length ? `read by: ${readers.slice(0,3).join(", ")}${readers.length>3?"…":""}` : "";
+    
+    // Update own message status to 'read' if others have read it
+    const statusEl = node.querySelector('.msg-status');
+    if(statusEl && hasOtherReaders){
+      const currentStatus = statusEl.className.match(/status-(\w+)/)?.[1];
+      if(currentStatus && ['sent', 'delivered'].includes(currentStatus)){
+        updateMessageStatus(msgId, 'read');
+      }
+    }
+  }
+}
 
+/* ============================================================
+   SENDING + SYNC
+   ============================================================ */
+async function sendMessage(){
+  if(!running || !currentRoom) return;
+
+  const text = (msgInput.value||"").trim();
+  if(!text) return;
+
+  const now = Date.now();
+  const userId = session?.userId || localGuest.userId;
+  const sender = (nameInput.value||"").trim() || session?.username || localGuest.name || "Anon";
+
+  // attach rich metadata for provenance
+  const ip = null; // IP tracking disabled
+  const device = `${navigator.platform || 'unknown'} - ${navigator.userAgent.slice(0,50)}`;
+  const sessionType = session?.userId ? 'registered' : (String(localGuest.userId||'').startsWith('g-') ? 'guest' : 'anon');
+
+  const msg = {
+    id: `m-${now}-${Math.random().toString(36).slice(2,8)}`,
+    room: currentRoom,
+    sender,
+    userId,
+    ts: now,
+    text,
+    edited:false,
+    editedAt:null,
+    deleted:false,
+    createdAt: now,
+    status: 'sending', // New status field
+    meta: {
+      sessionType,
+      sessionUsername: session?.username || null,
+      device,
+      ip,
+      ua: navigator.userAgent || null
+    }
+  };
+
+  // OPTIMISTIC UI: Show message immediately
+  addMessageToDom(msg);
+  msgInput.value = "";
+  markInteraction("send");
+
+  // Send to GitHub in background
+  try{
+    await appendMessageV3(currentRoom, msg);
+    
+    // Update status to sent
+    msg.status = 'sent';
+    updateMessageStatus(msg.id, 'sent');
+    
+    // Presence update
+    await presenceSetOnline(true, "send");
+    
+    // Refresh presence list occasionally
+    await maybeRefreshPresence();
+    
+    // After a brief moment, update to delivered
+    setTimeout(() => {
+      msg.status = 'delivered';
+      updateMessageStatus(msg.id, 'delivered');
+    }, 500);
+    
+  }catch(e){
+    console.error('[sendMessage ERROR]', e);
+    msg.status = 'failed';
+    updateMessageStatus(msg.id, 'failed');
+    showToast('Failed to send message. Click retry to try again.', 'error', 6000);
+  }
+}
+
+function updateMessageStatus(msgId, status){
+  // Update in loadedMessages
+  for(const m of loadedMessages){
+    if(m.id === msgId){
+      m.status = status;
+      break;
+    }
+  }
+  
+  // Update DOM
+  const el = messagesEl.querySelector(`[data-msg-id="${msgId}"]`);
+  if(!el) return;
+  
+  const statusEl = el.querySelector('.msg-status');
+  if(statusEl){
+    statusEl.className = `msg-status status-${status}`;
+  }
+  
+  // Handle failed state
+  if(status === 'failed'){
+    el.classList.add('msg-failed');
+    // Add retry button if not exists
+    if(!el.querySelector('.msg-retry')){
+      const meta = el.querySelector('.meta');
+      if(meta){
+        const retry = document.createElement('button');
+        retry.className = 'msg-retry';
+        retry.textContent = 'Retry';
+        const msg = loadedMessages.find(m => m.id === msgId);
+        retry.onclick = (e) => { e.stopPropagation(); if(msg) retryMessage(msg); };
+        meta.appendChild(retry);
+      }
+    }
+  }else{
+    el.classList.remove('msg-failed');
+    const retry = el.querySelector('.msg-retry');
+    if(retry) retry.remove();
+  }
+}
+
+async function retryMessage(msg){
+  if(!msg || !currentRoom) return;
+  
+  // Update status to sending
+  updateMessageStatus(msg.id, 'sending');
+  
+  try{
+    await appendMessageV3(currentRoom, msg);
+    updateMessageStatus(msg.id, 'sent');
+    showToast('Message sent successfully', 'success');
+    
+    setTimeout(() => {
+      updateMessageStatus(msg.id, 'delivered');
+    }, 500);
+    
+  }catch(e){
+    console.error('[retryMessage ERROR]', e);
+    updateMessageStatus(msg.id, 'failed');
+    showToast('Retry failed. Please try again.', 'error');
+  }
+}
+
+async function syncLatestFromStorage(){
+  // Load newest messages since loadedCellsMax
+  await loadRoomIndex(currentRoom);
+
+  const latestCell = roomIndex.latestCell || 1;
+
+  // If nothing loaded yet -> load latest
+  if(loadedCellsMax === null){
+    const msgs = await loadLatestMessages(currentRoom, 50);
+    renderAll(msgs);
+    updateReadBadges();
     return;
   }
 
-  throw new Error('No se encontró el mensaje en celdas cercanas (quizá es muy viejo).');
-}
-
-/* =====================================================================================
-   paste.rs (async)
-===================================================================================== */
-async function createPasteAsync(text){
-  try{
-    const proxyUrl = buildProxyUrl(PASTE_BASE);
-    const res = await fetch(proxyUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: text
-    });
-    if(!res.ok) return null;
-
-    const raw = (await res.text()).trim();
-    const url = raw.startsWith('http') ? raw : `${PASTE_BASE}/${raw.replace(/^\//,'')}`;
-    return url;
-  }catch(e){
-    return null;
+  if(latestCell <= loadedCellsMax){
+    // still refresh presence sometimes
+    await maybeRefreshPresence();
+    return;
   }
-}
 
-/* =====================================================================================
-   ROOM META (tu sistema original, sin cambios grandes)
-===================================================================================== */
-function ghRoomMetaUrl(roomName){
-  return ghFileUrl(`rooms-meta/${roomName}.json`);
-}
+  // Load new cells
+  const newMsgs = await loadCellsRange(currentRoom, loadedCellsMax+1, latestCell);
+  loadedCellsMax = latestCell;
 
-let roomMeta = null;
-let roomMetaSha = null;
-
-async function ensureRoomMetaExists(){
-  try{
-    if(!room) return;
-
-    await ensureGhToken();
-
-    const res = await fetch(ghRoomMetaUrl(room), {
-      method:'GET',
-      headers:{
-        'Accept':'application/vnd.github+json',
-        'Authorization': `Bearer ${GH_TOKEN}`
-      }
-    });
-
-    const now = Date.now();
-
-    if(res.status === 404){
-      const meta = {
-        room,
-        roomId: `room-${room}-${now}-${Math.random().toString(36).slice(2,8)}`,
-        createdAt: now,
-        createdAtIso: new Date(now).toISOString(),
-        createdBy: {
-          userId: currentUser.userId,
-          name: sender || 'Anon',
-          fingerprint: currentUser.fingerprint
-        },
-        lastActivity: now,
-        lastActivityIso: new Date(now).toISOString(),
-        description: '',
-        tags: []
-      };
-
-      await saveRoomMeta(meta);
-      roomMeta = meta;
-      renderRoomMeta();
-      log(`🆕 Sala "${room}" creada por ${meta.createdBy.name}.`, 'INFO');
-      return;
-    }
-
-    if(!res.ok){
-      console.warn(`[ROOM META LOAD WARNING] status=${res.status}`);
-      return;
-    }
-
-    const data = await res.json();
-    roomMetaSha = data.sha || null;
-    const contentStr = atob((data.content || '').replace(/\n/g,''));
-    const metaObj = contentStr.trim() ? JSON.parse(contentStr) : null;
-
-    if(metaObj){
-      roomMeta = metaObj;
-      renderRoomMeta();
-    }
-  }catch(e){
-    console.error('[ROOM META LOAD EXCEPTION]', e);
+  for(const m of newMsgs){
+    addMessageToDom(m, true);
   }
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  setupReadObserver();
+  await maybeRefreshPresence();
+  updateReadBadges();
 }
 
-async function saveRoomMeta(meta){
+/* ============================================================
+   LOCAL GUEST IDENTITY (used if not logged in)
+   ============================================================ */
+const localGuest = {
+  userId: null,
+  name: "Guest"
+};
+
+function initGuestIdentity(){
   try{
-    if(!room || !meta) return;
-
-    await ensureGhToken();
-
-    const json = JSON.stringify(meta, null, 2);
-    const b64  = btoa(unescape(encodeURIComponent(json)));
-
-    const body = {
-      message: `update rooms-meta/${room}.json ${new Date().toISOString()}`,
-      content: b64,
-      branch: GH_BRANCH,
-      ...(roomMetaSha ? { sha: roomMetaSha } : {})
-    };
-
-    const res = await fetch(ghRoomMetaUrl(room), {
-      method:'PUT',
-      headers:{
-        'Accept':'application/vnd.github+json',
-        'Authorization': `Bearer ${GH_TOKEN}`,
-        'Content-Type':'application/json'
-      },
-      body: JSON.stringify(body)
-    });
-
-    if(!res.ok){
-      console.warn(`[ROOM META SAVE WARNING] status=${res.status}`);
-      return;
-    }
-
-    const data = await res.json();
-    if(data.content && data.content.sha) roomMetaSha = data.content.sha;
-  }catch(e){
-    console.error('[ROOM META SAVE EXCEPTION]', e);
-  }
-}
-
-function renderRoomMeta(){
-  try{
-    if(!roomInfoEl || !roomMeta) return;
-
-    const created = new Date(roomMeta.createdAt || Date.now());
-    const ca = `${created.getFullYear()}-${String(created.getMonth()+1).padStart(2,'0')}-${String(created.getDate()).padStart(2,'0')} ${String(created.getHours()).padStart(2,'0')}:${String(created.getMinutes()).padStart(2,'0')}`;
-
-    const lastTs = roomMeta.lastActivity || roomMeta.createdAt || Date.now();
-    const last = new Date(lastTs);
-    const la = `${last.getFullYear()}-${String(last.getMonth()+1).padStart(2,'0')}-${String(last.getDate()).padStart(2,'0')} ${String(last.getHours()).padStart(2,'0')}:${String(last.getMinutes()).padStart(2,'0')}`;
-
-    const creatorName = roomMeta.createdBy && roomMeta.createdBy.name ? roomMeta.createdBy.name : 'Desconocido';
-
-    roomInfoEl.innerHTML = `
-      ID: <code>${roomMeta.roomId}</code><br/>
-      Creador: <strong>${creatorName}</strong><br/>
-      Creado: ${ca}<br/>
-      Última actividad: ${la}
-    `;
-  }catch(e){
-    console.error('[RENDER ROOM META ERROR]', e);
-  }
-}
-
-/* =====================================================================================
-   POLLING LOOP (anti-overlap)
-   - Revisa master stamp
-   - Si cambió -> lee manifest -> trae solo lo nuevo
-===================================================================================== */
-let pollTimer = null;
-let pollMs = POLL_MS_DEFAULT;
-
-async function pollLoop(){
-  try{
-    if(!running || !room) return;
-
-    // Pause/slow polling when user is idle
-    try{
-      const last = window._chat_lastInteraction || 0;
-      if(Date.now() - last > IDLE_TIMEOUT_MS){
-        // back off: schedule a much later poll and skip work
-        pollTimer = setTimeout(pollLoop, POLL_MS_MAX);
+    const k="cp2p_guest_v1";
+    const raw = localStorage.getItem(k);
+    if(raw){
+      const obj = JSON.parse(raw);
+      if(obj?.userId){
+        localGuest.userId = obj.userId;
+        localGuest.name = obj.name || "Guest";
         return;
       }
-    }catch(e){}
-
-    if(cache.pollInFlight){
-      pollTimer = setTimeout(pollLoop, pollMs);
-      return;
     }
-
-    cache.pollInFlight = true;
-
-    // 1) leer master stamp
-    const ms = await readMasterStampRaw(room);
-
-    if(ms.error){
-      // Reflect disconnected state and back off polling to avoid tight 404 loops
-      if(chatStatusEl) chatStatusEl.textContent = '● Desconectado';
-      if(headerStatusEl) headerStatusEl.textContent = 'Desconectado';
-
-      // Increase poll interval progressively (capped)
-      try{ pollMs = Math.min(POLL_MS_MAX, Math.max(POLL_MS_DEFAULT, (pollMs || POLL_MS_DEFAULT) * 4)); }catch(e){}
-
-      return;
-    }
-
-    // Si no cambió, nada que hacer
-    const stamp = Number(ms.stamp || 0);
-    if(stamp <= (cache.lastMasterStamp || 0)){
-      if(chatStatusEl) chatStatusEl.textContent = '● Conectado';
-      if(headerStatusEl) headerStatusEl.textContent = 'Conectado';
-      // successful read -> restore normal poll cadence
-      pollMs = POLL_MS_DEFAULT;
-      return;
-    }
-
-    // Actualizamos local
-    cache.lastMasterStamp = stamp;
-
-    // 2) leer manifest pequeño
-    const mf = await readManifestRaw(room);
-    if(mf.error){
-      return;
-    }
-
-    const manifest = mf.manifest || cache.manifest;
-    if(!manifest || manifest.v !== 2) return;
-
-    // 3) Traer deltas
-    await fetchAndApplyDeltas(room, manifest);
-
-    if(chatStatusEl) chatStatusEl.textContent = '● Conectado';
-    if(headerStatusEl) headerStatusEl.textContent = 'Conectado';
-    // successful sync -> restore normal poll cadence
-    pollMs = POLL_MS_DEFAULT;
-
-  }catch(e){
-    console.error('[pollLoop ERROR]', e);
-  }finally{
-    cache.pollInFlight = false;
-
-    if(running && room){
-      pollTimer = setTimeout(pollLoop, pollMs);
-    }
-  }
-}
-
-/** Trae solo lo nuevo (sin full rerender) */
-async function fetchAndApplyDeltas(roomName, manifest){
-  const latestCell = Number(manifest.latestCell || 1);
-
-  // Si es la primera vez, cargamos solo la última celda (rápido)
-  if(cache.lastLoadedCell === 0){
-    // Cargamos última celda y mostramos (no todo el historial)
-    const cell = await readCellRaw(roomName, latestCell);
-    if(cell.ok){
-      // Para que no te tire 120 de golpe si no quieres:
-      // mostramos últimos 50 de esa celda, así es súper rápido
-      const tail = cell.messages.slice(-50);
-      applyMessagesDelta(tail);
-
-      cache.lastLoadedCell = latestCell;
-      cache.lastLoadedCountInCell = cell.messages.length;
-    }
-    return;
-  }
-
-  // Si avanzó a nueva celda, cargamos celdas nuevas completas (son pequeñas)
-  if(latestCell > cache.lastLoadedCell){
-    for(let c = cache.lastLoadedCell + 1; c <= latestCell; c++){
-      const cell = await readCellRaw(roomName, c);
-      if(!cell.ok) continue;
-
-      applyMessagesDelta(cell.messages);
-
-      cache.lastLoadedCell = c;
-      cache.lastLoadedCountInCell = cell.messages.length;
-    }
-    return;
-  }
-
-  // Si seguimos en la misma celda, solo traemos la celda actual y aplicamos el delta por índice
-  const cell = await readCellRaw(roomName, latestCell);
-  if(!cell.ok) return;
-
-  const start = Math.min(cache.lastLoadedCountInCell || 0, cell.messages.length);
-  const delta = cell.messages.slice(start);
-
-  // También revisamos updates (edit/delete) para mensajes que ya estaban:
-  // -> aplicamos todos, pero solo hace UPDATE si existe (muy ligero)
-  applyMessagesDelta(cell.messages);
-
-  cache.lastLoadedCell = latestCell;
-  cache.lastLoadedCountInCell = cell.messages.length;
-
-  // Delta extra (si había nuevos) ya quedó aplicado
-}
-
-/* =====================================================================================
-   Boxes / Lazy-load helpers
-   - Boxes are metadata groups of CELLS_PER_BOX cells
-   - We keep an index per-room at rooms-boxes/<room>/boxes-index.json
-   - UI lazy-load listens to scroll / wheel and loads older messages on demand
-===================================================================================== */
-
-function boxesIndexPath(roomName){
-  return `${CELLS_BASE_DIR}/${roomName}/boxes/boxes-index.json`;
-}
-
-function boxPath(roomName, boxNumber){
-  return `${CELLS_BASE_DIR}/${roomName}/boxes/box-${String(boxNumber).padStart(6,'0')}.json`;
-}
-
-function roomCellsIndexPath(roomName){
-  return `${CELLS_BASE_DIR}/${roomName}/index.json`;
-}
-
-/** Compact a range of cells (startCell .. startCell+CELLS_PER_BOX-1) into a single box file. */
-async function compactBoxForStartCell(roomName, startCell){
-  try{
-    if(!roomName || !startCell) return null;
-    const cellsPerBox = CELLS_PER_BOX; // already computed from BOX_MAX_MESSAGES
-    const boxNumber = Math.ceil(startCell / cellsPerBox);
-    const pBox = `${CELLS_BASE_DIR}/${roomName}/boxes`;
-    const targetPath = boxPath(roomName, boxNumber);
-
-    // Gather messages from each cell in the box range
-    const merged = [];
-    for(let i=0;i<cellsPerBox;i++){
-      const cnum = startCell + i;
-      const cellPathRel = cellPath(roomName, cnum);
-      try{
-        const got = await ghGetJsonWithSha(cellPathRel).catch(()=>({ json:null, sha:null }));
-        if(got && Array.isArray(got.json) && got.json.length) merged.push(...got.json);
-      }catch(e){
-        // ignore missing cells
-      }
-    }
-
-    if(merged.length === 0){
-      // nothing to compact
-      return null;
-    }
-
-    // Write box file (best-effort). Use null sha to create/overwrite.
-    try{
-      const sha = await ghPutJson(targetPath, merged, null, `compact box ${boxNumber} ${roomName}`);
-      console.log('[BOX COMPACTED]', roomName, boxNumber, 'msgs=', merged.length);
-      return { boxNumber, path: targetPath, sha };
-    }catch(e){
-      console.warn('[BOX COMPACT FAILED]', roomName, boxNumber, e);
-      return null;
-    }
-  }catch(e){
-    console.error('[compactBoxForStartCell ERROR]', e);
-    return null;
-  }
-}
-
-/** Rebuild room-level index (rooms-cells/<room>/index.json) from boxes-index.json entries. */
-async function rebuildRoomCellsIndex(roomName){
-  try{
-    const p = boxesIndexPath(roomName).replace(/^/,'');
-    const gi = await ghGetJsonWithSha(p).catch(()=>({ json:null, sha:null }));
-    const boxes = Array.isArray(gi.json) ? gi.json : [];
-
-    const index = { room: roomName, boxes: [], totalMessages: 0, lastUpdated: Date.now() };
-    for(const b of boxes){
-      const boxNum = b.box;
-      const bp = boxPath(roomName, boxNum);
-      // Try to read box to compute size
-      const got = await ghGetJsonWithSha(bp).catch(()=>({ json:null, sha:null }));
-      const count = Array.isArray(got.json) ? got.json.length : 0;
-      index.boxes.push({ box: boxNum, startCell: b.startCell, endCell: b.endCell, path: bp, msgs: count });
-      index.totalMessages += count;
-    }
-
-    // write room index
-    const idxPath = roomCellsIndexPath(roomName);
-    await ghPutJson(idxPath, index, null, `update room index ${roomName}`);
-    console.log('[ROOM INDEX WRITTEN]', roomName, 'boxes=', index.boxes.length);
-    return index;
-  }catch(e){
-    console.warn('[rebuildRoomCellsIndex ERROR]', e);
-    return null;
-  }
-}
-
-/**
- * Migrate a room to V3 storage layout (cells of CELL_MAX_MESSAGES, boxes of BOX_MAX_MESSAGES)
- * - dryRun=true only reports counts without writing
- * - Idempotent: if manifest.v >= 3 it will skip
- */
-async function migrateRoomToV3(roomName, opts = { dryRun: false }){
-  try{
-    if(!roomName) throw new Error('roomName required');
-    const dryRun = !!opts.dryRun;
-
-    const m = await ghGetManifestWithSha(roomName);
-    if(!m.obj) throw new Error('manifest not found');
-    if(Number(m.obj.v || 0) >= 3){
-      console.log('[MIGRATE] room already v3 or newer:', roomName);
-      return { ok:true, reason:'already v3' };
-    }
-
-    const latestCell = Number(m.obj.latestCell || 1);
-    const allMsgs = [];
-
-    // Read all existing cells sequentially
-    for(let i=1;i<=latestCell;i++){
-      try{
-        const c = await ghGetCellWithSha(roomName, i).catch(()=>({ arr:[] }));
-        if(Array.isArray(c.arr) && c.arr.length) allMsgs.push(...c.arr);
-      }catch(e){ /* ignore missing cells */ }
-    }
-
-    // Normalize and sort by timestamp to be safe
-    const normalized = allMsgs.map((x,idx)=> normalizeMessage(x) ).filter(Boolean);
-    normalized.sort((a,b)=> (a.ts||0) - (b.ts||0));
-
-    const totalMsgs = normalized.length;
-    const perCell = CELL_MAX_MESSAGES || 1;
-    const perBox = BOX_MAX_MESSAGES || (perCell * 25);
-    const cells = [];
-    for(let i=0;i<normalized.length;i += perCell){
-      const slice = normalized.slice(i, i+perCell);
-      // assign provisional cell number (1-based)
-      const cnum = Math.floor(i / perCell) + 1;
-      slice.forEach(mf=>{ if(mf) mf.cell = cnum; });
-      cells.push(slice);
-    }
-
-    const newLatestCell = cells.length || 1;
-
-    // Dry-run: report counts
-    if(dryRun){
-      console.log('[MIGRATE DRY RUN]', { room: roomName, totalMsgs, perCell, perBox, newCells: cells.length, boxes: Math.ceil(totalMsgs / perBox) });
-      return { ok:true, dryRun:true, totalMsgs, newCells: cells.length };
-    }
-
-    log(`🔁 Migrating room ${roomName} → V3: ${totalMsgs} messages, ${cells.length} cells`, 'INFO');
-
-    // Write new cells (overwrite existing names). Do sequentially to avoid rate issues.
-    for(let i=0;i<cells.length;i++){
-      const idx = i+1;
-      const path = cellPath(roomName, idx);
-      try{
-        await ghPutJson(path, cells[i], null, `v3 migrate cell ${idx} ${roomName}`);
-      }catch(e){
-        console.warn('[MIGRATE WRITE CELL FAILED]', path, e);
-      }
-    }
-
-    // Update manifest to v3
-    const newManifest = {
-      ...(m.obj || {}),
-      v: 3,
-      room: roomName,
-      createdAt: m.obj.createdAt || Date.now(),
-      updatedAt: Date.now(),
-      latestCell: newLatestCell,
-      totalMessages: totalMsgs,
-      cellMax: CELL_MAX_MESSAGES,
-      migratedToV3At: Date.now()
-    };
-
-    await ghPutJson(manifestPath(roomName), newManifest, m.sha, `migrate manifest v3 ${roomName}`);
-    cache.manifest = newManifest;
-
-    // Build boxes (group messages by perBox count)
-    const boxes = [];
-    for(let i=0;i<normalized.length;i += perBox){
-      const startMsgIdx = i; // 0-based
-      const slice = normalized.slice(i, i+perBox);
-      const boxIdx = Math.floor(i / perBox) + 1;
-      const startCell = Math.floor(startMsgIdx / perCell) + 1;
-      const endMsgIdx = i + slice.length - 1;
-      const endCell = Math.floor(endMsgIdx / perCell) + 1;
-
-      // write box file
-      const bp = boxPath(roomName, boxIdx);
-      try{
-        await ghPutJson(bp, slice, null, `v3 box ${boxIdx} ${roomName}`);
-        boxes.push({ box: boxIdx, startCell, endCell, startMsg: startMsgIdx, endMsg: endMsgIdx, createdAt: Date.now() });
-      }catch(e){
-        console.warn('[MIGRATE WRITE BOX FAILED]', bp, e);
-      }
-    }
-
-    // Write boxes index
-    try{
-      const bix = boxes.map(b=>({ box:b.box, startCell:b.startCell, endCell:b.endCell, createdAt:b.createdAt }));
-      await ghPutJson(boxesIndexPath(roomName), bix, null, `v3 boxes-index ${roomName}`);
-    }catch(e){ console.warn('[MIGRATE WRITE BOXES INDEX FAILED]', e); }
-
-    // Rebuild room index
-    await rebuildRoomCellsIndex(roomName).catch(()=>null);
-
-    log(`✅ Migración a V3 completada para ${roomName}: ${totalMsgs} mensajes en ${cells.length} celdas, ${boxes.length} cajas.`, 'INFO');
-    return { ok:true, migrated:true, totalMsgs, cells: cells.length, boxes: boxes.length };
-
-  }catch(e){
-    console.error('[migrateRoomToV3 ERROR]', e);
-    return { ok:false, error: e && e.message ? e.message : String(e) };
-  }
-}
-
-// Expose migration helper to console
-window.migrateRoomToV3 = migrateRoomToV3;
-
-// --- Migration UI helpers -------------------------------------------------
-function createMigrationPanel(){
-  try{
-    if(document.getElementById('migration-panel')) return;
-    const panel = document.createElement('div');
-    panel.id = 'migration-panel';
-    panel.style.cssText = 'position:fixed;right:12px;top:60px;z-index:9999;padding:10px;background:#111;color:#fff;border-radius:6px;font-family:Arial, sans-serif;box-shadow:0 4px 14px rgba(0,0,0,0.4)';
-    panel.innerHTML = `
-      <div style="font-weight:600;margin-bottom:6px">Migration (V3)</div>
-      <div style="margin-bottom:6px"><input id="migration-room" placeholder="room name" style="width:180px;padding:6px;border-radius:4px;border:1px solid #333;background:#000;color:#fff"></div>
-      <div style="display:flex;gap:6px">
-        <button id="migration-dry" style="padding:6px;border-radius:4px">Dry Run</button>
-        <button id="migration-run" style="padding:6px;border-radius:4px">Run</button>
-        <button id="migration-verify" style="padding:6px;border-radius:4px">Verify</button>
-      </div>
-      <div id="migration-log" style="margin-top:8px;max-height:160px;overflow:auto;background:#060606;padding:6px;border-radius:4px;font-size:12px"></div>
-    `;
-    document.body.appendChild(panel);
-
-    const roomInput = panel.querySelector('#migration-room');
-    panel.querySelector('#migration-dry').addEventListener('click', async ()=>{
-      const room = roomInput.value.trim();
-      if(!room) return alert('enter room name');
-      appendLog('Running dry-run...');
-      const r = await migrateRoomToV3(room, { dryRun: true });
-      appendLog(JSON.stringify(r, null, 2));
-    });
-    panel.querySelector('#migration-run').addEventListener('click', async ()=>{
-      const room = roomInput.value.trim();
-      if(!room) return alert('enter room name');
-      if(!confirm('Run full migration for room: '+room+'? This will attempt GitHub writes. Continue?')) return;
-      appendLog('Running migration...');
-      const r = await migrateRoomToV3(room, { dryRun: false });
-      appendLog(JSON.stringify(r, null, 2));
-    });
-    panel.querySelector('#migration-verify').addEventListener('click', async ()=>{
-      const room = roomInput.value.trim();
-      if(!room) return alert('enter room name');
-      appendLog('Verifying manifest and boxes index...');
-      try{
-        const m = await ghGetManifestWithSha(room).catch(e=>({obj:null}));
-        appendLog('manifest: '+(m && m.obj ? JSON.stringify(m.obj) : 'missing'));
-        const bix = await ghGetJson(boxesIndexPath(room)).catch(()=>null);
-        appendLog('boxes-index: '+(bix ? JSON.stringify(bix) : 'missing'));
-      }catch(e){ appendLog('verify error: '+String(e)); }
-    });
-
-    function appendLog(s){
-      const el = panel.querySelector('#migration-log');
-      const pre = document.createElement('pre');
-      pre.style.margin='0';
-      pre.style.whiteSpace='pre-wrap';
-      pre.textContent = (new Date()).toISOString() + ' ' + s;
-      el.insertBefore(pre, el.firstChild);
-    }
-  }catch(e){ console.warn('migration panel failed', e); }
-}
-
-// Auto-create the panel when page loads
-if(document && document.readyState !== 'loading') createMigrationPanel(); else document.addEventListener('DOMContentLoaded', createMigrationPanel);
-
-// Convenience full flow callable from console: run dry-run then prompt then migrate then verify
-async function runMigrationFlow(roomName){
-  if(!roomName) throw new Error('roomName required');
-  const dry = await migrateRoomToV3(roomName, { dryRun: true });
-  console.log('dry-run:', dry);
-  if(!confirm('Dry-run completed. Proceed with full migration for '+roomName+'?')) return { ok:false, reason:'aborted' };
-  const r = await migrateRoomToV3(roomName, { dryRun: false });
-  console.log('migration result:', r);
-  try{ await rebuildRoomCellsIndex(roomName); }catch(e){}
-  return r;
-}
-window.runMigrationFlow = runMigrationFlow;
-
-async function updateBoxIndexIfNeeded(roomName, cellNumber){
-  try{
-    if(!roomName || !cellNumber) return;
-    const cellsPerBox = CELLS_PER_BOX;
-    const boxNumber = Math.ceil(cellNumber / cellsPerBox);
-    // If this cell is the first in a box, register a new box entry
-    const firstInBox = ((cellNumber - 1) % cellsPerBox) === 0;
-    if(!firstInBox) return;
-
-    // Try to fetch existing index
-    const p = boxesIndexPath(roomName);
-    const g = await ghGetJsonWithSha(p).catch(()=>({ json:null, sha:null }));
-    const idx = Array.isArray(g.json) ? g.json : [];
     const now = Date.now();
-    idx.push({ box: boxNumber, startCell: cellNumber, endCell: cellNumber + CELLS_PER_BOX - 1, createdAt: now });
-
-    try{
-      await ghPutJson(p, idx, g.sha, `add box ${boxNumber} ${roomName}`);
-    }catch(e){
-      // best-effort, ignore failures
-      console.warn('[BOX INDEX UPDATE FAILED]', e);
-    }
-  }catch(e){
-    console.warn('[updateBoxIndexIfNeeded ERROR]', e);
+    const rand = Math.random().toString(36).slice(2,10);
+    localGuest.userId = `g-${now}-${rand}`;
+    localGuest.name = "Guest";
+    localStorage.setItem(k, JSON.stringify(localGuest));
+  }catch(_){
+    localGuest.userId = `g-${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
   }
 }
 
-/** Prepend messages to the top of the messages DOM (older messages) */
-function prependMessages(messages){
-  if(!messagesEl || !Array.isArray(messages) || messages.length === 0) return;
-  const firstChild = messagesEl.firstChild;
-  // Insert older messages preserving chronological order
-  for(let i = messages.length - 1; i >= 0; i--){
-    const msg = messages[i];
-    const el = buildMessageElement(msg);
-    cache.msgElById.set(msg.id, el);
-    cache.msgById.set(msg.id, msg);
-    if(firstChild) messagesEl.insertBefore(el, firstChild);
-    else messagesEl.appendChild(el);
-  }
+/* ============================================================
+   UI: AUTH MODAL + ROOM JOIN/LEAVE
+   ============================================================ */
+let authMode = "login"; // "login" | "register"
+
+function openAuth(mode){
+  authMode = mode;
+  authModalTitle.textContent = mode === "login" ? "Login" : "Register";
+  authActionBtn.textContent  = mode === "login" ? "Login" : "Register";
+  authMsg.textContent = "";
+  authModalBack.style.display = "flex";
+  authUserInput.focus();
 }
 
-/** Load older messages on demand (count = number of messages desired) */
-async function loadOlderByMessages(count){
+function closeAuth(){
+  authModalBack.style.display = "none";
+  authUserInput.value = "";
+  authPassInput.value = "";
+  authMsg.textContent = "";
+}
+
+loginBtn.onclick = ()=>openAuth("login");
+registerBtn.onclick = ()=>openAuth("register");
+logoutBtn.onclick = ()=>logout();
+browseRoomsBtn.onclick = ()=>openRoomBrowser();
+
+authCloseBtn.onclick = closeAuth;
+authModalBack.addEventListener("click", (e)=>{ if(e.target===authModalBack) closeAuth(); });
+
+authActionBtn.onclick = async ()=>{
   try{
-    if(!room) return;
-    const want = Math.max(1, Number(count || 20));
-    const perCell = CELL_MAX_MESSAGES || 1;
-    let needCells = Math.ceil(want / perCell);
+    authMsg.style.color = "var(--muted)";
+    authMsg.textContent = "Working…";
+    const u = authUserInput.value.trim();
+    const p = authPassInput.value;
 
-    let cnum = (cache.lastLoadedCell || 1) - 1;
-    const toFetch = [];
-    while(needCells > 0 && cnum >= 1){
-      toFetch.push(cnum);
-      needCells -= 1;
-      cnum -= 1;
+    if(authMode==="register"){
+      await registerUser(u, p);
+      authMsg.style.color = "rgba(34,197,94,.95)";
+      authMsg.textContent = "Registered ✅";
+      closeAuth();
+    }else{
+      await loginUser(u, p);
+      authMsg.style.color = "rgba(34,197,94,.95)";
+      authMsg.textContent = "Logged in ✅";
+      closeAuth();
     }
 
-    if(toFetch.length === 0) return;
-
-    // Fetch older cells in descending order and prepend their messages
-    for(const cn of toFetch){
-      const cell = await readCellRaw(room, cn);
-      if(!cell.ok) continue;
-      // prepend oldest-first (so messages appear in correct order)
-      prependMessages(cell.messages);
-      cache.lastLoadedCell = Math.max(1, cn);
-      cache.lastLoadedCountInCell = cell.messages.length;
+    // If inside room, presence file path changes from guest->user. Write online once.
+    if(running && currentRoom){
+      await presenceSetOnline(true, "auth");
+      await refreshPresence();
     }
   }catch(e){
-    console.error('[loadOlderByMessages ERROR]', e);
+    authMsg.style.color = "rgba(239,68,68,.95)";
+    authMsg.textContent = String(e?.message || e);
   }
-}
+};
 
-/** Setup scroll and wheel listeners to infer user intent and load older messages */
-function setupScrollLoader(){
+joinBtn.onclick = async ()=>{
   try{
-    if(!messagesEl) return;
-    let lastY = 0, lastT = Date.now();
-    let wheelAccum = 0;
+    const r = roomInput.value.trim();
+    if(!r){ log("Room required.","WARN"); return; }
 
-    messagesEl.addEventListener('scroll', (ev) => {
-      const st = messagesEl.scrollTop || 0;
-      const now = Date.now();
-      const dt = Math.max(1, now - lastT);
-      const dy = Math.abs(st - lastY);
-      const speed = (dy / dt) * 1000; // px/s
-      lastY = st; lastT = now;
+    const displayName = nameInput.value.trim() || session?.username || "Anon";
+    if(!nameInput.value.trim()) nameInput.value = displayName;
 
-      // If user scrolled near top, load older messages based on speed
-      if(st < 120){
-        const pack = (speed > 2000) ? 100 : (speed > 800 ? 50 : 20);
-        loadOlderByMessages(pack);
-      }
-    }, { passive:true });
+    currentRoom = r;
+    running = true;
 
-    messagesEl.addEventListener('wheel', (ev) => {
-      wheelAccum += Math.abs(ev.deltaY);
-      const now = Date.now();
-      if(wheelAccum > 800){
-        // aggressive wheel -> load more
-        loadOlderByMessages(100);
-        wheelAccum = 0;
-      }
-    }, { passive:true });
+    // Save last joined room for logged-in users
+    if(session && session.userId){
+      saveLastJoinedRoom(r);
+    }
+
+    // Ensure storage (V3) + master file
+    setNet("ok","joining…");
+    await ensureRoomV3(currentRoom);
+
+    // UI
+    chatPanel.style.display = "flex";
+    roomTitle.textContent = `#${currentRoom}`;
+    roomSub.textContent = `storage: V3 · cell=${CELL_MAX_MESSAGES} · box=${CELLS_PER_BOX} cells`;
+
+    // Presence: join => online=true
+    presenceState.inRoom = true;
+    await presenceSetOnline(true, "join");
+
+    // Load latest
+    const msgs = await loadLatestMessages(currentRoom, 50);
+    renderAll(msgs);
+
+    // Lazy load + observers
+    installLazyLoader();
+    setupReadObserver();
+
+    // Kick poll loop
+    clearTimeout(pollTimer);
+    scheduleNextPoll(50);
+
+    // Pull presence list
+    await refreshPresence();
+
+    log(`✨ Joined "${currentRoom}" as ${displayName}.`, "INFO");
   }catch(e){
-    console.warn('[setupScrollLoader ERROR]', e);
+    console.error("[Join ERROR]", e);
+    setNet("bad","join error");
+    log("Join failed. Check token / permissions / network.","ERROR");
   }
-}
+};
 
-/* =====================================================================================
-   UI EVENTS
-===================================================================================== */
-function stopPolling(){
-  if(pollTimer){
+leaveBtn.onclick = async ()=>{
+  try{
+    if(!running) return;
+
+    // Presence offline once
+    await presenceSetOnline(false, "leave");
+    presenceState.inRoom = false;
+
+    running = false;
+    currentRoom = null;
     clearTimeout(pollTimer);
     pollTimer = null;
-  }
-  cache.pollInFlight = false;
-}
 
-function updatePollMsFromInput(){
-  const raw = parseInt(intervalEl.value, 10);
-  if(!Number.isNaN(raw)){
-    pollMs = Math.max(POLL_MS_MIN, Math.min(POLL_MS_MAX, raw));
-    intervalEl.value = String(pollMs);
-  }else{
-    pollMs = POLL_MS_DEFAULT;
-    intervalEl.value = String(pollMs);
-  }
-}
-
-function showChatUI(){
-  if(chatEl){
-    chatEl.style.display = 'flex';
-  }
-  if(headerStatusEl) headerStatusEl.textContent = 'Conectado';
-  if(chatRoomNameEl) chatRoomNameEl.textContent = room;
-  if(chatSenderNameEl) chatSenderNameEl.textContent = sender;
-  if(chatStatusEl) chatStatusEl.textContent = '● Conectado';
-}
-
-/** Manejador: click en acciones de mensajes */
-function setupMessageActionDelegation(){
-  if(!messagesEl) return;
-
-  messagesEl.addEventListener('click', async (e)=>{
-    const btn = e.target && e.target.closest ? e.target.closest('button[data-action]') : null;
-    if(!btn) return;
-
-    const action = btn.dataset.action;
-    const msgId  = btn.dataset.msgId;
-
-    if(!action || !msgId) return;
-
-    // Evita doble click spam
-    btn.disabled = true;
-
-    try{
-      if(action === 'edit'){
-        await editMessageById(msgId);
-      }else if(action === 'delete'){
-        await deleteMessageById(msgId);
-      }
-    }finally{
-      btn.disabled = false;
+    if(presenceState.heartbeatTimer){
+      clearInterval(presenceState.heartbeatTimer);
+      presenceState.heartbeatTimer = null;
     }
-  });
-}
 
-function initUiEvents(){
-  joinBtnEl.onclick = async ()=>{
-    try{
-      const wantedRoom = safeRoomName(roomInputEl.value || '');
-      const wantedSender = (senderInputEl.value || '').trim() || 'Anon';
-
-      if(!wantedRoom){
-        log('Escribe un nombre de sala antes de unirte.', 'WARN');
-        return;
-      }
-
-      // Estado
-      room = wantedRoom;
-      sender = wantedSender;
-      running = true;
-
-      // UI
-      showChatUI();
-
-      // Reset caches para la sala
-      messagesEl.innerHTML = '';
-      cache.msgElById.clear();
-      cache.masterEtag = null;
-      cache.manifestEtag = null;
-      cache.lastMasterStamp = 0;
-      cache.lastLoadedCell = 0;
-      cache.lastLoadedCountInCell = 0;
-
-      logEl.textContent = '';
-      log(`✨ Sala actual: "${room}"`, 'INFO');
-      log('Cargando…', 'INFO');
-
-      // Poll interval
-      updatePollMsFromInput();
-
-      // Asegura meta + V2 storage (migración si hacía falta)
-      await ensureRoomMetaExists();
-      renderRoomMeta();
-
-      await ensureRoomV2(room);
-
-      // Primera carga rápida (sin esperar a master)
-      const mf = await readManifestRaw(room);
-      const manifest = mf.manifest || cache.manifest;
-      if(manifest && manifest.v === 2){
-        await fetchAndApplyDeltas(room, manifest);
-      }
-
-      // Para que el poll reaccione incluso si master estaba 0:
-      // leemos master actual y lo guardamos
-      const ms = await readMasterStampRaw(room);
-      cache.lastMasterStamp = Number(ms.stamp || 0);
-
-      // Arrancamos polling
-      stopPolling();
-      pollLoop();
-
-      log('✅ Listo. (V2: sin full reload en cada update)', 'INFO');
-
-    }catch(e){
-      console.error('[JOIN ERROR]', e);
-      log('Error al unirse a la sala (token/repo/paths).', 'ERROR');
-    }
-  };
-
-  sendBtnEl.onclick = ()=> sendMessage();
-
-  // Enter behavior:
-  // - Ctrl/Cmd+Enter: send
-  // - Enter (no Shift) on non-touch devices: send
-  // - Shift+Enter: newline
-  inputEl.addEventListener('keydown', (e)=>{
-    try{
-      const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-      if(e.key === 'Enter'){
-        // Ctrl/Cmd+Enter -> send
-        if(e.ctrlKey || e.metaKey){
-          e.preventDefault();
-          sendMessage();
-          return;
-        }
-
-        // If composing IME, ignore
-        if(e.isComposing) return;
-
-        // Plain Enter (no Shift) on desktop -> send
-        if(!e.shiftKey && !isTouch){
-          e.preventDefault();
-          sendMessage();
-          return;
-        }
-        // Otherwise (Shift+Enter or touch), allow default (newline or virtual keyboard behavior)
-      }
-    }catch(err){
-      // Fallback: do nothing
-    }
-  });
-
-  // Clear local: limpia pantalla sin tocar GitHub
-  clearBtnEl.onclick = ()=>{
-    // Si hay muchos mensajes, hacemos “trim” fuerte para aliviar el UI
-    if(messagesEl.children.length > 4){
-      trimLocalView(4);
-      return;
-    }
-    // Si ya está corto, usamos como “mini reset” (pide el usuario)
-    location.reload();
-  };
-
-  // Trim explícito
-  trimBtnEl.onclick = ()=> trimLocalView(4);
-
-  // Reset explícito
-  resetBtnEl.onclick = ()=> location.reload();
-
-  // Cambiar intervalo
-  intervalEl.addEventListener('change', ()=>{
-    updatePollMsFromInput();
-    log(`⏱️ Poll actualizado a ${pollMs} ms.`, 'INFO');
-  });
-}
-
-/* =====================================================================================
-   ARRANQUE GLOBAL
-===================================================================================== */
-window.addEventListener('load', async ()=>{
-  try{
-    initDom();
-    await initUserIdentity();
-    setupMessageActionDelegation();
-
-    log('⏳ Cargando token de GitHub desde paste.rs...', 'INFO');
-    await ensureGhToken();
-    log('✅ Token listo. Puedes unirte a una sala.', 'INFO');
-
-    initUiEvents();
-
+    chatPanel.style.display = "none";
+    clearView();
+    log("Left room.","INFO");
   }catch(e){
-    console.error('[INIT ERROR]', e);
-    log('❌ Error al inicializar. Revisa conexión/token.', 'ERROR');
+    console.error("[Leave ERROR]", e);
+  }
+};
+
+sendBtn.onclick = ()=>sendMessage();
+clearBtn.onclick = ()=>clearView();
+
+roomInput.addEventListener("keydown", (e)=>{
+  if(e.key === "Enter"){
+    e.preventDefault();
+    joinBtn.click();
+  }
+});
+
+msgInput.addEventListener("keydown", (e)=>{
+  if(e.key === "Enter"){
+    // Shift+Enter -> newline, Enter (alone) -> send. Ctrl/Cmd+Enter also sends.
+    if(e.shiftKey) return;
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+window.addEventListener("load", async ()=>{
+  try{
+    setNet("bad","booting…");
+    initGuestIdentity();
+    loadSessionFromStorage();
+    applySessionToUi();
+
+    installInteractionListeners();
+
+    log("⏳ Loading token…","INFO");
+    await ensureGhToken();
+
+    log("⏳ Loading password dictionary (READ ONLY)…","INFO");
+    await loadPasswordDictionary();
+
+    if(PWD_DICT_READY){
+      log("✅ Dictionary ready.","INFO");
+    }else{
+      log("❌ Dictionary missing. Login/Register disabled.","ERROR");
+    }
+
+    setNet("ok","ready");
+    log("Ready. Join a room.","INFO");
+  }catch(e){
+    console.error("[BOOT ERROR]", e);
+    setNet("bad","boot error");
+    log("Boot error: check network/token.","ERROR");
   }
 });
 </script>
+<!-- Compatibility wrappers for Cp2pv3 API (aliases / helpers) -->
+<script>
+// These wrappers restore several Cp2pv3 function names expected by older modules.
+// They are safe no-ops or thin adapters to Cp2pv4 implementations.
+(function(){
+  if(typeof b64 === 'undefined' && typeof b64EncodeUtf8 === 'function'){
+    window.b64 = function(s){ return b64EncodeUtf8(String(s)); };
+  }
 
+  if(typeof ghRawUrl === 'undefined' && typeof rawUrl === 'function'){
+    window.ghRawUrl = function(p){ return rawUrl(p); };
+  }
 
-<!-- ============================
-     MODAL (sin alert/prompt)
-     ============================ -->
-<div id="modalOverlay" class="modal-overlay modal-hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-  <div class="modal" tabindex="-1">
-    <div class="modal-header">
-      <div id="modalTitle" class="modal-title">Modal</div>
-      <button id="modalClose" class="modal-close" title="Cerrar">✕</button>
-    </div>
-    <div id="modalBody" class="modal-body"></div>
-    <div class="modal-footer">
-      <button id="modalCancel" class="btn btn-ghost">Cancelar</button>
-      <button id="modalOk" class="btn">OK</button>
-    </div>
-  </div>
-</div>
+  if(typeof makeMsgId === 'undefined'){
+    window.makeMsgId = function(){ return `m-${Date.now()}-${Math.random().toString(36).slice(2,10)}`; };
+  }
+
+  if(typeof enforceDomCap === 'undefined'){
+    window.enforceDomCap = function(){
+      try{
+        if(!window.messagesEl) return;
+        while(messagesEl.children.length > (window.DOM_MAX_MESSAGES || 200)){
+          messagesEl.removeChild(messagesEl.firstChild);
+        }
+      }catch(e){/* ignore */}
+    };
+  }
+
+  if(typeof scrollToBottomSoon === 'undefined'){
+    window.scrollToBottomSoon = function(){ requestAnimationFrame(()=>{ if(window.messagesEl) messagesEl.scrollTop = messagesEl.scrollHeight; }); };
+  }
+
+  // ghGetCellWithSha / ghGetManifestWithSha adapters (V3 names -> V4 helpers)
+  if(typeof ghGetCellWithSha === 'undefined'){
+    window.ghGetCellWithSha = async function(roomName, cellNumber){
+      const p = cellPath(roomName, cellNumber);
+      const got = await ghGetJsonWithSha(p);
+      const arr = Array.isArray(got.obj) ? got.obj : [];
+      return { path: p, sha: got.sha || null, arr };
+    };
+  }
+
+  if(typeof ghGetManifestWithSha === 'undefined'){
+    window.ghGetManifestWithSha = async function(roomName){
+      const p = manifestPath(roomName);
+      const got = await ghGetJsonWithSha(p);
+      const obj = (got.obj && typeof got.obj === 'object') ? got.obj : null;
+      return { path: p, sha: got.sha || null, obj };
+    };
+  }
+
+  // appendMessageToCells compatibility -> appendMessageV3
+  if(typeof appendMessageToCells === 'undefined' && typeof appendMessageV3 === 'function'){
+    window.appendMessageToCells = async function(roomName, msg){
+      return await appendMessageV3(roomName, msg);
+    };
+  }
+
+  // bumpMaster / readMasterStampRaw aliases
+  if(typeof bumpMaster === 'undefined' && typeof saveMasterValue === 'function'){
+    window.bumpMaster = async function(roomName){
+      await saveMasterValue(roomName, Date.now());
+    };
+  }
+
+  if(typeof readMasterStampRaw === 'undefined' && typeof readMasterValue === 'function'){
+    window.readMasterStampRaw = async function(roomName){
+      const r = await readMasterValue(roomName);
+      return { unchanged: false, stamp: r.ok ? (r.value ? Date.now() : 0) : 0 };
+    };
+  }
+
+  // ghPutJson older signature compatibility: already implemented in file, keep alias
+  if(typeof ghPutJsonCompat === 'undefined'){
+    window.ghPutJsonCompat = function(path,obj,sha,commitMsg){ return ghPutJson(path,obj,sha,commitMsg); };
+  }
+
+})();
+</script>
 </body>
 </html>
