@@ -2581,7 +2581,10 @@ async function appendMessageV3(roomName, msgObj){
     roomIndex.latestCell = cellNum;
 
     // ensure new cell file exists
-    await ghPutJson(cellPath(roomName, cellNum), [], null, `init cell ${cellNum}`);
+    const initResult = await ghPutJson(cellPath(roomName, cellNum), [], null, `init cell ${cellNum}`);
+    if(!initResult || !initResult.ok){
+      throw new Error(`Failed to initialize new cell ${cellNum}`);
+    }
 
     // update boxes structures when crossing box boundary
     await ensureBoxForCell(roomName, cellNum);
@@ -2590,13 +2593,21 @@ async function appendMessageV3(roomName, msgObj){
   // write the cell index into the message for later edits
   msgObj.cell = cellNum;
   arr.push(msgObj);
+  
+  // Critical: Write message to GitHub and verify success
   const put = await ghPutJson(cellPath(roomName, cellNum), arr, sha, `append msg cell ${cellNum}`);
+  if(!put || !put.ok || !put.sha){
+    throw new Error(`Failed to write message to cell ${cellNum} - no SHA returned`);
+  }
+  
+  // Update room index
   roomIndex.totalMessages = (roomIndex.totalMessages || 0) + 1;
   await saveRoomIndex(roomName);
 
-  // notify master
+  // notify master (with retry logic)
   await saveMasterValue(roomName, true);
 
+  log(`✓ Message appended to cell ${cellNum}, total messages: ${roomIndex.totalMessages}`, "INFO");
   return { cellNum, cellSha: put.sha };
 }
 
@@ -3428,43 +3439,52 @@ async function sendMessage(){
     }
   };
 
-  // OPTIMISTIC UI: Show message immediately
+  // OPTIMISTIC UI: Show message immediately with "sending" status
   addMessageToDom(msg);
   msgInput.value = "";
   markInteraction("send");
 
-  // Send to GitHub in background
+  // Send to GitHub (wait for confirmation before marking as sent)
   try{
-    await appendMessageV3(currentRoom, msg);
+    log(`📤 Sending message to GitHub...`, "INFO");
     
-    // Update status to sent
-    msg.status = 'sent';
-    updateMessageStatus(msg.id, 'sent');
+    // This will throw an error if the write fails
+    const result = await appendMessageV3(currentRoom, msg);
     
-    // Enter burst mode: check frequently for responses
-    burstModeUntil = Date.now() + POLL_BURST_DURATION;
-    if(running && currentRoom){
-      clearTimeout(pollTimer);
-      scheduleNextPoll(POLL_MS_BURST);
+    // Only mark as sent if GitHub confirmed the write
+    if(result && result.cellSha){
+      msg.status = 'sent';
+      updateMessageStatus(msg.id, 'sent');
+      log(`✅ Message successfully written to GitHub (cell ${result.cellNum})`, "INFO");
+      
+      // Enter burst mode: check frequently for responses
+      burstModeUntil = Date.now() + POLL_BURST_DURATION;
+      if(running && currentRoom){
+        clearTimeout(pollTimer);
+        scheduleNextPoll(POLL_MS_BURST);
+      }
+      
+      // Presence update
+      await presenceSetOnline(true, "send");
+      
+      // Refresh presence list occasionally
+      await maybeRefreshPresence();
+      
+      // After a brief moment, update to delivered
+      setTimeout(() => {
+        msg.status = 'delivered';
+        updateMessageStatus(msg.id, 'delivered');
+      }, 500);
+    }else{
+      throw new Error("GitHub write returned no SHA (write may have failed)");
     }
-    
-    // Presence update
-    await presenceSetOnline(true, "send");
-    
-    // Refresh presence list occasionally
-    await maybeRefreshPresence();
-    
-    // After a brief moment, update to delivered
-    setTimeout(() => {
-      msg.status = 'delivered';
-      updateMessageStatus(msg.id, 'delivered');
-    }, 500);
     
   }catch(e){
     console.error('[sendMessage ERROR]', e);
     msg.status = 'failed';
     updateMessageStatus(msg.id, 'failed');
-    showToast('Failed to send message. Click retry to try again.', 'error', 6000);
+    log(`❌ Failed to write message to GitHub: ${e.message}`, "ERROR");
+    showToast('Failed to send message to GitHub. Click retry to try again.', 'error', 6000);
   }
 }
 
