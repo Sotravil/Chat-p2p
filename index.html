@@ -2616,8 +2616,8 @@ function initPullToRefreshGesture(){
       
       // Check for slow vertical movement (> 60px)
       if(absDelta > 60){
-        // Slow drag: < 0.4 px/ms (slower than before)
-        if(speed < 0.4){
+        // Slow drag: < 0.3 px/ms (slower than before)
+        if(speed < 0.3){
           pullRefreshText.textContent = '🔄 Release to refresh';
         }else{
           pullRefreshText.textContent = 'Drag slower...';
@@ -2635,9 +2635,9 @@ function initPullToRefreshGesture(){
       const elapsed = Date.now() - pullGestureState.startTime;
       const speed = absDelta / elapsed;
       
-      // STRICT TRIGGER: held 500ms + moved > 80px slowly (< 0.4 px/ms)
+      // STRICT TRIGGER: held 500ms + moved > 80px slowly (< 0.3 px/ms)
       const holdDuration = elapsed;
-      if(holdDuration >= 500 && absDelta > 80 && speed < 0.4){
+      if(holdDuration >= 500 && absDelta > 80 && speed < 0.3){
         log(`✓ Refresh triggered: hold=${holdDuration}ms, dist=${absDelta.toFixed(0)}px, speed=${speed.toFixed(3)}px/ms`, "INFO");
         triggerManualRefresh("pull-to-refresh");
       }else{
@@ -2646,8 +2646,8 @@ function initPullToRefreshGesture(){
           log(`✗ Hold too short: ${holdDuration}ms (need 500ms+)`, "WARN");
         }else if(absDelta < 80){
           log(`✗ Movement too small: ${absDelta.toFixed(0)}px (need 80px+)`, "WARN");
-        }else if(speed >= 0.4){
-          log(`✗ Drag too fast: ${speed.toFixed(3)}px/ms (need <0.4px/ms)`, "WARN");
+        }else if(speed >= 0.3){
+          log(`✗ Drag too fast: ${speed.toFixed(3)}px/ms (need <0.3px/ms)`, "WARN");
         }
         pullRefreshIndicator.classList.remove('active');
         pullRefreshText.textContent = 'Pull to refresh';
