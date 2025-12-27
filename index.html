@@ -1987,14 +1987,31 @@ async function discoverRooms(){
       const roomName = item.name.replace('.json', '');
       // Master files are now in master-rooms/ folder, so no need to skip them here
       
-      // Get room manifest to check if it's V3
-      const manifest = await readManifestSmart(roomName);
-      if(manifest.ok && manifest.obj){
+      // Read from room index for accurate message count
+      const indexPath = roomIndexPath(roomName);
+      const indexData = await ghGetJsonWithSha(indexPath);
+      
+      if(indexData.ok && indexData.obj){
+        // V3 room with index - use accurate totalMessages
         rooms.push({
           name: roomName,
-          totalMessages: manifest.obj.totalMessages || 0,
-          updatedAt: manifest.obj.updatedAt || 0
+          totalMessages: indexData.obj.totalMessages || 0,
+          updatedAt: indexData.obj.updatedAt || 0,
+          latestCell: indexData.obj.latestCell || 0,
+          lastMessageAt: indexData.obj.updatedAt || 0 // Track last message time
         });
+      }else{
+        // Fallback to manifest (for legacy or if index read fails)
+        const manifest = await readManifestSmart(roomName);
+        if(manifest.ok && manifest.obj){
+          rooms.push({
+            name: roomName,
+            totalMessages: manifest.obj.totalMessages || 0,
+            updatedAt: manifest.obj.updatedAt || 0,
+            latestCell: 0,
+            lastMessageAt: manifest.obj.updatedAt || 0
+          });
+        }
       }
     }
     
@@ -2008,12 +2025,13 @@ async function discoverRooms(){
 async function getRoomActiveUsers(roomName){
   try{
     const dir = await ghListDir(`${ROOMS_META_DIR}/${roomName}/presence`);
-    if(!dir.ok) return { active: 0, recent: 0, users: [] };
+    if(!dir.ok) return { active: 0, recent: 0, users: [], lastActivityAt: 0 };
     
     const now = Date.now();
     let active = 0;
     let recent = 0;
     const users = [];
+    let lastActivityAt = 0;
     
     for(const item of dir.items){
       if(item.type !== 'file' || !item.name.endsWith('.json')) continue;
@@ -2023,20 +2041,31 @@ async function getRoomActiveUsers(roomName){
         const p = got.obj;
         const lastActive = p.lastActiveAt || p.lastSeenAt || 0;
         
+        // Track the most recent activity across all users
+        if(lastActive > lastActivityAt) lastActivityAt = lastActive;
+        
         if(now - lastActive < 30_000){ // 30 seconds = active
           active++;
-          users.push({ username: p.username || p.userId, status: 'active' });
+          users.push({ 
+            username: p.username || p.userId, 
+            status: 'active',
+            lastActiveAt: lastActive
+          });
         }else if(now - lastActive < PRESENCE_RECENT_MS){ // 5 min = recent
           recent++;
-          users.push({ username: p.username || p.userId, status: 'recent' });
+          users.push({ 
+            username: p.username || p.userId, 
+            status: 'recent',
+            lastActiveAt: lastActive
+          });
         }
       }
     }
     
-    return { active, recent, users };
+    return { active, recent, users, lastActivityAt };
   }catch(e){
     console.error('[getRoomActiveUsers ERROR]', e);
-    return { active: 0, recent: 0, users: [] };
+    return { active: 0, recent: 0, users: [], lastActivityAt: 0 };
   }
 }
 
@@ -2053,6 +2082,9 @@ async function openRoomBrowser(){
   okBtn.style.display = 'none';
   cancelBtn.textContent = 'Close';
   overlay.classList.remove('modal-hidden');
+  
+  // Get current sort preference
+  const currentSort = localStorage.getItem('roomBrowserSort') || 'recent-activity';
   
   // Load rooms and presence data
   const rooms = await discoverRooms();
@@ -2076,20 +2108,90 @@ async function openRoomBrowser(){
     roomsWithPresence.push(...results);
   }
   
-  // Sort: last joined first, then by active users, then by recent activity
-  roomsWithPresence.sort((a, b) => {
-    if(a.name === lastRoom) return -1;
-    if(b.name === lastRoom) return 1;
-    if(a.presence.active !== b.presence.active) return b.presence.active - a.presence.active;
-    if(a.presence.recent !== b.presence.recent) return b.presence.recent - a.presence.recent;
-    return b.updatedAt - a.updatedAt;
-  });
+  // Function to sort rooms based on selected criteria
+  const sortRooms = (sortType) => {
+    const sorted = [...roomsWithPresence];
+    
+    sorted.sort((a, b) => {
+      // Always keep last joined room at top if sorting by recent activity
+      if(sortType === 'recent-activity'){
+        if(a.name === lastRoom) return -1;
+        if(b.name === lastRoom) return 1;
+      }
+      
+      switch(sortType){
+        case 'recent-activity':
+          // Most active users first, then most recent activity
+          if(a.presence.active !== b.presence.active) return b.presence.active - a.presence.active;
+          if(a.presence.recent !== b.presence.recent) return b.presence.recent - a.presence.recent;
+          const aLatest = Math.max(a.presence.lastActivityAt || 0, a.lastMessageAt || 0);
+          const bLatest = Math.max(b.presence.lastActivityAt || 0, b.lastMessageAt || 0);
+          return bLatest - aLatest;
+          
+        case 'newest-first':
+          // Newest rooms first (highest updatedAt)
+          return (b.updatedAt || 0) - (a.updatedAt || 0);
+          
+        case 'oldest-first':
+          // Oldest rooms first (lowest updatedAt)
+          return (a.updatedAt || 0) - (b.updatedAt || 0);
+          
+        case 'most-active':
+          // Most active users, then most recent users
+          if(a.presence.active !== b.presence.active) return b.presence.active - a.presence.active;
+          if(a.presence.recent !== b.presence.recent) return b.presence.recent - a.presence.recent;
+          return (b.totalMessages || 0) - (a.totalMessages || 0);
+          
+        case 'most-messages':
+          // Most messages first
+          return (b.totalMessages || 0) - (a.totalMessages || 0);
+          
+        default:
+          return 0;
+      }
+    });
+    
+    return sorted;
+  };
   
-  // Render room list
-  const listDiv = document.createElement('div');
-  listDiv.className = 'room-list';
+  // Initial sort
+  let sortedRooms = sortRooms(currentSort);
   
-  for(const room of roomsWithPresence){
+  // Create sort selector
+  const sortContainer = document.createElement('div');
+  sortContainer.style.cssText = 'padding: 10px 15px; border-bottom: 1px solid var(--border); background: var(--bg-secondary)';
+  
+  const sortLabel = document.createElement('label');
+  sortLabel.style.cssText = 'font-size: 13px; color: var(--muted); margin-right: 8px;';
+  sortLabel.textContent = '\uD83D\uDD04 Sort by:';
+  
+  const sortSelect = document.createElement('select');
+  sortSelect.style.cssText = 'padding: 5px 10px; border-radius: 4px; border: 1px solid var(--border); background: var(--bg-primary); color: var(--text); font-size: 13px; cursor: pointer;';
+  sortSelect.innerHTML = `
+    <option value="recent-activity">Recent Activity</option>
+    <option value="newest-first">Newest Rooms</option>
+    <option value="oldest-first">Oldest Rooms</option>
+    <option value="most-active">Most Active</option>
+    <option value="most-messages">Most Messages</option>
+  `;
+  sortSelect.value = currentSort;
+  
+  sortSelect.onchange = () => {
+    const newSort = sortSelect.value;
+    localStorage.setItem('roomBrowserSort', newSort);
+    sortedRooms = sortRooms(newSort);
+    renderRoomList();
+  };
+  
+  sortContainer.appendChild(sortLabel);
+  sortContainer.appendChild(sortSelect);
+  
+  // Render room list function
+  const renderRoomList = () => {
+    const listDiv = document.createElement('div');
+    listDiv.className = 'room-list';
+    
+    for(const room of sortedRooms){
     const item = document.createElement('div');
     item.className = 'room-item';
     if(room.name === lastRoom) item.classList.add('last-joined');
@@ -2103,8 +2205,15 @@ async function openRoomBrowser(){
     
     const meta = document.createElement('div');
     meta.className = 'room-meta';
-    const age = room.updatedAt ? formatTimeAgo(room.updatedAt) : 'unknown';
-    meta.textContent = `${room.totalMessages || 0} messages \u00b7 ${age}`;
+    
+    // Use last message time for more accurate activity indicator
+    const hasActiveUsers = room.presence.active > 0;
+    const lastActivity = room.lastMessageAt || room.updatedAt;
+    const age = lastActivity ? formatLastActivity(lastActivity, hasActiveUsers) : 'unknown';
+    const cellInfo = room.latestCell > 0 ? ` \u00b7 ${room.latestCell} cells` : '';
+    
+    // Show message count and activity
+    meta.textContent = `${room.totalMessages || 0} messages${cellInfo} \u00b7 ${age}`;
     
     info.appendChild(name);
     info.appendChild(meta);
@@ -2116,9 +2225,17 @@ async function openRoomBrowser(){
     const count = document.createElement('span');
     count.className = 'user-count';
     const total = room.presence.active + room.presence.recent;
-    count.innerHTML = `\uD83D\uDC65 ${total}`;
+    
+    // Show presence with more detail
     if(room.presence.active > 0){
-      count.title = `${room.presence.active} active, ${room.presence.recent} recent`;
+      count.innerHTML = `\uD83D\uDFE2 ${room.presence.active}`; // Green dot for active
+      count.title = `${room.presence.active} active now${room.presence.recent > 0 ? `, ${room.presence.recent} recent` : ''}`;
+    }else if(room.presence.recent > 0){
+      count.innerHTML = `\uD83D\uDC65 ${room.presence.recent}`; // Regular for recent only
+      count.title = `${room.presence.recent} recent (within 5 min)`;
+    }else{
+      count.innerHTML = `\uD83D\uDC65 0`;
+      count.title = 'No active users';
     }
     
     status.appendChild(count);
@@ -2134,15 +2251,41 @@ async function openRoomBrowser(){
     };
     
     listDiv.appendChild(item);
-  }
+    }
+    
+    bodyEl.innerHTML = '';
+    bodyEl.appendChild(sortContainer);
+    bodyEl.appendChild(listDiv);
+  };
   
-  bodyEl.innerHTML = '';
-  bodyEl.appendChild(listDiv);
+  // Initial render
+  renderRoomList();
 }
 
 function formatTimeAgo(timestamp){
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
-  if(seconds < 60) return 'just now';
+  if(seconds < 5) return 'just now';
+  if(seconds < 60) return `${seconds}s ago`;
+  if(seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if(seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  if(seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+  return `${Math.floor(seconds / 604800)}w ago`;
+}
+
+function formatLastActivity(timestamp, hasActive){
+  if(!timestamp) return 'unknown';
+  const seconds = Math.floor((Date.now() - timestamp) / 1000);
+  
+  // For active rooms, show very precise timing
+  if(hasActive){
+    if(seconds < 5) return 'active now';
+    if(seconds < 60) return `active ${seconds}s ago`;
+    if(seconds < 300) return `active ${Math.floor(seconds / 60)}m ago`;
+  }
+  
+  // For recent activity
+  if(seconds < 5) return 'just now';
+  if(seconds < 60) return `${seconds}s ago`;
   if(seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
   if(seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
   if(seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
