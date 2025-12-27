@@ -671,6 +671,63 @@
       margin-left:8px;
     }
 
+    /* Fullscreen chat mode */
+    .fullscreen-toggle{
+      position:absolute;
+      right:12px;
+      top:50%;
+      transform:translateY(-50%);
+      width:36px;
+      height:36px;
+      padding:0;
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      background:rgba(56,189,248,.12);
+      border:1px solid rgba(56,189,248,.3);
+      color:var(--txt);
+      cursor:pointer;
+      transition:all .2s ease;
+      z-index:10;
+    }
+    .fullscreen-toggle:hover{
+      background:rgba(56,189,248,.2);
+      border-color:rgba(56,189,248,.5);
+      transform:translateY(-50%) scale(1.05);
+    }
+    body.chat-fullscreen header,
+    body.chat-fullscreen .join,
+    body.chat-fullscreen .log{
+      display:none !important;
+    }
+    body.chat-fullscreen main{
+      height:100%;
+      padding:0;
+      gap:0;
+    }
+    body.chat-fullscreen .chat{
+      height:100%;
+      border-radius:0;
+      border:none;
+    }
+    body.chat-fullscreen .chatHeader{
+      position:relative;
+      border-radius:0;
+    }
+    body.chat-fullscreen .msgs{
+      height:calc(100vh - 130px);
+    }
+    body.chat-fullscreen .fullscreen-toggle{
+      background:rgba(239,68,68,.12);
+      border-color:rgba(239,68,68,.3);
+    }
+    body.chat-fullscreen .fullscreen-toggle:hover{
+      background:rgba(239,68,68,.2);
+      border-color:rgba(239,68,68,.5);
+    }
+
     /* ================================================
        MOBILE-FIRST RESPONSIVE DESIGN
        Base styles = Mobile (320px+)
@@ -954,6 +1011,7 @@
         <div class="sub" id="roomSub">—</div>
       </div>
       <div class="people" id="presenceSummary">presence: —</div>
+      <button id="fullscreenBtn" class="fullscreen-toggle" title="Fullscreen chat">⛶</button>
     </div>
 
     <div class="msgs" id="messages"></div>
@@ -1065,6 +1123,7 @@ const pollInput  = el("pollInput");
 const joinBtn    = el("joinBtn");
 const leaveBtn   = el("leaveBtn");
 const syncBtn    = el("syncBtn");
+const fullscreenBtn = el("fullscreenBtn");
 
 const chatPanel  = el("chatPanel");
 const roomTitle  = el("roomTitle");
@@ -2620,9 +2679,25 @@ async function readMasterValue(roomName){
 
 async function saveMasterValue(roomName, value){
   const p = masterPath(roomName);
-  const got = await ghGetJsonWithSha(p);
-  const sha = got.ok ? got.sha : null;
-  await ghPutJson(p, !!value, sha, "set master");
+  try{
+    const got = await ghGetJsonWithSha(p);
+    const sha = got.ok ? got.sha : null;
+    const result = await ghPutJson(p, !!value, sha, "set master");
+    
+    if(!result || !result.ok){
+      // Retry once if failed
+      log(`⚠️ Master flag update failed, retrying...`, "WARN");
+      await sleep(500);
+      const got2 = await ghGetJsonWithSha(p);
+      const sha2 = got2.ok ? got2.sha : null;
+      await ghPutJson(p, !!value, sha2, "set master (retry)");
+    }else{
+      log(`✓ Master flag set to ${value}`, "INFO");
+    }
+  }catch(e){
+    console.error('[saveMasterValue ERROR]', e);
+    log(`❌ Failed to set master flag: ${e.message}`, "ERROR");
+  }
 }
 
 function scheduleNextPoll(ms){
@@ -3751,6 +3826,24 @@ window.sendMessage = async function(){
   
   // Normal send
   return originalSendMessage.call(this);
+};
+
+// Fullscreen chat toggle
+let isFullscreen = false;
+fullscreenBtn.onclick = ()=>{
+  isFullscreen = !isFullscreen;
+  
+  if(isFullscreen){
+    document.body.classList.add('chat-fullscreen');
+    fullscreenBtn.textContent = '✕'; // Close icon
+    fullscreenBtn.title = 'Exit fullscreen';
+    log('📱 Fullscreen mode enabled', 'INFO');
+  }else{
+    document.body.classList.remove('chat-fullscreen');
+    fullscreenBtn.textContent = '⛶'; // Expand icon
+    fullscreenBtn.title = 'Fullscreen chat';
+    log('📱 Fullscreen mode disabled', 'INFO');
+  }
 };
 
 roomInput.addEventListener("keydown", (e)=>{
