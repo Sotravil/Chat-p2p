@@ -710,6 +710,7 @@
       <div style="display:flex; gap:10px">
         <button id="joinBtn" class="primary">Join</button>
         <button id="leaveBtn">Leave</button>
+        <button id="syncBtn" style="display:none">🔄 Check Messages</button>
       </div>
     </div>
   </section>
@@ -831,6 +832,7 @@ const nameInput  = el("nameInput");
 const pollInput  = el("pollInput");
 const joinBtn    = el("joinBtn");
 const leaveBtn   = el("leaveBtn");
+const syncBtn    = el("syncBtn");
 
 const chatPanel  = el("chatPanel");
 const roomTitle  = el("roomTitle");
@@ -1005,8 +1007,10 @@ async function ghGetJsonWithSha(path){
     method:"GET",
     headers:{
       "Accept":"application/vnd.github+json",
-      "Authorization":`Bearer ${GH_TOKEN}`
-    }
+      "Authorization":`Bearer ${GH_TOKEN}`,
+      "Cache-Control": "no-cache"
+    },
+    cache: 'no-store' // Disable cache for real-time updates
   });
 
   if(res.status===404) return { ok:false, status:404, obj:null, sha:null, rawText:null };
@@ -2167,6 +2171,7 @@ async function pollLoop(){
 
     // ONLY sync if master=true (someone sent a message)
     if(master.value){
+      log(`🔄 Syncing new messages (master=true)...`, "INFO");
       await syncLatestFromStorage();
       await sleep(100);
       await saveMasterValue(currentRoom, false);
@@ -2211,6 +2216,13 @@ function renderAll(messages){
 }
 
 function addMessageToDom(m, silent=false, prepend=false){
+  // Skip if message already exists in DOM
+  const existing = messagesEl.querySelector(`[data-msg-id="${m.id}"]`);
+  if(existing) return;
+  
+  // Skip if already in loadedMessages
+  if(loadedMessages.some(msg => msg.id === m.id)) return;
+  
   // Store to loaded list
   if(prepend) loadedMessages.unshift(m);
   else loadedMessages.push(m);
@@ -2949,11 +2961,23 @@ async function syncLatestFromStorage(){
   const newMsgs = await loadCellsRange(currentRoom, loadedCellsMax+1, latestCell);
   loadedCellsMax = latestCell;
 
+  // Filter out duplicates and add to DOM
+  let addedCount = 0;
+  const existingIds = new Set(loadedMessages.map(m => m.id));
+  
   for(const m of newMsgs){
-    addMessageToDom(m, true);
+    // Skip if already in DOM
+    if(existingIds.has(m.id)) continue;
+    
+    addMessageToDom(m, false); // false = auto-scroll
+    addedCount++;
   }
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-  setupReadObserver();
+  
+  if(addedCount > 0){
+    log(`📨 ${addedCount} new message(s) received`, "INFO");
+    setupReadObserver();
+  }
+  
   await maybeRefreshPresence();
   updateReadBadges();
 }
@@ -3069,6 +3093,7 @@ joinBtn.onclick = async ()=>{
 
     // UI
     chatPanel.style.display = "flex";
+    syncBtn.style.display = "inline-block";
     roomTitle.textContent = `#${currentRoom}`;
     roomSub.textContent = `storage: V3 · cell=${CELL_MAX_MESSAGES} · box=${CELLS_PER_BOX} cells`;
 
@@ -3118,10 +3143,31 @@ leaveBtn.onclick = async ()=>{
     }
 
     chatPanel.style.display = "none";
+    syncBtn.style.display = "none";
     clearView();
     log("Left room.","INFO");
   }catch(e){
     console.error("[Leave ERROR]", e);
+  }
+};
+
+syncBtn.onclick = async ()=>{
+  if(!running || !currentRoom){
+    showToast('Not in a room', 'warning');
+    return;
+  }
+  try{
+    syncBtn.disabled = true;
+    syncBtn.textContent = '🔄 Syncing...';
+    log('🔄 Manually checking for new messages...', 'INFO');
+    await syncLatestFromStorage();
+    showToast('Sync complete!', 'success');
+  }catch(e){
+    console.error('[Manual Sync ERROR]', e);
+    showToast('Sync failed: ' + e.message, 'error');
+  }finally{
+    syncBtn.disabled = false;
+    syncBtn.textContent = '🔄 Check Messages';
   }
 };
 
