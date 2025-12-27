@@ -698,8 +698,8 @@
         <input id="nameInput" placeholder="e.g. Sotravil" autocomplete="off"/>
       </div>
       <div class="field" style="max-width:170px">
-        <label>Poll ms (active)</label>
-        <input id="pollInput" type="number" value="1073" min="250" step="1"/>
+        <label>Poll ms (on interaction)</label>
+        <input id="pollInput" type="number" value="2000" min="500" step="100"/>
       </div>
     </div>
     <div class="row" style="align-items:center; justify-content:space-between">
@@ -779,8 +779,10 @@ const PRESENCE_ACTIVE_HEARTBEAT_MS = 10_000;   // 10s while ACTIVE
 const PRESENCE_RECENT_MS           = 5 * 60_000; // 5 min "recent"
 
 // === ACTIVITY TRACKER ===
-const POLL_MS_ACTIVE_DEFAULT = 1073;    // target behavior
-const POLL_MS_IDLE           = 90_000;  // 90s
+const POLL_MS_BURST          = 500;     // Fast checks during conversation burst
+const POLL_MS_INTERACTION    = 2000;    // Check after interaction
+const POLL_BURST_DURATION    = 10_000;  // 10s burst after sending message
+const POLL_MS_IDLE           = 90_000;  // 90s (for presence only)
 const IDLE_THRESHOLD_MS      = 2_000;   // 2s since last interaction => idle
 const ACTIVE_BURST_MS        = 2_000;   // keep active for 2s after last interaction
 const INTERACTION_THROTTLE_MS= 150;     // update timestamps at most every 150ms
@@ -1577,6 +1579,12 @@ function markInteraction(kind="unknown"){
   if(presenceState.inRoom && presenceState.isIdle){
     presenceSetOnline(true, "interaction");
   }
+  
+  // Trigger poll check on interaction (if in room and not already polling)
+  if(running && currentRoom && !pollInFlight){
+    clearTimeout(pollTimer);
+    scheduleNextPoll(parseInt(pollInput.value||POLL_MS_INTERACTION,10));
+  }
 }
 
 function isActiveNow(){
@@ -1592,8 +1600,8 @@ function installInteractionListeners(){
     window.addEventListener(ev, ()=>markInteraction(ev), opts);
   });
 
-  // Touch
-  ["touchstart","touchmove","touchend"].forEach(ev=>{
+  // Touch events (tap, swipe, drag)
+  ["touchstart","touchmove","touchend","touchcancel"].forEach(ev=>{
     window.addEventListener(ev, ()=>markInteraction(ev), opts);
   });
 
@@ -1604,6 +1612,53 @@ function installInteractionListeners(){
     holdTimer = setTimeout(()=>markInteraction("long-press"), 350);
   }, opts);
   window.addEventListener("touchend", ()=>clearTimeout(holdTimer), opts);
+  
+  // Mobile gesture detection: swipe
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchStartTime = 0;
+  
+  window.addEventListener("touchstart", (e)=>{
+    touchStartX = e.touches[0]?.clientX || 0;
+    touchStartY = e.touches[0]?.clientY || 0;
+    touchStartTime = Date.now();
+  }, opts);
+  
+  window.addEventListener("touchend", (e)=>{
+    const touchEndX = e.changedTouches[0]?.clientX || 0;
+    const touchEndY = e.changedTouches[0]?.clientY || 0;
+    const deltaX = Math.abs(touchEndX - touchStartX);
+    const deltaY = Math.abs(touchEndY - touchStartY);
+    const deltaTime = Date.now() - touchStartTime;
+    
+    // Detect swipe (fast gesture > 50px in < 500ms)
+    if(deltaTime < 500 && (deltaX > 50 || deltaY > 50)){
+      markInteraction("swipe");
+    }
+  }, opts);
+  
+  // Pinch/zoom gesture (indicates engagement)
+  window.addEventListener("gesturestart", ()=>markInteraction("pinch"), opts);
+  window.addEventListener("gesturechange", ()=>markInteraction("pinch"), opts);
+  
+  // Orientation change (user rotated device)
+  window.addEventListener("orientationchange", ()=>{
+    markInteraction("orientation");
+    // Check messages after orientation change
+    if(running && currentRoom && !pollInFlight){
+      setTimeout(pollLoop, 200);
+    }
+  });
+  
+  // Focus events (keyboard opened/closed on mobile)
+  msgInput.addEventListener("focus", ()=>{
+    markInteraction("input-focus");
+    startTypingMode();
+  });
+  
+  msgInput.addEventListener("blur", ()=>{
+    markInteraction("input-blur");
+  });
 
   // Fast-scroll detector for read receipts
   let lastScrollTop = 0;
@@ -1633,6 +1688,10 @@ let masterLastValue = false;
 // Poll loop guards
 let pollTimer = null;
 let pollInFlight = false;
+let isTypingMode = false;
+let typingTimeout = null;
+let lastTypingAt = 0;
+let burstModeUntil = 0;  // Timestamp for burst mode end
 
 // V3 loaded window
 let loadedCellsMin = null;
@@ -2049,56 +2108,92 @@ function scheduleNextPoll(ms){
   pollTimer = setTimeout(pollLoop, ms);
 }
 
+// Typing mode: enable fast polling when user is typing
+function startTypingMode(){
+  const now = Date.now();
+  lastTypingAt = now;
+  
+  if(!isTypingMode){
+    isTypingMode = true;
+    // Trigger immediate check when typing starts
+    clearTimeout(pollTimer);
+    setTimeout(pollLoop, 0);
+  }
+  
+  // Auto-disable typing mode after 3 seconds of no typing
+  clearTimeout(typingTimeout);
+  typingTimeout = setTimeout(() => {
+    isTypingMode = false;
+    // One final check when typing stops
+    if(running && currentRoom) pollLoop();
+  }, 3000);
+}
+
+function stopTypingMode(){
+  clearTimeout(typingTimeout);
+  isTypingMode = false;
+}
+
 async function pollLoop(){
   try{
     if(!running || !currentRoom) return;
     if(pollInFlight) return;
 
-    // ====== Activity/idle gating (NO network if idle) ======
+    const now = Date.now();
     const active = isActiveNow();
+    
+    // Handle idle state
     if(!active){
-      // if we are idle and presence still online -> flip offline once
       if(presenceState.inRoom && !presenceState.isIdle){
         await presenceSetOnline(false, "idle");
       }
-      scheduleNextPoll(POLL_MS_IDLE);
+      // No more polling when idle - will resume on interaction
       return;
     }
 
-    // active => ensure presence online + heartbeat running
+    // Active: ensure presence online
     if(presenceState.inRoom && presenceState.isIdle){
       await presenceSetOnline(true, "active");
     }
 
     pollInFlight = true;
 
-    // Read master flag; if true -> sync latest
+    // Read master flag (lightweight check)
     const master = await readMasterValue(currentRoom);
     if(!master.ok){
-      // Still active: mild backoff (but not idle mode)
-      scheduleNextPoll(Math.min(10_000, Number(pollInput.value||POLL_MS_ACTIVE_DEFAULT) + 900));
       pollInFlight = false;
       return;
     }
 
-    // If master toggled true OR (cheap) we can also periodically refresh presence
+    // ONLY sync if master=true (someone sent a message)
     if(master.value){
       await syncLatestFromStorage();
-      // Reset master (give other clients time)
-      await sleep(250);
+      await sleep(100);
       await saveMasterValue(currentRoom, false);
+      
+      // Enter burst mode: check frequently for quick back-and-forth
+      burstModeUntil = now + POLL_BURST_DURATION;
     }else{
-      // Even if master false, we still fetch presence sometimes
+      // No new messages, just refresh presence
       await maybeRefreshPresence();
     }
 
-    // Poll cadence (active)
-    const activeMs = Math.max(250, parseInt(pollInput.value||POLL_MS_ACTIVE_DEFAULT,10));
-    scheduleNextPoll(activeMs);
+    // Smart scheduling:
+    // - Burst mode (after message received): aggressive polling for 10s
+    // - Typing mode: check while typing
+    // - Otherwise: NO automatic polling (wait for interaction)
+    
+    const inBurstMode = now < burstModeUntil;
+    
+    if(inBurstMode || isTypingMode){
+      // Continue polling during conversation
+      const interval = inBurstMode ? POLL_MS_BURST : POLL_MS_INTERACTION;
+      scheduleNextPoll(interval);
+    }
+    // else: stop polling, wait for next interaction
+    
   }catch(e){
     console.error("[pollLoop ERROR]", e);
-    // fallback to slower active retry
-    scheduleNextPoll(5_000);
   }finally{
     pollInFlight = false;
   }
@@ -2741,6 +2836,13 @@ async function sendMessage(){
     msg.status = 'sent';
     updateMessageStatus(msg.id, 'sent');
     
+    // Enter burst mode: check frequently for responses
+    burstModeUntil = Date.now() + POLL_BURST_DURATION;
+    if(running && currentRoom){
+      clearTimeout(pollTimer);
+      scheduleNextPoll(POLL_MS_BURST);
+    }
+    
     // Presence update
     await presenceSetOnline(true, "send");
     
@@ -3033,11 +3135,19 @@ roomInput.addEventListener("keydown", (e)=>{
   }
 });
 
+msgInput.addEventListener("input", (e)=>{
+  // Trigger typing mode for fast polling
+  if(currentRoom && running){
+    startTypingMode();
+  }
+});
+
 msgInput.addEventListener("keydown", (e)=>{
   if(e.key === "Enter"){
     // Shift+Enter -> newline, Enter (alone) -> send. Ctrl/Cmd+Enter also sends.
     if(e.shiftKey) return;
     e.preventDefault();
+    stopTypingMode(); // Stop fast polling when sending
     sendMessage();
   }
 });
@@ -3053,6 +3163,15 @@ window.addEventListener("load", async ()=>{
     applySessionToUi();
 
     installInteractionListeners();
+    
+    // Tab visibility: check for messages when tab becomes visible
+    document.addEventListener("visibilitychange", ()=>{
+      if(!document.hidden && running && currentRoom && !pollInFlight){
+        // Tab became visible - check for new messages
+        clearTimeout(pollTimer);
+        setTimeout(pollLoop, 100);
+      }
+    });
 
     log("⏳ Loading token…","INFO");
     await ensureGhToken();
