@@ -238,8 +238,10 @@
       50% { opacity:.85; transform:scale(1.02); }
     }
     .msgs{
+      flex:1;
       padding:12px;
-      overflow:auto;
+      overflow-y:auto;
+      overflow-x:hidden;
       scroll-behavior:smooth;
       -webkit-overflow-scrolling:touch;
       min-height:0;
@@ -1350,19 +1352,33 @@
     /* Mobile: Optimize message display */
     @media (max-width: 640px){
       .msg{
-        max-width:90%;
-        padding:10px 12px;
-        font-size:14px;
+        max-width:88%;
+        padding:12px 14px;
+        font-size:15px;
+        margin:8px 0;
       }
       .msg .text{
-        font-size:14px;
-        line-height:1.4;
+        font-size:15px;
+        line-height:1.45;
+        word-break:break-word;
       }
       .msg .meta{
         font-size:11px;
       }
       .msgs{
-        padding:8px;
+        flex:1;
+        padding:10px;
+        overflow-y:auto !important;
+        overflow-x:hidden;
+        -webkit-overflow-scrolling:touch;
+        height:auto;
+        min-height:0;
+      }
+      .chat{
+        display:flex;
+        flex-direction:column;
+        height:100%;
+        min-height:0;
       }
     }
 
@@ -1554,7 +1570,14 @@
         padding:8px 10px;
       }
       .msgs{
-        max-height:45vh;
+        flex:1;
+        height:auto;
+        min-height:200px;
+        overflow-y:auto !important;
+      }
+      .chat{
+        height:calc(100vh - 120px);
+        min-height:400px;
       }
     }
 
