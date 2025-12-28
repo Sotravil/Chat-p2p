@@ -39,6 +39,8 @@
     }
     body{
       margin:0;
+      display:flex;
+      flex-direction:column;
       /* Safe area insets for notched devices */
       padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
       background:radial-gradient(1200px 700px at 40% -10%, rgba(56,189,248,.15), transparent 60%),
@@ -49,10 +51,12 @@
       font-family:var(--sans);
       -webkit-font-smoothing:antialiased;
       -webkit-tap-highlight-color:transparent; /* Remove tap highlight on mobile */
-      touch-action:manipulation; /* Prevent double-tap zoom */
-      overflow:hidden;
+      touch-action:pan-y; /* Allow vertical scrolling */
+      overflow-y:auto;
+      overflow-x:hidden;
     }
     header{
+      flex-shrink:0;
       display:flex; align-items:center; justify-content:space-between;
       padding:14px 18px;
       border-bottom:1px solid var(--border);
@@ -122,12 +126,16 @@
       padding:12px;
     }
     .panel{
+      flex:1;
+      min-height:0;
       background:linear-gradient(180deg, rgba(17,28,54,.98), rgba(15,23,42,.95));
       border:1px solid rgba(255,255,255,.12);
       border-radius:18px;
       box-shadow:0 12px 40px rgba(0,0,0,.4), 0 0 1px rgba(255,255,255,.1);
       overflow:hidden;
       position:relative;
+      display:flex;
+      flex-direction:column;
     }
     .panel::before{
       content:'';
@@ -171,8 +179,10 @@
       display:flex;
       flex-direction:column;
       min-height:0;
+      flex:1;
     }
     .chatHeader{
+      flex-shrink:0;
       padding:10px 12px;
       border-bottom:1px solid var(--border);
       display:flex; align-items:center; justify-content:space-between;
@@ -454,6 +464,7 @@
     }
     
     .composer{
+      flex-shrink:0;
       display:flex;
       flex-direction:column;
       gap:8px;
@@ -1573,11 +1584,21 @@
         flex:1;
         height:auto;
         min-height:200px;
+        max-height:none;
         overflow-y:auto !important;
       }
       .chat{
-        height:calc(100vh - 120px);
-        min-height:400px;
+        min-height:calc(100vh - 80px);
+        height:auto;
+      }
+      body{
+        overflow-y:auto;
+        overflow-x:hidden;
+        height:auto;
+        min-height:100vh;
+      }
+      .panel{
+        min-height:calc(100vh - 80px);
       }
     }
 
