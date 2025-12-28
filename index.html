@@ -2732,13 +2732,13 @@ async function openRoomBrowser(){
     
     // Show presence with more detail
     if(room.presence.active > 0){
-      count.innerHTML = `\uD83D\uDFE2 ${room.presence.active}`; // Green dot for active
+      count.textContent = `🟢 ${room.presence.active}`; // Green dot for active
       count.title = `${room.presence.active} active now${room.presence.recent > 0 ? `, ${room.presence.recent} recent` : ''}`;
     }else if(room.presence.recent > 0){
-      count.innerHTML = `\uD83D\uDC65 ${room.presence.recent}`; // Regular for recent only
+      count.textContent = `👥 ${room.presence.recent}`; // Regular for recent only
       count.title = `${room.presence.recent} recent (within 5 min)`;
     }else{
-      count.innerHTML = `\uD83D\uDC65 0`;
+      count.textContent = `👥 0`;
       count.title = 'No active users';
     }
     
@@ -3426,13 +3426,35 @@ function detectMentions(text){
 }
 
 function highlightMentions(text, currentUser){
-  if(!text) return '';
+  if(!text) return document.createTextNode('');
+  
+  const fragment = document.createDocumentFragment();
   const mentionRegex = /@([\w\-]+)/g;
-  return text.replace(mentionRegex, (match, username) => {
-    const isSelf = (username.toLowerCase() === currentUser.toLowerCase());
-    const className = isSelf ? 'mention mention-me' : 'mention';
-    return `<span class="${className}">${match}</span>`;
-  });
+  let lastIndex = 0;
+  let match;
+  
+  while((match = mentionRegex.exec(text)) !== null){
+    // Add text before mention
+    if(match.index > lastIndex){
+      fragment.appendChild(document.createTextNode(text.slice(lastIndex, match.index)));
+    }
+    
+    // Add mention span
+    const isSelf = (match[1].toLowerCase() === currentUser.toLowerCase());
+    const span = document.createElement('span');
+    span.className = isSelf ? 'mention mention-me' : 'mention';
+    span.textContent = match[0]; // Safe: @username
+    fragment.appendChild(span);
+    
+    lastIndex = match.index + match[0].length;
+  }
+  
+  // Add remaining text
+  if(lastIndex < text.length){
+    fragment.appendChild(document.createTextNode(text.slice(lastIndex)));
+  }
+  
+  return fragment;
 }
 
 function scrollToMessage(msgId){
@@ -4283,7 +4305,7 @@ function addMessageToDom(m, silent=false, prepend=false){
     
     const audioPlayBtn = document.createElement("button");
     audioPlayBtn.className = "audio-play-btn";
-    audioPlayBtn.innerHTML = "⬇️"; // Download icon initially
+    audioPlayBtn.textContent = "⬇️"; // Download icon initially
     audioPlayBtn.dataset.playing = "false";
     audioPlayBtn.dataset.loaded = "false";
     audioPlayBtn.title = "Tap to download and play";
@@ -4310,7 +4332,11 @@ function addMessageToDom(m, silent=false, prepend=false){
     
     if(audioSize > 0){
       // Show size before download
-      audioDuration.innerHTML = `<span style="opacity:0.7">${formatBytes(audioSize)}</span> · ${formatDuration(durationSec)}`;
+      const sizeSpan = document.createElement('span');
+      sizeSpan.style.opacity = '0.7';
+      sizeSpan.textContent = formatBytes(audioSize);
+      audioDuration.appendChild(sizeSpan);
+      audioDuration.appendChild(document.createTextNode(` · ${formatDuration(durationSec)}`));
     }else{
       audioDuration.textContent = formatDuration(durationSec);
     }
@@ -4325,9 +4351,13 @@ function addMessageToDom(m, silent=false, prepend=false){
     const loadAudioOnDemand = async () => {
       if(audioPlayBtn.dataset.loaded === "true") return true;
       
-      audioPlayBtn.innerHTML = "⏳";
+      audioPlayBtn.textContent = "⏳";
       audioPlayBtn.disabled = true;
-      audioDuration.innerHTML = `<span style="opacity:0.7">Loading...</span>`;
+      audioDuration.textContent = '';
+      const loadingSpan = document.createElement('span');
+      loadingSpan.style.opacity = '0.7';
+      loadingSpan.textContent = 'Loading...';
+      audioDuration.appendChild(loadingSpan);
       
       try{
         if(m.audioPath){
@@ -4336,7 +4366,7 @@ function addMessageToDom(m, silent=false, prepend=false){
           if(!cached) throw new Error('Failed to download audio');
           
           audioElement.src = cached.blobUrl;
-          audioPlayBtn.innerHTML = "▶️";
+          audioPlayBtn.textContent = "▶️";
           audioPlayBtn.disabled = false;
           audioPlayBtn.dataset.loaded = "true";
           audioPlayBtn.title = "Play audio";
@@ -4354,7 +4384,7 @@ function addMessageToDom(m, silent=false, prepend=false){
         }else if(m.audioData){
           // Use base64 data (legacy or just-sent)
           audioElement.src = m.audioData;
-          audioPlayBtn.innerHTML = "▶️";
+          audioPlayBtn.textContent = "▶️";
           audioPlayBtn.disabled = false;
           audioPlayBtn.dataset.loaded = "true";
           audioPlayBtn.title = "Play audio";
@@ -4363,9 +4393,14 @@ function addMessageToDom(m, silent=false, prepend=false){
         }
       }catch(err){
         console.error('Error loading audio:', err);
-        audioPlayBtn.innerHTML = "❌";
+        audioPlayBtn.textContent = "❌";
         audioPlayBtn.disabled = true;
-        audioDuration.innerHTML = `<span style="opacity:0.7;color:var(--danger)">Failed</span>`;
+        audioDuration.textContent = '';
+        const failSpan = document.createElement('span');
+        failSpan.style.opacity = '0.7';
+        failSpan.style.color = 'var(--danger)';
+        failSpan.textContent = 'Failed';
+        audioDuration.appendChild(failSpan);
         showToast('Failed to load audio: ' + err.message, 'error');
         return false;
       }
@@ -4374,7 +4409,7 @@ function addMessageToDom(m, silent=false, prepend=false){
     // Handle audio element errors
     audioElement.addEventListener('error', (e) => {
       console.error('Audio playback error:', e);
-      audioPlayBtn.innerHTML = "❌";
+      audioPlayBtn.textContent = "❌";
       audioPlayBtn.disabled = true;
       showToast('Audio playback failed', 'error');
     });
@@ -4396,7 +4431,7 @@ function addMessageToDom(m, silent=false, prepend=false){
       
       if(isPlaying){
         audioElement.pause();
-        audioPlayBtn.innerHTML = "▶️";
+        audioPlayBtn.textContent = "▶️";
         audioPlayBtn.dataset.playing = "false";
       }else{
         // Pause all other audio players
@@ -4406,7 +4441,7 @@ function addMessageToDom(m, silent=false, prepend=false){
             const otherAudio = document.querySelector(`audio[data-msg-id="${otherMsgId}"]`);
             if(otherAudio){
               otherAudio.pause();
-              btn.innerHTML = "▶️";
+              btn.textContent = "▶️";
               btn.dataset.playing = "false";
             }
           }
@@ -4414,7 +4449,7 @@ function addMessageToDom(m, silent=false, prepend=false){
         
         // Play this audio
         audioElement.play().then(() => {
-          audioPlayBtn.innerHTML = "⏸️";
+          audioPlayBtn.textContent = "⏸️";
           audioPlayBtn.dataset.playing = "true";
           console.log('Audio playing:', m.id);
           
@@ -4427,7 +4462,7 @@ function addMessageToDom(m, silent=false, prepend=false){
         }).catch(e => {
           console.error('Error playing audio:', e);
           showToast('Could not play audio: ' + e.message, 'error');
-          audioPlayBtn.innerHTML = "❌";
+          audioPlayBtn.textContent = "❌";
         });
       }
     };
@@ -4474,7 +4509,7 @@ function addMessageToDom(m, silent=false, prepend=false){
     audioElement.addEventListener('timeupdate', updatePlaybackProgress);
     
     audioElement.addEventListener('ended', () => {
-      audioPlayBtn.innerHTML = "▶️";
+      audioPlayBtn.textContent = "▶️";
       audioPlayBtn.dataset.playing = "false";
       
       // Reset waveform
@@ -4513,7 +4548,10 @@ function addMessageToDom(m, silent=false, prepend=false){
       const listeners = m.listenedBy.map(l => l.username).join(', ');
       const listenedIndicator = document.createElement('div');
       listenedIndicator.className = 'audio-listened-indicator';
-      listenedIndicator.innerHTML = `<span title="Listened by: ${listeners}">🎧 ${listenedCount}</span>`;
+      const indicatorSpan = document.createElement('span');
+      indicatorSpan.title = `Listened by: ${listeners}`;
+      indicatorSpan.textContent = `🎧 ${listenedCount}`;
+      listenedIndicator.appendChild(indicatorSpan);
       listenedIndicator.style.cssText = 'font-size:10px; opacity:0.7; margin-top:4px; text-align:right; color:var(--muted);';
       audioMsg.appendChild(listenedIndicator);
     }
@@ -4525,8 +4563,8 @@ function addMessageToDom(m, silent=false, prepend=false){
     // Highlight mentions in text
     if(!m.deleted){
       const currentUser = session?.username || nameInput.value || localGuest.name;
-      const highlightedText = highlightMentions(m.text, currentUser);
-      text.innerHTML = highlightedText;
+      const highlightedContent = highlightMentions(m.text, currentUser);
+      text.appendChild(highlightedContent);
     }else{
       text.textContent = "[deleted]";
     }
@@ -6156,7 +6194,7 @@ function togglePauseRecording(){
     mediaRecorder.resume();
     pausedDuration += Date.now() - lastPauseTime;
     audioPaused = false;
-    audioPauseBtn.innerHTML = '⏸️ Pause';
+    audioPauseBtn.textContent = '⏸️ Pause';
     audioPauseBtn.classList.remove('record');
     audioPauseBtn.classList.add('pause');
     log('🎤 Recording resumed', 'INFO');
@@ -6165,7 +6203,7 @@ function togglePauseRecording(){
     mediaRecorder.pause();
     lastPauseTime = Date.now();
     audioPaused = true;
-    audioPauseBtn.innerHTML = '▶️ Resume';
+    audioPauseBtn.textContent = '▶️ Resume';
     audioPauseBtn.classList.remove('pause');
     audioPauseBtn.classList.add('record');
     log('⏸️ Recording paused', 'INFO');
@@ -6240,7 +6278,7 @@ function showAudioPreview(){
     justify-content:center;
     transition:all .2s ease;
   `;
-  playBtn.innerHTML = '▶️';
+  playBtn.textContent = '▶️';
   
   const previewText = document.createElement('div');
   previewText.style.cssText = 'flex:1; text-align:center; color:var(--muted);';
@@ -6269,7 +6307,7 @@ function showAudioPreview(){
     
     if(audioEl.paused){
       audioEl.play().then(() => {
-        playBtn.innerHTML = '⏸️';
+        playBtn.textContent = '⏸️';
         previewText.textContent = 'Playing...';
         log('🎵 Playing preview', 'INFO');
       }).catch(e => {
@@ -6278,13 +6316,13 @@ function showAudioPreview(){
       });
     }else{
       audioEl.pause();
-      playBtn.innerHTML = '▶️';
+      playBtn.textContent = '▶️';
       previewText.textContent = 'Click to preview audio';
     }
   };
   
   audioEl.onended = () => {
-    playBtn.innerHTML = '▶️';
+    playBtn.textContent = '▶️';
     previewText.textContent = 'Click to preview audio';
   };
   
