@@ -7,34 +7,25 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="theme-color" content="#0b0f17"/>
-  <title>Chat-p2p V3 — Sotravil</title>
+  <title>Chat-p2p V3 (cells+boxes) — Sotravil</title>
   <style>
     :root{
-      --bg:#0a0e14;
-      --panel:#0f1419;
-      --panel2:#151d2b;
-      --panel-border:#1e2d3d;
-      --txt:#e8eaed;
-      --txt-secondary:#9aa0a6;
-      --muted:#5f6368;
-      --ok:#34a853;
-      --warn:#fbbc04;
-      --bad:#ea4335;
+      --bg:#0b0f17;
+      --panel:#0f172a;
+      --panel2:#111c36;
+      --txt:#e5e7eb;
+      --muted:#94a3b8;
+      --ok:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
       --border:rgba(255,255,255,.08);
-      --border-hover:rgba(255,255,255,.15);
-      --shadow:0 8px 24px rgba(0,0,0,.4);
-      --shadow-sm:0 2px 8px rgba(0,0,0,.2);
+      --shadow:0 10px 30px rgba(0,0,0,.35);
       --radius:16px;
-      --radius-sm:10px;
-      --radius-xs:6px;
       --pad:14px;
-      --mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-      --sans:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
-      --accent-primary:#4285f4;
-      --accent-secondary:#a142f4;
-      --accent-gradient:linear-gradient(135deg, #4285f4, #a142f4);
-      --glass:rgba(255,255,255,.04);
-      --glass-border:rgba(255,255,255,.1);
+      --mono:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      --sans:ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      --accent-primary: #38bdf8;
+      --accent-secondary: #a855f7;
     }
     *{box-sizing:border-box}
     html,body{
@@ -42,10 +33,6 @@
       /* Hide body scrollbar */
       scrollbar-width: none;
       -ms-overflow-style: none;
-      /* Mobile-first: prevent text size adjustment */
-      -webkit-text-size-adjust: 100%;
-      -moz-text-size-adjust: 100%;
-      text-size-adjust: 100%;
     }
     html::-webkit-scrollbar, body::-webkit-scrollbar {
       display: none;
@@ -54,416 +41,471 @@
       margin:0;
       /* Safe area insets for notched devices */
       padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-      /* Simplified mobile background */
-      background:radial-gradient(800px 400px at 50% 0%, rgba(56,189,248,.12), transparent 70%),
+      background:radial-gradient(1200px 700px at 40% -10%, rgba(56,189,248,.15), transparent 60%),
+                 radial-gradient(900px 500px at 120% 20%, rgba(168,85,247,.12), transparent 55%),
+                 radial-gradient(600px 400px at 80% 100%, rgba(34,197,94,.08), transparent 50%),
                  var(--bg);
       color:var(--txt);
       font-family:var(--sans);
-      font-size:16px; /* Mobile-first base size */
-      line-height:1.5;
       -webkit-font-smoothing:antialiased;
-      /* Prevent pull-to-refresh bounce */
-      overscroll-behavior-y: contain;
       -webkit-tap-highlight-color:transparent; /* Remove tap highlight on mobile */
       touch-action:manipulation; /* Prevent double-tap zoom */
       overflow:hidden;
     }
     header{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      padding:12px 16px;
-      background:rgba(15,20,25,.92);
-      backdrop-filter:blur(16px);
-      -webkit-backdrop-filter:blur(16px);
-      border-bottom:1px solid var(--panel-border);
-      gap:12px;
-      min-height:56px;
+      display:flex; align-items:center; justify-content:space-between;
+      padding:14px 18px;
+      border-bottom:1px solid var(--border);
+      background:rgba(15,23,42,.85);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
     }
-    header .left{
-      display:flex;
-      align-items:center;
-      gap:12px;
-      flex-shrink:0;
-    }
-    header h1{
-      font-size:15px;
-      font-weight:700;
-      margin:0;
-      letter-spacing:-0.3px;
-      background:var(--accent-gradient);
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
-      background-clip:text;
-    }
+    header .left{display:flex; align-items:center; gap:10px}
+    header h1{font-size:14px; margin:0; letter-spacing:.2px; opacity:.95}
     header .status{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      font-size:11px;
-      font-weight:500;
-      color:var(--txt-secondary);
-      padding:6px 12px;
-      background:var(--glass);
-      border:1px solid var(--glass-border);
-      border-radius:20px;
+      display:inline-flex; align-items:center; gap:8px;
+      font-size:12px; color:var(--muted);
+      padding:6px 10px; border:1px solid var(--border); border-radius:999px;
+      background:rgba(255,255,255,.03);
     }
-    .dot{
-      width:8px;
-      height:8px;
-      border-radius:50%;
-      background:var(--warn);
-      box-shadow:0 0 6px var(--warn);
-      flex-shrink:0;
-    }
-    .dot.ok{background:var(--ok);box-shadow:0 0 6px var(--ok)}
-    .dot.bad{background:var(--bad);box-shadow:0 0 6px var(--bad)}
+    .dot{width:10px;height:10px;border-radius:99px;background:var(--warn)}
+    .dot.ok{background:var(--ok)}
+    .dot.bad{background:var(--bad)}
 
-    header .right{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-    
-    /* ========================================
-       BUTTONS - Cleaner, More Touch-Friendly
-       ======================================== */
+    header .right{display:flex; align-items:center; gap:8px}
     button{
       border:1px solid var(--border);
-      background:var(--glass);
+      background:rgba(255,255,255,.05);
       color:var(--txt);
-      padding:10px 16px;
-      border-radius:var(--radius-sm);
-      font-size:13px;
-      font-weight:600;
+      padding:9px 14px;
+      border-radius:11px;
+      font-size:12px;
+      font-weight:500;
       cursor:pointer;
-      transition:all .15s ease;
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      gap:6px;
-      white-space:nowrap;
-      min-height:40px;
-      -webkit-tap-highlight-color:transparent;
+      box-shadow:0 2px 4px rgba(0,0,0,.1);
+      transition:all .2s cubic-bezier(0.4, 0, 0.2, 1);
     }
     button:hover:not(:disabled){
       background:rgba(255,255,255,.08);
-      border-color:var(--border-hover);
+      transform:translateY(-1px);
+      box-shadow:0 4px 8px rgba(0,0,0,.2);
     }
     button:active:not(:disabled){
-      transform:scale(0.98);
-    }
-    button:disabled{
-      opacity:.4;
-      cursor:not-allowed;
+      transform:translateY(0px);
+      box-shadow:0 1px 2px rgba(0,0,0,.15);
     }
     button.primary{
-      background:var(--accent-gradient);
-      border:none;
-      color:#fff;
-      box-shadow:0 2px 8px rgba(66,133,244,.3);
+      background:linear-gradient(135deg, rgba(34,197,94,.18), rgba(34,197,94,.12));
+      border-color:rgba(34,197,94,.4);
+      color:#22c55e;
     }
     button.primary:hover:not(:disabled){
-      box-shadow:0 4px 16px rgba(66,133,244,.4);
+      background:linear-gradient(135deg, rgba(34,197,94,.25), rgba(34,197,94,.18));
+      border-color:rgba(34,197,94,.5);
     }
     button.danger{
-      background:rgba(234,67,53,.12);
-      border-color:rgba(234,67,53,.3);
-      color:#f28b82;
+      background:linear-gradient(135deg, rgba(239,68,68,.18), rgba(239,68,68,.12));
+      border-color:rgba(239,68,68,.4);
+      color:#ef4444;
     }
     button.danger:hover:not(:disabled){
-      background:rgba(234,67,53,.2);
-      border-color:rgba(234,67,53,.5);
+      background:linear-gradient(135deg, rgba(239,68,68,.25), rgba(239,68,68,.18));
+      border-color:rgba(239,68,68,.5);
     }
-    
-    /* Pill badge in header */
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:6px 12px;
-      border-radius:20px;
-      background:var(--glass);
-      border:1px solid var(--glass-border);
-      font-size:12px;
-      font-weight:600;
-      color:var(--txt-secondary);
-    }
+    button:disabled{opacity:.4; cursor:not-allowed}
 
-    /* ========================================
-       CELL INDICATOR - Much Better Readability
-       ======================================== */
-    .cell-indicator{
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:5px 10px;
-      background:rgba(66,133,244,.1);
-      border:1px solid rgba(66,133,244,.25);
-      border-radius:8px;
-      font-size:11px;
-      font-weight:700;
-      font-family:var(--mono);
-      color:#8ab4f8;
-      letter-spacing:.3px;
+    main{
+      height:calc(100% - 50px);
+      display:grid;
+      grid-template-rows:auto 1fr auto;
+      gap:10px;
+      padding:12px;
     }
-    .cell-indicator::before{
-      content:'📦';
-      font-size:12px;
+    .panel{
+      background:linear-gradient(180deg, rgba(17,28,54,.98), rgba(15,23,42,.95));
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:18px;
+      box-shadow:0 12px 40px rgba(0,0,0,.4), 0 0 1px rgba(255,255,255,.1);
+      overflow:hidden;
+      position:relative;
     }
-    .cell-indicator.synced{
-      background:rgba(52,168,83,.1);
-      border-color:rgba(52,168,83,.3);
-      color:#81c995;
+    .panel::before{
+      content:'';
+      position:absolute;
+      inset:0;
+      border-radius:18px;
+      padding:1px;
+      background:linear-gradient(135deg, rgba(56,189,248,.2), transparent 40%, rgba(168,85,247,.15));
+      -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite:xor;
+      mask-composite:exclude;
+      pointer-events:none;
+      opacity:.5;
     }
-    .cell-indicator.synced::before{
-      content:'✓';
-      font-weight:bold;
+    .join{
+      padding:12px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
     }
-    .cell-indicator.behind{
-      background:rgba(251,188,4,.1);
-      border-color:rgba(251,188,4,.3);
-      color:#fdd663;
-      animation:pulse-cell 2s ease-in-out infinite;
-    }
-    .cell-indicator.behind::before{
-      content:'⚠';
-    }
-    @keyframes pulse-cell{
-      0%,100%{opacity:1}
-      50%{opacity:.6}
-    }
-
-    /* ========================================
-       INPUT FIELDS - Polished Design
-       ======================================== */
-    input,textarea{
+    .row{display:flex; gap:10px; flex-wrap:wrap}
+    .field{display:flex; flex-direction:column; gap:6px; flex:1; min-width:140px}
+    label{font-size:11px; color:var(--muted)}
+    input{
       width:100%;
-      padding:12px 14px;
-      border-radius:var(--radius-sm);
+      padding:11px 12px;
+      border-radius:12px;
       border:1px solid var(--border);
-      background:rgba(0,0,0,.35);
+      background:rgba(0,0,0,.25);
       color:var(--txt);
-      font-size:14px;
-      font-family:var(--sans);
       outline:none;
       transition:all .2s ease;
     }
-    input::placeholder,textarea::placeholder{
-      color:var(--muted);
+    input:focus{
+      border-color:rgba(56,189,248,.5);
+      background:rgba(0,0,0,.35);
+      box-shadow:0 0 0 3px rgba(56,189,248,.1);
     }
-    input:focus,textarea:focus{
-      border-color:var(--accent-primary);
-      background:rgba(0,0,0,.45);
-      box-shadow:0 0 0 3px rgba(66,133,244,.15);
-    }
-    
-    /* ========================================
-       RESOURCE MONITOR - Fixed Positioning
-       ======================================== */
-    .resource-monitor{
-      position:fixed;
-      z-index:40;
-      background:rgba(15,20,25,.95);
-      border:1px solid var(--panel-border);
-      border-radius:var(--radius-sm);
-      padding:10px 14px;
-      box-shadow:var(--shadow);
-      font-size:11px;
-      color:var(--txt);
-      backdrop-filter:blur(12px);
-      -webkit-backdrop-filter:blur(12px);
-      transition:all .2s ease;
-      opacity:.85;
-      /* Desktop: bottom right */
-      bottom:16px;
-      right:16px;
-      min-width:200px;
-      max-width:260px;
-    }
-    .resource-monitor:hover{
-      opacity:1;
-    }
-    
-    /* Mobile: Compact bottom bar that doesn't overlap content */
-    @media(max-width:640px){
-      .resource-monitor{
-        bottom:8px;
-        left:8px;
-        right:8px;
-        max-width:none;
-        padding:8px 12px;
-        display:flex;
-        flex-wrap:wrap;
-        align-items:center;
-        justify-content:space-between;
-        gap:8px;
-      }
-      .resource-monitor .resource-header{
-        display:none;
-      }
-      .resource-monitor .resource-row{
-        flex:1;
-        min-width:70px;
-        border:none;
-        padding:0;
-      }
-      .resource-monitor .resource-label{
-        display:none;
-      }
-      .resource-monitor .resource-value::before{
-        font-size:10px;
-        margin-right:4px;
-      }
-      #resourceDownloaded::before{content:'↓'}
-      #resourceUploaded::before{content:'↑'}
-      #resourceTotal::before{content:'Σ'}
-    }
-    
-    .resource-header{
+    .hint{font-size:11px;color:var(--muted); line-height:1.25}
+    .chat{
       display:flex;
+      flex-direction:column;
+      min-height:0;
+    }
+    .chatHeader{
+      padding:10px 12px;
+      border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      gap:10px;
+    }
+    .chatHeader .meta{display:flex; flex-direction:column; gap:2px; min-width:0}
+    .chatHeader .meta .room{font-size:13px; font-weight:650; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .chatHeader .meta .sub{font-size:11px;color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:flex; align-items:center; gap:8px}
+    .chatHeader .people{font-size:11px;color:var(--muted); white-space:nowrap; display:flex; align-items:center; gap:8px}
+    .badge{
+      display:inline-flex;
       align-items:center;
-      gap:6px;
-      margin-bottom:8px;
-      font-weight:600;
-      font-size:12px;
-      color:var(--accent-primary);
-    }
-    .resource-row{
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-      padding:4px 0;
-    }
-    .resource-row + .resource-row{
-      border-top:1px solid var(--border);
-    }
-    .resource-label{
-      color:var(--muted);
+      justify-content:center;
+      min-width:20px;
+      height:20px;
+      padding:0 6px;
+      background:var(--bad);
+      color:#fff;
+      border-radius:10px;
       font-size:10px;
+      font-weight:700;
+      letter-spacing:.2px;
+      box-shadow:0 2px 6px rgba(239,68,68,.4);
     }
-    .resource-value{
+    .badge.mention-badge{
+      background:linear-gradient(135deg, rgba(245,158,11,.9), rgba(245,158,11,.75));
+      box-shadow:0 2px 6px rgba(245,158,11,.5);
+    }
+    .badge.mention-badge::before{
+      content:'@';
+      margin-right:2px;
+    }
+    .badge:empty{
+      display:none;
+    }
+    .cell-indicator{
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      padding:3px 8px;
+      background:linear-gradient(135deg, rgba(56,189,248,.15), rgba(168,85,247,.1));
+      border:1px solid rgba(56,189,248,.3);
+      border-radius:8px;
+      font-size:10px;
       font-weight:600;
-      font-family:var(--mono);
-      color:var(--txt);
-      font-size:11px;
+      color:var(--accent-primary);
+      letter-spacing:.3px;
+      transition:all .3s ease;
     }
-    .resource-value.uploading{
-      color:var(--accent-secondary);
-      animation:blink 1s ease infinite;
+    .cell-indicator.synced{
+      border-color:rgba(34,197,94,.4);
+      background:linear-gradient(135deg, rgba(34,197,94,.15), rgba(56,189,248,.08));
+      color:var(--ok);
     }
-    @keyframes blink{0%,100%{opacity:1}50%{opacity:.5}}
-    
-    /* ========================================
-       MESSAGE BUBBLES - Cleaner Design
-       ======================================== */
+    .cell-indicator.behind{
+      border-color:rgba(245,158,11,.4);
+      background:linear-gradient(135deg, rgba(245,158,11,.15), rgba(239,68,68,.08));
+      color:var(--warn);
+      animation:pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse{
+      0%, 100% { opacity:1; transform:scale(1); }
+      50% { opacity:.85; transform:scale(1.02); }
+    }
+    .msgs{
+      padding:12px;
+      overflow:auto;
+      scroll-behavior:smooth;
+      -webkit-overflow-scrolling:touch;
+      min-height:0;
+      /* Hide scrollbar but keep functionality */
+      scrollbar-width: none; /* Firefox */
+      -ms-overflow-style: none; /* IE/Edge */
+    }
+    .msgs::-webkit-scrollbar {
+      display: none; /* Chrome/Safari/Opera */
+    }
     .msg{
       max-width:85%;
-      padding:12px 16px;
-      border-radius:18px;
-      background:var(--panel2);
-      border:1px solid var(--border);
+      padding:11px 13px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.06);
       margin:10px 0;
       word-wrap:break-word;
-      transition:all .15s ease;
-      box-shadow:var(--shadow-sm);
+      transition:all .2s ease;
+      box-shadow:0 2px 8px rgba(0,0,0,.15);
     }
     .msg:hover{
-      border-color:var(--border-hover);
+      border-color:rgba(255,255,255,.12);
+      box-shadow:0 4px 12px rgba(0,0,0,.25);
+      transform:translateY(-1px);
     }
     .msg.me{
       margin-left:auto;
-      background:linear-gradient(135deg, rgba(66,133,244,.15), rgba(161,66,244,.1));
-      border-color:rgba(66,133,244,.25);
+      background:linear-gradient(135deg, rgba(56,189,248,.15), rgba(56,189,248,.08));
+      border-color:rgba(56,189,248,.3);
     }
-    .msg .text{
-      font-size:14px;
-      line-height:1.5;
-      color:var(--txt);
+    .msg.me:hover{
+      background:linear-gradient(135deg, rgba(56,189,248,.2), rgba(56,189,248,.12));
+      border-color:rgba(56,189,248,.4);
     }
-    .msg .meta{
+    .msg .text{font-size:13px; line-height:1.35}
+    .msg .meta{font-size:10px; color:var(--muted); margin-top:6px; display:flex; gap:8px; flex-wrap:wrap; align-items:center}
+    .msg .reads{font-size:10px;color:rgba(34,197,94,.85)}
+    .msg-status{
       font-size:11px;
       color:var(--muted);
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      margin-left:auto;
+    }
+    .msg-status.status-sending{
+      color:rgba(245,158,11,.85);
+    }
+    .msg-status.status-sending::before{
+      content:'\23F3';
+      animation:statusPulse 1.5s ease-in-out infinite;
+    }
+    .msg-status.status-sent{
+      color:var(--muted);
+    }
+    .msg-status.status-sent::before{
+      content:'\2713';
+    }
+    .msg-status.status-delivered{
+      color:rgba(56,189,248,.75);
+    }
+    .msg-status.status-delivered::before{
+      content:'\2713\2713';
+    }
+    .msg-status.status-read{
+      color:rgba(34,197,94,.85);
+    }
+    .msg-status.status-read::before{
+      content:'\2713\2713';
+    }
+    .msg-status.status-failed{
+      color:rgba(239,68,68,.85);
+      cursor:pointer;
+    }
+    .msg-status.status-failed::before{
+      content:'\26A0';
+    }
+    .msg-retry{
+      display:none;
+      font-size:10px;
+      padding:3px 8px;
+      margin-left:6px;
+      border-radius:6px;
+      background:rgba(239,68,68,.15);
+      border:1px solid rgba(239,68,68,.35);
+      color:#ef4444;
+      cursor:pointer;
+      transition:all .2s ease;
+    }
+    .msg-retry:hover{
+      background:rgba(239,68,68,.25);
+      border-color:rgba(239,68,68,.5);
+    }
+    .msg.msg-failed .msg-retry{
+      display:inline-block;
+    }
+    .msg.msg-failed{
+      opacity:.85;
+      border-color:rgba(239,68,68,.3);
+    }
+    @keyframes statusPulse{
+      0%, 100%{opacity:.5}
+      50%{opacity:1}
+    }
+    
+    /* Reply System */
+    .msg-reply{
+      padding:6px 9px;
+      margin-bottom:6px;
+      background:rgba(0,0,0,.3);
+      border-left:3px solid rgba(56,189,248,.6);
+      border-radius:6px;
+      font-size:11px;
+      color:var(--muted);
+      cursor:pointer;
+      transition:all .2s ease;
+      max-width:100%;
+      overflow:hidden;
+    }
+    .msg-reply:hover{
+      background:rgba(0,0,0,.4);
+      border-left-color:rgba(56,189,248,.85);
+    }
+    .msg-reply-author{
+      color:var(--accent-primary);
+      font-weight:600;
+      margin-bottom:2px;
+    }
+    .msg-reply-text{
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      opacity:.85;
+    }
+    .msg-actions{
       margin-top:8px;
       display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      align-items:center;
+      gap:6px;
+      opacity:0;
+      transition:opacity .2s ease;
     }
-    
-    /* ========================================
-       CHAT HEADER - Better Layout
-       ======================================== */
-    .chatHeader{
-      padding:12px 16px;
-      border-bottom:1px solid var(--panel-border);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      background:rgba(0,0,0,.15);
-      position:relative;
+    .msg:hover .msg-actions{
+      opacity:1;
     }
-    .chatHeader .meta{
-      display:flex;
-      flex-direction:column;
-      gap:4px;
-      min-width:0;
-      flex:1;
-    }
-    .chatHeader .meta .room{
-      font-size:16px;
-      font-weight:700;
-      color:var(--txt);
-      display:flex;
-      align-items:center;
-      gap:8px;
-    }
-    .chatHeader .meta .sub{
-      font-size:12px;
-      color:var(--muted);
-      display:flex;
-      align-items:center;
-      gap:10px;
-      flex-wrap:wrap;
-    }
-    .chatHeader .people{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      font-size:12px;
-      color:var(--muted);
-    }
-    
-    /* Fullscreen toggle button */
-    .fullscreen-toggle{
-      position:absolute;
-      right:12px;
-      top:50%;
-      transform:translateY(-50%);
-      width:36px;
-      height:36px;
-      min-height:36px;
-      padding:0;
-      border-radius:8px;
-      font-size:16px;
-      background:var(--glass);
+    .msg-actions button{
+      padding:4px 9px;
+      font-size:10px;
+      border-radius:6px;
+      background:rgba(255,255,255,.05);
       border:1px solid var(--border);
+      color:var(--muted);
+      cursor:pointer;
+      transition:all .2s ease;
+    }
+    .msg-actions button:hover{
+      background:rgba(255,255,255,.1);
+      color:var(--txt);
+      border-color:rgba(56,189,248,.4);
     }
     
-    /* ========================================
-       COMPOSER - Better Spacing
-       ======================================== */
+    /* Highlight Animation */
+    .msg-highlight{
+      animation:messageHighlight 2s ease-out;
+    }
+    @keyframes messageHighlight{
+      0%, 100%{
+        background:rgba(255,255,255,.06);
+        box-shadow:0 2px 8px rgba(0,0,0,.15);
+      }
+      10%, 30%, 50%{
+        background:rgba(245,158,11,.25);
+        box-shadow:0 0 20px rgba(245,158,11,.4);
+        transform:scale(1.02);
+      }
+      20%, 40%{
+        background:rgba(245,158,11,.15);
+        box-shadow:0 0 15px rgba(245,158,11,.3);
+      }
+    }
+    .msg.me.msg-highlight{
+      animation:messageHighlightMe 2s ease-out;
+    }
+    @keyframes messageHighlightMe{
+      0%, 100%{
+        background:linear-gradient(135deg, rgba(56,189,248,.15), rgba(56,189,248,.08));
+      }
+      10%, 30%, 50%{
+        background:linear-gradient(135deg, rgba(245,158,11,.3), rgba(245,158,11,.2));
+        box-shadow:0 0 20px rgba(245,158,11,.4);
+        transform:scale(1.02);
+      }
+      20%, 40%{
+        background:linear-gradient(135deg, rgba(245,158,11,.2), rgba(245,158,11,.12));
+      }
+    }
+    
+    /* Mention Highlighting */
+    .mention{
+      color:var(--accent-primary);
+      background:rgba(56,189,248,.15);
+      padding:1px 4px;
+      border-radius:4px;
+      font-weight:600;
+    }
+    .mention.mention-me{
+      color:var(--warn);
+      background:rgba(245,158,11,.2);
+      border:1px solid rgba(245,158,11,.3);
+    }
+    
     .composer{
       display:flex;
       flex-direction:column;
-      gap:10px;
-      padding:12px 16px;
-      border-top:1px solid var(--panel-border);
-      background:rgba(0,0,0,.1);
+      gap:8px;
+      padding:12px;
+      border-top:1px solid var(--border);
     }
+    
+    /* Reply Preview in Composer */
+    .reply-preview{
+      display:none;
+      padding:8px 10px;
+      background:rgba(56,189,248,.1);
+      border-left:3px solid var(--accent-primary);
+      border-radius:8px;
+      font-size:11px;
+      position:relative;
+    }
+    .reply-preview.active{
+      display:block;
+    }
+    .reply-preview-header{
+      color:var(--accent-primary);
+      font-weight:600;
+      margin-bottom:3px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .reply-preview-text{
+      color:var(--muted);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .reply-preview-close{
+      background:rgba(255,255,255,.1);
+      border:1px solid var(--border);
+      border-radius:50%;
+      width:18px;
+      height:18px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      font-size:12px;
+      color:var(--muted);
+      transition:all .2s ease;
+    }
+    .reply-preview-close:hover{
+      background:rgba(239,68,68,.2);
+      border-color:rgba(239,68,68,.4);
+      color:var(--bad);
+    }
+    
     .composer-main{
       display:flex;
       gap:10px;
@@ -474,128 +516,812 @@
       min-height:44px;
       max-height:120px;
       resize:none;
-      scrollbar-width:none;
+      padding:11px 12px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.25);
+      color:var(--txt);
+      outline:none;
+      font-family:var(--sans);
+      transition:all .2s ease;
+      /* Hide scrollbar */
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
-    .composer textarea::-webkit-scrollbar{display:none}
+    .composer textarea::-webkit-scrollbar {
+      display: none;
+    }
+    .composer textarea:focus{
+      border-color:rgba(56,189,248,.5);
+      background:rgba(0,0,0,.35);
+      box-shadow:0 0 0 3px rgba(56,189,248,.1);
+    }
     
-    /* Audio record button */
+    /* Audio Recording Controls */
     .audio-record-btn{
       width:44px;
       height:44px;
-      min-width:44px;
-      padding:0;
       border-radius:50%;
-      background:var(--glass);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      background:linear-gradient(135deg, rgba(56,189,248,.15), rgba(168,85,247,.15));
       border:1px solid var(--border);
+      transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
       font-size:20px;
-      transition:all .2s ease;
+      position:relative;
     }
     .audio-record-btn:hover{
-      background:rgba(66,133,244,.15);
-      border-color:rgba(66,133,244,.3);
+      background:linear-gradient(135deg, rgba(56,189,248,.25), rgba(168,85,247,.25));
+      transform:scale(1.05);
+      box-shadow:0 4px 12px rgba(56,189,248,.2);
     }
     .audio-record-btn.recording{
-      background:rgba(234,67,53,.15);
-      border-color:rgba(234,67,53,.4);
+      background:linear-gradient(135deg, rgba(239,68,68,.2), rgba(220,38,38,.2));
+      border-color:rgba(239,68,68,.5);
       animation:pulse-record 1.5s ease-in-out infinite;
     }
     @keyframes pulse-record{
-      0%,100%{box-shadow:0 0 0 0 rgba(234,67,53,.5)}
-      50%{box-shadow:0 0 0 10px rgba(234,67,53,0)}
+      0%, 100%{box-shadow:0 0 0 0 rgba(239,68,68,.7);}
+      50%{box-shadow:0 0 0 10px rgba(239,68,68,0);}
     }
     
-    /* ========================================
-       LOG PANEL - Subtle Design
-       ======================================== */
-    .log{
-      padding:8px 12px;
-      font-family:var(--mono);
-      font-size:10px;
+    /* Audio Recording Modal */
+    .audio-modal{
+      position:fixed;
+      top:0; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,.85);
+      backdrop-filter:blur(8px);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:10000;
+      padding:20px;
+    }
+    .audio-modal.active{
+      display:flex;
+    }
+    .audio-modal-content{
+      background:var(--panel);
+      border-radius:var(--radius);
+      padding:30px;
+      max-width:400px;
+      width:100%;
+      box-shadow:var(--shadow);
+      border:1px solid var(--border);
+    }
+    .audio-modal-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:20px;
+    }
+    .audio-modal-title{
+      font-size:18px;
+      font-weight:600;
+    }
+    .audio-close-btn{
+      background:transparent;
+      border:none;
       color:var(--muted);
-      max-height:80px;
-      overflow:auto;
-      border-top:1px solid var(--panel-border);
-      background:rgba(0,0,0,.15);
-      scrollbar-width:none;
+      font-size:24px;
+      cursor:pointer;
+      padding:0;
+      width:32px;
+      height:32px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:8px;
+      transition:all .2s ease;
     }
-    .log::-webkit-scrollbar{display:none}
-    .log div{padding:1px 0}
+    .audio-close-btn:hover{
+      background:rgba(239,68,68,.1);
+      color:var(--bad);
+    }
+    .audio-visualizer{
+      width:100%;
+      height:80px;
+      background:rgba(0,0,0,.3);
+      border-radius:12px;
+      margin:20px 0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:3px;
+      padding:0 15px;
+      overflow:hidden;
+    }
+    .audio-bar{
+      width:4px;
+      background:linear-gradient(to top, var(--accent-primary), var(--accent-secondary));
+      border-radius:2px;
+      transition:height .1s ease;
+      min-height:4px;
+    }
+    .audio-timer{
+      text-align:center;
+      font-size:24px;
+      font-weight:600;
+      color:var(--txt);
+      margin:15px 0;
+      font-variant-numeric:tabular-nums;
+    }
+    .audio-controls{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      margin-top:20px;
+    }
+    .audio-control-btn{
+      padding:12px 20px;
+      border-radius:12px;
+      font-size:14px;
+      font-weight:500;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      transition:all .2s ease;
+    }
+    .audio-control-btn.record{
+      background:linear-gradient(135deg, rgba(239,68,68,.2), rgba(220,38,38,.2));
+      border-color:rgba(239,68,68,.5);
+      color:var(--bad);
+    }
+    .audio-control-btn.pause{
+      background:linear-gradient(135deg, rgba(251,191,36,.2), rgba(245,158,11,.2));
+      border-color:rgba(251,191,36,.5);
+      color:var(--warn);
+    }
+    .audio-control-btn.send{
+      background:linear-gradient(135deg, rgba(34,197,94,.2), rgba(22,163,74,.2));
+      border-color:rgba(34,197,94,.5);
+      color:var(--ok);
+    }
+    .audio-lock-indicator{
+      position:absolute;
+      bottom:-40px;
+      left:50%;
+      transform:translateX(-50%);
+      background:rgba(251,191,36,.15);
+      border:1px solid rgba(251,191,36,.3);
+      border-radius:20px;
+      padding:8px 16px;
+      font-size:12px;
+      color:var(--warn);
+      white-space:nowrap;
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .3s ease;
+    }
+    .audio-lock-indicator.show{
+      opacity:1;
+    }
     
-    /* ========================================
-       MODAL OVERLAYS - Better Backdrop
-       ======================================== */
-    .modalBackdrop,.modal-overlay{
+    /* Mobile Gesture Indicators */
+    .gesture-hint{
+      position:fixed;
+      display:none;
+      z-index:10001;
+      pointer-events:none;
+    }
+    .gesture-hint.active{
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:10px;
+    }
+    .gesture-lock{
+      position:absolute;
+      top:-100px;
+      left:50%;
+      transform:translateX(-50%);
+      background:rgba(34,197,94,.2);
+      border:2px solid rgba(34,197,94,.5);
+      border-radius:50%;
+      width:60px;
+      height:60px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:28px;
+      transition:all .2s ease;
+    }
+    .gesture-lock.highlight{
+      background:rgba(34,197,94,.4);
+      transform:translateX(-50%) scale(1.2);
+    }
+    .gesture-cancel{
+      position:absolute;
+      left:-120px;
+      top:50%;
+      transform:translateY(-50%);
+      background:rgba(239,68,68,.2);
+      border:2px solid rgba(239,68,68,.5);
+      border-radius:50%;
+      width:60px;
+      height:60px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:28px;
+      transition:all .2s ease;
+    }
+    .gesture-cancel.highlight{
+      background:rgba(239,68,68,.4);
+      transform:translateY(-50%) scale(1.2);
+    }
+    .gesture-text{
+      position:absolute;
+      bottom:-50px;
+      left:50%;
+      transform:translateX(-50%);
+      background:rgba(0,0,0,.8);
+      padding:8px 16px;
+      border-radius:20px;
+      font-size:12px;
+      white-space:nowrap;
+      color:var(--txt);
+    }
+    .recording-overlay{
+      position:fixed;
+      top:0; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,.5);
+      z-index:10000;
+      display:none;
+      backdrop-filter:blur(4px);
+    }
+    .recording-overlay.active{
+      display:block;
+    }
+    
+    /* Audio Message Bubbles */
+    .msg-audio{
+      background:linear-gradient(135deg, rgba(56,189,248,.12), rgba(168,85,247,.08));
+      border-radius:12px;
+      padding:12px;
+      margin-top:8px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      min-width:280px;
+      max-width:350px;
+    }
+    .audio-play-btn{
+      width:42px;
+      height:42px;
+      min-width:42px;
+      border-radius:50%;
+      background:linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      border:none;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor:pointer;
+      transition:all .2s ease;
+      color:#fff;
+      font-size:16px;
+    }
+    .audio-play-btn:hover{
+      transform:scale(1.05);
+      box-shadow:0 4px 12px rgba(56,189,248,.3);
+    }
+    .audio-waveform{
+      flex:1;
+      height:40px;
+      display:flex;
+      align-items:center;
+      gap:2px;
+      cursor:pointer;
+    }
+    .audio-wave-bar{
+      width:3px;
+      background:rgba(56,189,248,.3);
+      border-radius:2px;
+      opacity:.6;
+      transition:all .05s ease;
+      position:relative;
+    }
+    .audio-wave-bar.active{
+      opacity:1;
+      background:linear-gradient(to top, var(--accent-primary), var(--accent-secondary));
+      box-shadow:0 0 4px rgba(56,189,248,.5);
+    }
+    .audio-wave-bar.active::after{
+      content:'';
+      position:absolute;
+      top:0;
+      left:0;
+      right:0;
+      bottom:0;
+      background:linear-gradient(to top, rgba(56,189,248,.4), rgba(168,85,247,.4));
+      filter:blur(2px);
+      z-index:-1;
+    }
+    .audio-duration{
+      font-size:12px;
+      color:var(--muted);
+      font-variant-numeric:tabular-nums;
+      min-width:80px;
+      text-align:right;
+      line-height:1.4;
+    }
+    .audio-play-btn[disabled]{
+      opacity:0.6;
+      cursor:not-allowed;
+      transform:scale(1);
+    }
+    .audio-play-btn[disabled]:hover{
+      transform:scale(1);
+      box-shadow:none;
+    }
+    .log{
+      padding:10px 12px;
+      font-family:var(--mono);
+      font-size:11px;
+      color:var(--muted);
+      max-height:110px;
+      overflow:auto;
+      border-top:1px solid var(--border);
+      background:rgba(0,0,0,.12);
+      /* Hide scrollbar */
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .log::-webkit-scrollbar {
+      display: none;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:6px;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.03);
+      font-size:11px; color:var(--muted);
+    }
+    .modalBackdrop{
+      position:fixed; inset:0;
+      display:none;
+      align-items:center; justify-content:center;
+      padding:18px;
+      background:rgba(0,0,0,.55);
+      z-index:50;
+    }
+    .modal{
+      width:min(420px, 100%);
+      background:linear-gradient(180deg, rgba(17,28,54,.98), rgba(15,23,42,.98));
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:20px;
+      box-shadow:0 20px 60px rgba(0,0,0,.6), 0 0 1px rgba(255,255,255,.2);
+      overflow:hidden;
+      animation:modalSlideIn .25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    @keyframes modalSlideIn {
+      from {
+        opacity:0;
+        transform:translateY(-20px) scale(0.95);
+      }
+      to {
+        opacity:1;
+        transform:translateY(0) scale(1);
+      }
+    }
+    .modal .top{padding:12px 14px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between}
+    .modal .top b{font-size:13px}
+    .modal .body{padding:14px; display:flex; flex-direction:column; gap:10px}
+    .modal .footer{padding:12px 14px; border-top:1px solid var(--border); display:flex; gap:10px; justify-content:flex-end}
+
+    /* Modal overlay styles for edit/delete confirmations */
+    .modal-overlay{
       position:fixed;
       inset:0;
       display:none;
       align-items:center;
       justify-content:center;
-      padding:16px;
-      background:rgba(0,0,0,.75);
-      backdrop-filter:blur(8px);
-      -webkit-backdrop-filter:blur(8px);
+      padding:18px;
+      background:rgba(0,0,0,.65);
       z-index:100;
+      backdrop-filter:blur(4px);
     }
-    .modal{
-      width:min(420px,100%);
-      background:var(--panel);
-      border:1px solid var(--panel-border);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      overflow:hidden;
+    .modal-overlay.modal-hidden{
+      display:none !important;
     }
-    
-    /* ========================================
-       TOAST NOTIFICATIONS - Cleaner
-       ======================================== */
+    .modal-overlay:not(.modal-hidden){
+      display:flex;
+    }
+    .modal-header{
+      padding:14px 16px;
+      border-bottom:1px solid var(--border);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .modal-title{
+      font-size:15px;
+      font-weight:600;
+    }
+    .modal-close{
+      width:28px;
+      height:28px;
+      border:none;
+      background:rgba(255,255,255,.05);
+      color:var(--txt);
+      border-radius:8px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:16px;
+      transition:all .2s ease;
+    }
+    .modal-close:hover{
+      background:rgba(255,255,255,.1);
+    }
+    .modal-body{
+      padding:18px 16px;
+    }
+    .modal-body p{
+      margin:0 0 12px 0;
+      line-height:1.5;
+    }
+    .modal-body textarea{
+      width:100%;
+      min-height:120px;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:rgba(0,0,0,.25);
+      color:var(--txt);
+      outline:none;
+      font-family:var(--sans);
+      resize:vertical;
+      transition:all .2s ease;
+    }
+    .modal-body textarea:focus{
+      border-color:rgba(56,189,248,.5);
+      background:rgba(0,0,0,.35);
+      box-shadow:0 0 0 3px rgba(56,189,248,.1);
+    }
+    .modal-footer{
+      padding:12px 16px;
+      border-top:1px solid var(--border);
+      display:flex;
+      gap:10px;
+      justify-content:flex-end;
+    }
+    .btn-ghost{
+      background:rgba(255,255,255,.03);
+      border:1px solid var(--border);
+    }
+    .btn-ghost:hover:not(:disabled){
+      background:rgba(255,255,255,.08);
+    }
+
+    /* Message action buttons (edit/delete) */
+    .msg-actions{
+      margin-top:8px;
+      display:flex;
+      gap:6px;
+      opacity:.6;
+      transition:opacity .2s ease;
+    }
+    .msg:hover .msg-actions{
+      opacity:1;
+    }
+    .msg-actions button{
+      padding:5px 10px;
+      font-size:11px;
+      border-radius:8px;
+    }
+
+    /* Toast Notifications */
     .toast-container{
       position:fixed;
-      top:16px;
-      right:16px;
+      top:20px;
+      right:20px;
       z-index:200;
       display:flex;
       flex-direction:column;
-      gap:8px;
+      gap:10px;
       pointer-events:none;
     }
     .toast{
-      min-width:260px;
-      max-width:360px;
-      padding:12px 16px;
-      background:var(--panel);
-      border:1px solid var(--panel-border);
-      border-radius:var(--radius-sm);
-      box-shadow:var(--shadow);
+      min-width:280px;
+      max-width:420px;
+      padding:14px 16px;
+      background:linear-gradient(135deg, rgba(17,28,54,.98), rgba(15,23,42,.95));
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:14px;
+      box-shadow:0 8px 24px rgba(0,0,0,.5), 0 0 1px rgba(255,255,255,.2);
       color:var(--txt);
       font-size:13px;
+      line-height:1.4;
       pointer-events:auto;
-      animation:toast-in .25s ease;
+      animation:toastSlideIn .3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter:blur(10px);
       display:flex;
       align-items:flex-start;
       gap:10px;
     }
-    @media(max-width:640px){
-      .toast-container{
-        top:10px;
-        left:10px;
-        right:10px;
+    .toast.toast-success{
+      border-color:rgba(34,197,94,.4);
+      background:linear-gradient(135deg, rgba(34,197,94,.15), rgba(17,28,54,.95));
+    }
+    .toast.toast-error{
+      border-color:rgba(239,68,68,.4);
+      background:linear-gradient(135deg, rgba(239,68,68,.15), rgba(17,28,54,.95));
+    }
+    .toast.toast-warning{
+      border-color:rgba(245,158,11,.4);
+      background:linear-gradient(135deg, rgba(245,158,11,.15), rgba(17,28,54,.95));
+    }
+    .toast.toast-info{
+      border-color:rgba(56,189,248,.4);
+      background:linear-gradient(135deg, rgba(56,189,248,.15), rgba(17,28,54,.95));
+    }
+    .toast-icon{
+      font-size:18px;
+      flex-shrink:0;
+      margin-top:1px;
+    }
+    .toast-success .toast-icon{color:#22c55e}
+    .toast-error .toast-icon{color:#ef4444}
+    .toast-warning .toast-icon{color:#f59e0b}
+    .toast-info .toast-icon{color:#38bdf8}
+    .toast-message{
+      flex:1;
+      word-wrap:break-word;
+    }
+    .toast-close{
+      width:20px;
+      height:20px;
+      border:none;
+      background:rgba(255,255,255,.08);
+      color:var(--muted);
+      border-radius:6px;
+      cursor:pointer;
+      font-size:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-shrink:0;
+      transition:all .2s ease;
+    }
+    .toast-close:hover{
+      background:rgba(255,255,255,.15);
+      color:var(--txt);
+    }
+    .toast.toast-out{
+      animation:toastSlideOut .25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    @keyframes toastSlideIn{
+      from{
+        opacity:0;
+        transform:translateX(100%) scale(0.9);
       }
-      .toast{
-        min-width:auto;
-        width:100%;
+      to{
+        opacity:1;
+        transform:translateX(0) scale(1);
       }
     }
+    @keyframes toastSlideOut{
+      from{
+        opacity:1;
+        transform:translateX(0) scale(1);
+      }
+      to{
+        opacity:0;
+        transform:translateX(120%) scale(0.9);
+      }
+    }
+
+    /* Pull to Refresh Indicator */
+    .pull-refresh-indicator{
+      position:absolute;
+      top:50px;
+      left:50%;
+      transform:translateX(-50%) scale(0);
+      padding:12px 20px;
+      background:linear-gradient(135deg, rgba(56,189,248,.25), rgba(168,85,247,.18));
+      border:1px solid rgba(56,189,248,.4);
+      border-radius:24px;
+      color:var(--txt);
+      font-size:13px;
+      font-weight:600;
+      letter-spacing:.3px;
+      box-shadow:0 8px 24px rgba(0,0,0,.4);
+      backdrop-filter:blur(12px);
+      z-index:150;
+      pointer-events:none;
+      opacity:0;
+      transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .pull-refresh-indicator.active{
+      transform:translateX(-50%) scale(1);
+      opacity:1;
+    }
+    .pull-refresh-indicator.syncing{
+      border-color:rgba(34,197,94,.5);
+      background:linear-gradient(135deg, rgba(34,197,94,.25), rgba(56,189,248,.15));
+    }
+    .pull-refresh-indicator .icon{
+      font-size:16px;
+      animation:spin 1s linear infinite;
+    }
+    .pull-refresh-indicator.syncing .icon{
+      animation:spin .6s linear infinite;
+    }
+    @keyframes spin{
+      from{transform:rotate(0deg)}
+      to{transform:rotate(360deg)}
+    }
+
+    /* Room Browser */
+    .room-list{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      max-height:400px;
+      overflow-y:auto;
+      scrollbar-width:none;
+      -ms-overflow-style:none;
+    }
+    .room-list::-webkit-scrollbar{
+      display:none;
+    }
+    .room-item{
+      padding:12px 14px;
+      background:rgba(255,255,255,.04);
+      border:1px solid var(--border);
+      border-radius:12px;
+      cursor:pointer;
+      transition:all .2s ease;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .room-item:hover{
+      background:rgba(255,255,255,.08);
+      border-color:rgba(56,189,248,.35);
+      transform:translateX(4px);
+    }
+    .room-item.last-joined{
+      border-color:rgba(34,197,94,.4);
+      background:linear-gradient(135deg, rgba(34,197,94,.12), rgba(255,255,255,.04));
+    }
+    .room-item.last-joined::before{
+      content:'\2B50';
+      margin-right:8px;
+    }
+    .room-info{
+      flex:1;
+      min-width:0;
+    }
+    .room-name{
+      font-size:14px;
+      font-weight:600;
+      color:var(--txt);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .room-meta{
+      font-size:11px;
+      color:var(--muted);
+      margin-top:2px;
+    }
+    .room-status{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:12px;
+      color:var(--muted);
+      flex-shrink:0;
+    }
+    .room-status.active{
+      color:rgba(34,197,94,.85);
+    }
+    .room-status .user-count{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+      padding:4px 8px;
+      background:rgba(56,189,248,.12);
+      border:1px solid rgba(56,189,248,.3);
+      border-radius:8px;
+      font-weight:600;
+    }
+    .room-status.active .user-count{
+      background:rgba(34,197,94,.12);
+      border-color:rgba(34,197,94,.3);
+      color:rgba(34,197,94,.95);
+    }
+    .empty-rooms{
+      padding:40px 20px;
+      text-align:center;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .browse-btn{
+      margin-left:8px;
+    }
+
+    /* Fullscreen chat mode */
+    .fullscreen-toggle{
+      position:absolute;
+      right:12px;
+      top:50%;
+      transform:translateY(-50%);
+      width:36px;
+      height:36px;
+      padding:0;
+      border-radius:10px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      background:rgba(56,189,248,.12);
+      border:1px solid rgba(56,189,248,.3);
+      color:var(--txt);
+      cursor:pointer;
+      transition:all .2s ease;
+      z-index:10;
+    }
+    .fullscreen-toggle:hover{
+      background:rgba(56,189,248,.2);
+      border-color:rgba(56,189,248,.5);
+      transform:translateY(-50%) scale(1.05);
+    }
+    body.chat-fullscreen header,
+    body.chat-fullscreen .join,
+    body.chat-fullscreen .log{
+      display:none !important;
+    }
+    body.chat-fullscreen main{
+      height:100%;
+      padding:0;
+      gap:0;
+    }
+    body.chat-fullscreen .chat{
+      height:100%;
+      border-radius:0;
+      border:none;
+    }
+    body.chat-fullscreen .chatHeader{
+      position:relative;
+      border-radius:0;
+    }
+    body.chat-fullscreen .msgs{
+      height:calc(100vh - 130px);
+    }
+    body.chat-fullscreen .fullscreen-toggle{
+      background:rgba(239,68,68,.12);
+      border-color:rgba(239,68,68,.3);
+    }
+    body.chat-fullscreen .fullscreen-toggle:hover{
+      background:rgba(239,68,68,.2);
+      border-color:rgba(239,68,68,.5);
+    }
+
+    /* ================================================
+       MOBILE-FIRST RESPONSIVE DESIGN
+       Base styles = Mobile (320px+)
+       Progressive enhancement for tablets/desktop
+       ================================================ */
     
-    /* ========================================
-       MOBILE RESPONSIVE FIXES
-       ======================================== */
-    @media(max-width:640px){
+    /* Mobile: Adjust header for small screens */
+    @media (max-width: 640px){
       header{
         padding:10px 12px;
         flex-wrap:wrap;
-        gap:8px;
       }
-      header h1{font-size:14px}
+      header h1{
+        font-size:13px;
+      }
       header .status{
         font-size:10px;
         padding:4px 8px;
@@ -603,56 +1329,256 @@
       header .right{
         width:100%;
         justify-content:flex-end;
-        gap:6px;
+        margin-top:6px;
       }
-      
       button{
         padding:8px 12px;
-        font-size:12px;
-        min-height:36px;
+        font-size:11px;
       }
-      
+    }
+
+    /* Mobile: Stack form fields */
+    @media (max-width: 640px){
+      .row{
+        flex-direction:column;
+      }
+      .field{
+        min-width:100%;
+      }
+    }
+
+    /* Mobile: Optimize message display */
+    @media (max-width: 640px){
+      .msg{
+        max-width:90%;
+        padding:10px 12px;
+        font-size:14px;
+      }
+      .msg .text{
+        font-size:14px;
+        line-height:1.4;
+      }
+      .msg .meta{
+        font-size:11px;
+      }
+      .msgs{
+        padding:8px;
+      }
+    }
+
+    /* Mobile: Optimize composer */
+    @media (max-width: 640px){
+      .composer{
+        padding:10px;
+        gap:8px;
+      }
+      .composer textarea{
+        font-size:14px;
+        min-height:48px;
+        padding:12px;
+      }
+      button{
+        min-height:48px; /* Larger touch targets */
+      }
+    }
+
+    /* Mobile: Adjust chat header */
+    @media (max-width: 640px){
+      .chatHeader{
+        padding:10px;
+        flex-wrap:wrap;
+      }
+      .chatHeader .meta .room{
+        font-size:14px;
+      }
+      .chatHeader .meta .sub{
+        font-size:10px;
+      }
+      .chatHeader .people{
+        width:100%;
+        margin-top:4px;
+      }
+    }
+
+    /* Mobile: Toast positioning */
+    @media (max-width: 640px){
+      .toast-container{
+        top:10px;
+        right:10px;
+        left:10px;
+      }
+      .toast{
+        min-width:auto;
+        width:100%;
+      }
+    }
+
+    /* Mobile: Modal optimization */
+    @media (max-width: 640px){
+      .modalBackdrop, .modal-overlay{
+        padding:12px;
+      }
+      .modal{
+        width:100%;
+        max-width:100%;
+      }
+      .modal .top, .modal-header{
+        padding:10px 12px;
+      }
+      .modal .body, .modal-body{
+        padding:12px;
+      }
+    }
+
+    /* Mobile: Room browser */
+    @media (max-width: 640px){
+      .room-list{
+        max-height:60vh;
+      }
+      .room-item{
+        flex-direction:column;
+        align-items:flex-start;
+        padding:10px 12px;
+      }
+      .room-status{
+        width:100%;
+        justify-content:space-between;
+        margin-top:6px;
+      }
+    }
+
+    /* Mobile: Input fields larger for touch */
+    @media (max-width: 640px){
+      input, textarea{
+        font-size:16px; /* Prevents zoom on iOS */
+        padding:12px;
+      }
+    }
+
+    /* Mobile: Adjust main grid */
+    @media (max-width: 640px){
       main{
         padding:8px;
         gap:8px;
-        height:calc(100dvh - 52px);
+        height:calc(100% - 50px);
       }
-      
-      .join{padding:12px}
-      .row{flex-direction:column;gap:10px}
-      .field{min-width:100%}
-      
-      input,textarea{
-        font-size:16px;
-        padding:12px;
+      .panel{
+        border-radius:14px;
       }
-      
-      .chatHeader{
-        padding:10px 12px;
-        flex-wrap:wrap;
-      }
-      .chatHeader .meta .room{font-size:14px}
-      .chatHeader .meta .sub{font-size:11px}
-      .chatHeader .people{
-        width:100%;
-        margin-top:6px;
-      }
-      
-      .msg{
-        max-width:88%;
-        padding:10px 14px;
-      }
-      .msgs{padding:10px}
-      
-      .composer{padding:10px 12px}
-      
-      .panel{border-radius:12px}
-      
-      .log{max-height:60px;font-size:9px}
     }
-    
-    /* ...existing code... */
-</style>
+
+    /* Mobile: Log panel */
+    @media (max-width: 640px){
+      .log{
+        font-size:10px;
+        max-height:80px;
+        padding:8px 10px;
+      }
+      
+      /* Audio controls for mobile */
+      .audio-record-btn{
+        width:48px;
+        height:48px;
+        font-size:22px;
+      }
+      
+      .audio-modal-content{
+        max-width:90%;
+        padding:20px;
+      }
+      
+      .audio-visualizer{
+        height:60px;
+      }
+      
+      .audio-timer{
+        font-size:20px;
+      }
+      
+      .audio-controls{
+        flex-direction:column;
+      }
+      
+      .audio-control-btn{
+        width:100%;
+        justify-content:center;
+      }
+      
+      .msg-audio{
+        min-width:240px;
+        max-width:90%;
+      }
+      
+      .audio-play-btn{
+        width:38px;
+        height:38px;
+        min-width:38px;
+        font-size:14px;
+      }
+    }
+
+    /* Tablet: 641px - 1024px */
+    @media (min-width: 641px) and (max-width: 1024px){
+      main{
+        max-width:768px;
+        margin:0 auto;
+      }
+      .msg{
+        max-width:75%;
+      }
+    }
+
+    /* Desktop: 1025px+ */
+    @media (min-width: 1025px){
+      main{
+        max-width:980px;
+        margin:0 auto;
+      }
+      .row{
+        flex-wrap:nowrap;
+      }
+      .msg{
+        max-width:70%;
+      }
+    }
+
+    /* Landscape mobile optimization */
+    @media (max-width: 896px) and (orientation: landscape){
+      main{
+        height:calc(100% - 45px);
+      }
+      header{
+        padding:8px 12px;
+      }
+      .chatHeader{
+        padding:8px 10px;
+      }
+      .msgs{
+        max-height:45vh;
+      }
+    }
+
+    /* High DPI screens */
+    @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi){
+      .panel::before{
+        opacity:.7;
+      }
+    }
+
+    /* Reduce motion for accessibility */
+    @media (prefers-reduced-motion: reduce){
+      *{
+        animation-duration:0.01ms !important;
+        animation-iteration-count:1 !important;
+        transition-duration:0.01ms !important;
+      }
+    }
+
+    /* Dark mode support (respects system preference) */
+    @media (prefers-color-scheme: light){
+      /* User can add light mode overrides here if needed */
+    }
+  </style>
 </head>
 <body>
 <!-- Pull to Refresh Indicator -->
@@ -663,7 +1589,7 @@
 
 <header>
   <div class="left">
-    <h1>Chat‑p2p V3</h1>
+    <h1>Chat‑p2p V3 (cells + boxes + indexes)</h1>
     <span class="status"><span id="netDot" class="dot"></span><span id="netText">booting…</span></span>
   </div>
   <div class="right">
@@ -771,34 +1697,6 @@
     <div class="log" id="log"></div>
   </section>
 </main>
-
-<!-- ========================================
-     RESOURCE MONITOR - Network Usage Display
-     ======================================== -->
-<div class="resource-monitor" id="resourceMonitor">
-  <div class="resource-header">
-    <span>📊</span>
-    <span>Network Usage</span>
-  </div>
-  <div class="resource-row">
-    <span class="resource-label">Downloaded:</span>
-    <span class="resource-value" id="resourceDownloaded">0 KB</span>
-  </div>
-  <div class="resource-row">
-    <span class="resource-label">Uploaded:</span>
-    <span class="resource-value" id="resourceUploaded">0 KB</span>
-  </div>
-  <div class="resource-row">
-    <span class="resource-label">Total:</span>
-    <span class="resource-value" id="resourceTotal">0 KB</span>
-  </div>
-  <div id="resourceProgressContainer" style="display:none;">
-    <div class="resource-progress">
-      <div class="resource-progress-bar" id="resourceProgressBar" style="width:0%"></div>
-    </div>
-    <div class="resource-status" id="resourceStatus"></div>
-  </div>
-</div>
 
 <!-- AUTH MODAL -->
 <div class="modalBackdrop" id="authModalBack">
@@ -1105,12 +2003,6 @@ async function ghGetJsonWithSha(path){
 
   if(res.status===404) return { ok:false, status:404, obj:null, sha:null, rawText:null };
   const rawText = await res.text();
-  
-  // Track download on success
-  if(res.ok && rawText){
-    trackDownload(new Blob([rawText]).size, path.split('/').pop());
-  }
-  
   if(!res.ok) return { ok:false, status:res.status, obj:null, sha:null, rawText };
   const data = JSON.parse(rawText);
   const contentB64 = (data.content||"").replace(/\n/g,"");
@@ -1180,7 +2072,6 @@ async function ghPutFile(path, base64Content, sha=null, message="upload file"){
 async function ghPutJson(path, obj, sha=null, message="update"){
   await ensureGhToken();
   const jsonText = JSON.stringify(obj, null, 2);
-  const contentSize = new Blob([jsonText]).size; // Calculate size for tracking
   const body = {
     message: `${message} ${new Date().toISOString()}`,
     content: b64EncodeUtf8(jsonText),
@@ -1200,12 +2091,6 @@ async function ghPutJson(path, obj, sha=null, message="update"){
       body: JSON.stringify(putBody)
     });
     const raw = await res.text();
-    
-    // Track upload on success
-    if(res.ok){
-      trackUpload(contentSize, path.split('/').pop());
-    }
-    
     return { res, raw };
   };
 
@@ -1557,54 +2442,37 @@ async function discoverRooms(){
     if(!listed.ok) return [];
     
     const rooms = [];
-    
-    // Process rooms in parallel batches for faster loading
-    const BATCH_SIZE = 5;
-    for(let i = 0; i < listed.items.length; i += BATCH_SIZE){
-      const batch = listed.items.slice(i, i + BATCH_SIZE);
-      const batchResults = await Promise.all(
-        batch.map(async (item) => {
-          if(item.type !== 'file' || !item.name.endsWith('.json')) return null;
-          const roomName = item.name.replace('.json', '');
-          
-          try{
-            // Try V3 index first (faster, more accurate)
-            const indexPath = roomIndexPath(roomName);
-            const indexData = await ghGetJsonWithSha(indexPath);
-            
-            if(indexData.ok && indexData.obj){
-              return {
-                name: roomName,
-                totalMessages: indexData.obj.totalMessages || 0,
-                updatedAt: indexData.obj.updatedAt || 0,
-                latestCell: indexData.obj.latestCell || 0,
-                lastMessageAt: indexData.obj.updatedAt || 0
-              };
-            }
-            
-            // Fallback to manifest only if index doesn't exist
-            if(indexData.status === 404){
-              const manifest = await readManifestSmart(roomName);
-              if(manifest.ok && manifest.obj){
-                return {
-                  name: roomName,
-                  totalMessages: manifest.obj.totalMessages || 0,
-                  updatedAt: manifest.obj.updatedAt || 0,
-                  latestCell: 0,
-                  lastMessageAt: manifest.obj.updatedAt || 0
-                };
-              }
-            }
-          }catch(e){
-            console.warn(`[discoverRooms] Failed to load room ${roomName}:`, e.message);
-          }
-          
-          return null;
-        })
-      );
+    for(const item of listed.items){
+      if(item.type !== 'file' || !item.name.endsWith('.json')) continue;
+      const roomName = item.name.replace('.json', '');
+      // Master files are now in master-rooms/ folder, so no need to skip them here
       
-      // Add successful room loads
-      rooms.push(...batchResults.filter(r => r !== null));
+      // Read from room index for accurate message count
+      const indexPath = roomIndexPath(roomName);
+      const indexData = await ghGetJsonWithSha(indexPath);
+      
+      if(indexData.ok && indexData.obj){
+        // V3 room with index - use accurate totalMessages
+        rooms.push({
+          name: roomName,
+          totalMessages: indexData.obj.totalMessages || 0,
+          updatedAt: indexData.obj.updatedAt || 0,
+          latestCell: indexData.obj.latestCell || 0,
+          lastMessageAt: indexData.obj.updatedAt || 0 // Track last message time
+        });
+      }else{
+        // Fallback to manifest (for legacy or if index read fails)
+        const manifest = await readManifestSmart(roomName);
+        if(manifest.ok && manifest.obj){
+          rooms.push({
+            name: roomName,
+            totalMessages: manifest.obj.totalMessages || 0,
+            updatedAt: manifest.obj.updatedAt || 0,
+            latestCell: 0,
+            lastMessageAt: manifest.obj.updatedAt || 0
+          });
+        }
+      }
     }
     
     return rooms;
@@ -1670,12 +2538,12 @@ async function openRoomBrowser(){
   const cancelBtn = document.getElementById('modalCancel');
   
   titleEl.textContent = '\uD83D\uDCC1 Browse Rooms';
-  bodyEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)"><div style="font-size:24px;margin-bottom:10px">🔄</div>Loading rooms...</div>';
+  bodyEl.innerHTML = '<div style="text-align:center;padding:20px;color:var(--muted)">Loading rooms...</div>';
   okBtn.style.display = 'none';
   cancelBtn.textContent = 'Close';
   overlay.classList.remove('modal-hidden');
   
-  // Get current sort preference - MUST be declared before use
+  // Get current sort preference
   const currentSort = localStorage.getItem('roomBrowserSort') || 'recent-activity';
   
   // Load rooms and presence data
@@ -1687,34 +2555,17 @@ async function openRoomBrowser(){
     return;
   }
   
-  // Update loading message with count
-  bodyEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted)"><div style="font-size:24px;margin-bottom:10px">🔄</div>Loading presence for ${rooms.length} rooms...</div>`;
-  
-  // Get presence for each room (in parallel batches of 5 for faster loading)
+  // Get presence for each room (in parallel batches of 3)
   const roomsWithPresence = [];
-  for(let i = 0; i < rooms.length; i += 5){
-    const batch = rooms.slice(i, i + 5);
+  for(let i = 0; i < rooms.length; i += 3){
+    const batch = rooms.slice(i, i + 3);
     const results = await Promise.all(
-      batch.map(async room => {
-        try{
-          return {
-            ...room,
-            presence: await getRoomActiveUsers(room.name)
-          };
-        }catch(e){
-          console.warn(`[openRoomBrowser] Failed to get presence for ${room.name}:`, e.message);
-          return {
-            ...room,
-            presence: { active: 0, recent: 0, users: [], lastActivityAt: 0 }
-          };
-        }
-      })
+      batch.map(async room => ({
+        ...room,
+        presence: await getRoomActiveUsers(room.name)
+      }))
     );
     roomsWithPresence.push(...results);
-    
-    // Update progress
-    const progress = Math.round((roomsWithPresence.length / rooms.length) * 100);
-    bodyEl.innerHTML = `<div style="text-align:center;padding:20px;color:var(--muted)"><div style="font-size:24px;margin-bottom:10px">🔄</div>Loading presence: ${progress}%</div>`;
   }
   
   // Function to sort rooms based on selected criteria
@@ -1730,6 +2581,7 @@ async function openRoomBrowser(){
       
       switch(sortType){
         case 'recent-activity':
+          // Most active users first, then most recent activity
           if(a.presence.active !== b.presence.active) return b.presence.active - a.presence.active;
           if(a.presence.recent !== b.presence.recent) return b.presence.recent - a.presence.recent;
           const aLatest = Math.max(a.presence.lastActivityAt || 0, a.lastMessageAt || 0);
@@ -1737,17 +2589,21 @@ async function openRoomBrowser(){
           return bLatest - aLatest;
           
         case 'newest-first':
+          // Newest rooms first (highest updatedAt)
           return (b.updatedAt || 0) - (a.updatedAt || 0);
           
         case 'oldest-first':
+          // Oldest rooms first (lowest updatedAt)
           return (a.updatedAt || 0) - (b.updatedAt || 0);
           
         case 'most-active':
+          // Most active users, then most recent users
           if(a.presence.active !== b.presence.active) return b.presence.active - a.presence.active;
           if(a.presence.recent !== b.presence.recent) return b.presence.recent - a.presence.recent;
           return (b.totalMessages || 0) - (a.totalMessages || 0);
           
         case 'most-messages':
+          // Most messages first
           return (b.totalMessages || 0) - (a.totalMessages || 0);
           
         default:
@@ -1796,60 +2652,65 @@ async function openRoomBrowser(){
     listDiv.className = 'room-list';
     
     for(const room of sortedRooms){
-      const item = document.createElement('div');
-      item.className = 'room-item';
-      if(room.name === lastRoom) item.classList.add('last-joined');
-      
-      const info = document.createElement('div');
-      info.className = 'room-info';
-      
-      const name = document.createElement('div');
-      name.className = 'room-name';
-      name.textContent = `#${room.name}`;
-      
-      const meta = document.createElement('div');
-      meta.className = 'room-meta';
-      
-      const hasActiveUsers = room.presence.active > 0;
-      const lastActivity = room.lastMessageAt || room.updatedAt;
-      const age = lastActivity ? formatLastActivity(lastActivity, hasActiveUsers) : 'unknown';
-      const cellInfo = room.latestCell > 0 ? ` \u00b7 ${room.latestCell} cells` : '';
-      
-      meta.textContent = `${room.totalMessages || 0} messages${cellInfo} \u00b7 ${age}`;
-      
-      info.appendChild(name);
-      info.appendChild(meta);
-      
-      const status = document.createElement('div');
-      status.className = 'room-status';
-      if(room.presence.active > 0) status.classList.add('active');
-      
-      const count = document.createElement('span');
-      count.className = 'user-count';
-      
-      if(room.presence.active > 0){
-        count.innerHTML = `\uD83D\uDFE2 ${room.presence.active}`;
-        count.title = `${room.presence.active} active now${room.presence.recent > 0 ? `, ${room.presence.recent} recent` : ''}`;
-      }else if(room.presence.recent > 0){
-        count.innerHTML = `\uD83D\uDC65 ${room.presence.recent}`;
-        count.title = `${room.presence.recent} recent (within 5 min)`;
-      }else{
-        count.innerHTML = `\uD83D\uDC65 0`;
-        count.title = 'No active users';
-      }
-      
-      status.appendChild(count);
-      
-      item.appendChild(info);
-      item.appendChild(status);
-      
-      item.onclick = () => {
-        roomInput.value = room.name;
-        closeModal(false);
-        setTimeout(() => joinBtn.focus(), 100);
-      };
-      
-      listDiv.appendChild(item);
+    const item = document.createElement('div');
+    item.className = 'room-item';
+    if(room.name === lastRoom) item.classList.add('last-joined');
+    
+    const info = document.createElement('div');
+    info.className = 'room-info';
+    
+    const name = document.createElement('div');
+    name.className = 'room-name';
+    name.textContent = `#${room.name}`;
+    
+    const meta = document.createElement('div');
+    meta.className = 'room-meta';
+    
+    // Use last message time for more accurate activity indicator
+    const hasActiveUsers = room.presence.active > 0;
+    const lastActivity = room.lastMessageAt || room.updatedAt;
+    const age = lastActivity ? formatLastActivity(lastActivity, hasActiveUsers) : 'unknown';
+    const cellInfo = room.latestCell > 0 ? ` \u00b7 ${room.latestCell} cells` : '';
+    
+    // Show message count and activity
+    meta.textContent = `${room.totalMessages || 0} messages${cellInfo} \u00b7 ${age}`;
+    
+    info.appendChild(name);
+    info.appendChild(meta);
+    
+    const status = document.createElement('div');
+    status.className = 'room-status';
+    if(room.presence.active > 0) status.classList.add('active');
+    
+    const count = document.createElement('span');
+    count.className = 'user-count';
+    const total = room.presence.active + room.presence.recent;
+    
+    // Show presence with more detail
+    if(room.presence.active > 0){
+      count.innerHTML = `\uD83D\uDFE2 ${room.presence.active}`; // Green dot for active
+      count.title = `${room.presence.active} active now${room.presence.recent > 0 ? `, ${room.presence.recent} recent` : ''}`;
+    }else if(room.presence.recent > 0){
+      count.innerHTML = `\uD83D\uDC65 ${room.presence.recent}`; // Regular for recent only
+      count.title = `${room.presence.recent} recent (within 5 min)`;
+    }else{
+      count.innerHTML = `\uD83D\uDC65 0`;
+      count.title = 'No active users';
+    }
+    
+    status.appendChild(count);
+    
+    item.appendChild(info);
+    item.appendChild(status);
+    
+    item.onclick = () => {
+      roomInput.value = room.name;
+      closeModal(false);
+      // Auto-focus join button
+      setTimeout(() => joinBtn.focus(), 100);
+    };
+    
+    listDiv.appendChild(item);
     }
     
     bodyEl.innerHTML = '';
@@ -1859,7 +2720,7 @@ async function openRoomBrowser(){
   
   // Initial render
   renderRoomList();
-} // This closing brace was missing - it closes openRoomBrowser()
+}
 
 function formatTimeAgo(timestamp){
   const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -2005,14 +2866,15 @@ function analyzeScrollBehavior(speed, direction, deltaY){
     speed,
     direction, // 'up' or 'down'
     deltaY,
-    time: now  };
+    time: now
+  };
   
   userBehavior.scrollPatterns.push(pattern);
   
   // Keep only last 10 scrolls (5 second window)
   userBehavior.scrollPatterns = userBehavior.scrollPatterns.filter(p => now - p.time < 5000);
   
-  // Fast scrolling (>2000px/s) = searching/disengaged
+  // Fast scrolling (>2000px/s) = searching/disinterested
   if(speed > 2000){
     userBehavior.engagement.quickScrolls++;
     if(userBehavior.engagement.quickScrolls > 5){
@@ -2729,25 +3591,6 @@ let lastPresenceRefreshAt = 0;
 let audioCache = new Map(); // audioPath -> { blob, blobUrl, size, cachedAt }
 const AUDIO_CACHE_MAX_AGE = 3600000; // 1 hour in milliseconds
 
-// ========================================
-// RESOURCE TRACKING - Network Usage Monitor
-// ========================================
-let resourceStats = {
-  downloaded: 0,    // Total bytes downloaded
-  uploaded: 0,      // Total bytes uploaded
-  currentUpload: null, // Current upload tracking {name, size, loaded}
-  currentDownload: null // Current download tracking {name, size, loaded}
-};
-
-// Resource monitor DOM elements
-let resourceMonitorEl;
-let resourceDownloadedEl;
-let resourceUploadedEl;
-let resourceTotalEl;
-let resourceProgressContainer;
-let resourceProgressBar;
-let resourceStatusEl;
-
 // Read receipts throttling
 let lastReadWriteAt = 0;
 
@@ -3011,7 +3854,7 @@ async function ensureCellExists(roomName, cellNum){
 async function loadCellsRange(roomName, startCell, endCell){
   const out = [];
   for(let c=startCell;c<=endCell;c++){
-    const got = await ghGetJsonWithSha(cellPath(roomName, c));
+    const got = await ghGetJsonWithSha(cellPath(roomName,c));
     if(got.ok && Array.isArray(got.obj)){
       for(const raw of got.obj){
         const msg = normalizeMessage(raw);
@@ -3133,7 +3976,6 @@ async function ensureBoxForCell(roomName, cellNum){
   // box file
   const gotBox = await ghGetJsonWithSha(boxPath(roomName, boxNum));
   const boxObj = gotBox.ok && gotBox.obj ? gotBox.obj : { v:3, room:roomName, box:boxNum, startCell, endCell, cellCount:(endCell-startCell+1), updatedAt:Date.now() };
-
   boxObj.startCell = startCell;
   boxObj.endCell = Math.max(boxObj.endCell||endCell, endCell);
   boxObj.cellCount = (boxObj.endCell - boxObj.startCell + 1);
@@ -3244,8 +4086,6 @@ async function pollLoop(){
   try{
     if(!running || !currentRoom) return;
     if(pollInFlight) return;
-    
-    const roomSnapshot = currentRoom; // Capture room to detect changes
 
     const now = Date.now();
     const active = isActiveNow();
@@ -3616,17 +4456,10 @@ function addMessageToDom(m, silent=false, prepend=false){
     audioMsg.appendChild(audioDuration);
     
     // ========================================
-    // AUDIO READ RECEIPTS: markAudioAsListened()
-   
-    // Tracks when users actually PLAY audio messages (not just see them).
-    // This function is called when user clicks play button on an audio message.
-   
-    // What it does:
-    // 1. Checks if user already listened (prevents duplicates)
-    // 2. Adds {userId, username, listenedAt} to message.listenedBy array
-    // 3. Updates message in GitHub cell with listened status
-    // 4. Marks message as "read" in presence tracking
-    // 5. Updates UI badges to show "listened by" count
+    // AUDIO READ RECEIPT UI: Show "🎧 N" indicator on sender's messages
+    // Displays how many people listened to this audio message
+    // Only visible to the person who sent the audio
+    // Hover tooltip shows names of all listeners
     // ========================================
     const userId = session?.userId || localGuest.userId;
     const isMyMessage = m.userId === userId;
@@ -3755,13 +4588,13 @@ function pickLoadCountFromScrollSpeed(pxPerSec){
 let cellDetectionThrottle = null;
 
 function detectVisibleCells(){
-  if(!messagesEl || !currentRoom || !running) return;
-  try{
-    // Get all message nodes in viewport
-    const rect = messagesEl.getBoundingClientRect();
-    const messages = messagesEl.querySelectorAll('.msg');
-    
-    if(messages.length === 0) return;
+  if(!messagesEl || !currentRoom) return;
+  
+  // Get all message nodes in viewport
+  const rect = messagesEl.getBoundingClientRect();
+  const messages = messagesEl.querySelectorAll('.msg');
+  
+  if(messages.length === 0) return;
   
   // Find messages in viewport (center 50% for stability)
   const centerY = rect.top + rect.height / 2;
@@ -3805,9 +4638,6 @@ function detectVisibleCells(){
     const totalCells = loadedCellsMax || roomIndex?.latestCell || 0;
     const latestCell = roomIndex?.latestCell || totalCells;
     updateCellMetadata(viewingCell, totalCells, latestCell);
-  }
-  }catch(e){
-    console.warn('[detectVisibleCells]', e.message);
   }
 }
 
@@ -4193,15 +5023,7 @@ let readHoldTimers = new Map(); // msgId -> timer
 
 function setupReadObserver(){
   if(!messagesEl) return;
-  if(readObserver){
-    readObserver.disconnect();
-    // Clear pending timers
-    for(const timer of readHoldTimers.values()){
-      clearTimeout(timer);
-    }
-    readHoldTimers.clear();
-    readObserver = null;
-  }
+  if(readObserver) return; // install once
 
   readObserver = new IntersectionObserver((entries)=>{
     for(const ent of entries){
@@ -4465,14 +5287,7 @@ function updateReadBadges(){
    SENDING + SYNC
    ============================================================ */
 async function sendMessage(){
-  if(!running || !currentRoom){
-    showToast('Not connected to a room', 'warning');
-    return;
-  }
-  
-  // Prevent double sends
-  if(sendBtn.disabled) return;
-  sendBtn.disabled = true;
+  if(!running || !currentRoom) return;
 
   const text = (msgInput.value||"").trim();
   if(!text) return;
@@ -4536,7 +5351,7 @@ async function sendMessage(){
       updateMessageStatus(msg.id, 'sent');
       log(`✅ Message successfully written to GitHub (cell ${result.cellNum})`, "INFO");
       
-      // Enter burst mode: check frequently for quick back-and-forth
+      // Enter burst mode: check frequently for responses
       burstModeUntil = Date.now() + POLL_BURST_DURATION;
       if(running && currentRoom){
         clearTimeout(pollTimer);
@@ -4564,8 +5379,6 @@ async function sendMessage(){
     updateMessageStatus(msg.id, 'failed');
     log(`❌ Failed to write message to GitHub: ${e.message}`, "ERROR");
     showToast('Failed to send message to GitHub. Click retry to try again.', 'error', 6000);
-  }finally{
-    sendBtn.disabled = false;
   }
 }
 
@@ -5082,26 +5895,14 @@ async function uploadAudioToGitHub(blob, messageId, roomName, isRecorded = true)
     const fileName = `${userId}_${timestamp}_${messageId}.${ext}`;
     const audioPath = `${ROOMS_META_DIR}/${roomName}/${folderType}/${fileName}`;
     
-    // ========================================
-    // RESOURCE TRACKING: Start upload tracking
-    // ========================================
-    startUploadTracking(fileName, blob.size);
-    
     // Convert blob to base64
     const reader = new FileReader();
     const base64Promise = new Promise((resolve, reject) => {
-      reader.onloadend = () => {
-        // Update progress to 50% (encoding complete)
-        updateUploadProgress(blob.size * 0.5);
-        resolve(reader.result.split(',')[1]);
-      };
+      reader.onloadend = () => resolve(reader.result.split(',')[1]);
       reader.onerror = reject;
     });
     reader.readAsDataURL(blob);
     const base64Content = await base64Promise;
-    
-    // Update progress to 75% (starting upload)
-    updateUploadProgress(blob.size * 0.75);
     
     // Upload to GitHub
     const commitMsg = isRecorded 
@@ -5111,12 +5912,6 @@ async function uploadAudioToGitHub(blob, messageId, roomName, isRecorded = true)
     
     if(result.ok){
       log(`🎵 Audio uploaded to GitHub: ${audioPath}`, 'INFO');
-      
-      // ========================================
-      // RESOURCE TRACKING: Complete upload
-      // ========================================
-      completeUploadTracking(true);
-      
       return { 
         ok: true, 
         path: audioPath, 
@@ -5125,12 +5920,10 @@ async function uploadAudioToGitHub(blob, messageId, roomName, isRecorded = true)
         folderType: folderType
       };
     }else{
-      completeUploadTracking(false);
       throw new Error(`Upload failed with status ${result.status}`);
     }
   }catch(error){
     console.error('Error uploading audio:', error);
-    completeUploadTracking(false);
     return { ok: false, error: error.message };
   }
 }
@@ -5202,119 +5995,6 @@ function formatDuration(seconds){
   return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-/* ============================================================
-   RESOURCE TRACKING SYSTEM - Network Usage Monitor
-   ============================================================ */
-
-// Initialize resource monitor
-function initResourceMonitor(){
-  resourceMonitorEl = document.getElementById('resourceMonitor');
-  resourceDownloadedEl = document.getElementById('resourceDownloaded');
-  resourceUploadedEl = document.getElementById('resourceUploaded');
-  resourceTotalEl = document.getElementById('resourceTotal');
-  resourceProgressContainer = document.getElementById('resourceProgressContainer');
-  resourceProgressBar = document.getElementById('resourceProgressBar');
-  resourceStatusEl = document.getElementById('resourceStatus');
-  
-  updateResourceDisplay();
-}
-
-// Track downloaded data
-function trackDownload(bytes, label = 'Data'){
-  resourceStats.downloaded += bytes;
-  log(`📥 Downloaded: ${label} (${formatBytes(bytes)})`, 'INFO');
-  updateResourceDisplay();
-}
-
-// Track uploaded data
-function trackUpload(bytes, label = 'Data'){
-  resourceStats.uploaded += bytes;
-  log(`📤 Uploaded: ${label} (${formatBytes(bytes)})`, 'INFO');
-  updateResourceDisplay();
-}
-
-// Start tracking upload progress (for audio files)
-function startUploadTracking(name, totalSize){
-  resourceStats.currentUpload = {
-    name,
-    size: totalSize,
-    loaded: 0,
-    startTime: Date.now()
-  };
-  
-  // Show progress UI
-  resourceProgressContainer.style.display = 'block';
-  resourceMonitorEl.classList.add('uploading');
-  resourceProgressBar.style.width = '0%';
-  resourceStatusEl.textContent = `Uploading ${name}...`;
-  resourceStatusEl.className = 'resource-status';
-  
-  updateResourceDisplay();
-}
-
-// Update upload progress
-function updateUploadProgress(loaded){
-  if(!resourceStats.currentUpload) return;
-  
-  resourceStats.currentUpload.loaded = loaded;
-  const percent = Math.round((loaded / resourceStats.currentUpload.size) * 100);
-  
-  resourceProgressBar.style.width = `${percent}%`;
-  resourceStatusEl.textContent = `Uploading... ${percent}% (${formatBytes(loaded)} / ${formatBytes(resourceStats.currentUpload.size)})`;
-  
-  updateResourceDisplay();
-}
-
-// Complete upload tracking
-function completeUploadTracking(success = true){
-  if(!resourceStats.currentUpload) return;
-  
-  const upload = resourceStats.currentUpload;
-  const duration = ((Date.now() - upload.startTime) / 1000).toFixed(1);
-  
-  if(success){
-    trackUpload(upload.size, upload.name);
-    resourceProgressBar.style.width = '100%';
-    resourceStatusEl.textContent = `✓ ${upload.name} uploaded in ${duration}s`;
-    resourceStatusEl.className = 'resource-status success';
-    
-    log(`✅ Upload complete: ${upload.name} (${formatBytes(upload.size)} in ${duration}s)`, 'INFO');
-  }else{
-    resourceProgressBar.style.width = '0%';
-    resourceStatusEl.textContent = `✕ Upload failed: ${upload.name}`;
-    resourceStatusEl.className = 'resource-status error';
-    
-    log(`❌ Upload failed: ${upload.name}`, 'ERROR');
-  }
-  
-  // Hide progress after 3 seconds
-  setTimeout(() => {
-    resourceProgressContainer.style.display = 'none';
-    resourceMonitorEl.classList.remove('uploading');
-    resourceStats.currentUpload = null;
-  }, 3000);
-}
-
-// Update resource display
-function updateResourceDisplay(){
-  if(!resourceDownloadedEl) return;
-  
-  const downloaded = formatBytes(resourceStats.downloaded);
-  const uploaded = formatBytes(resourceStats.uploaded);
-  const total = formatBytes(resourceStats.downloaded + resourceStats.uploaded);
-  
-  resourceDownloadedEl.textContent = downloaded;
-  resourceUploadedEl.textContent = uploaded;
-  resourceTotalEl.textContent = total;
-  
-  // Add uploading class to uploaded value if currently uploading
-  if(resourceStats.currentUpload){
-    resourceUploadedEl.classList.add('uploading');
-  }else{
-    resourceUploadedEl.classList.remove('uploading');
-  }
-}
-
 // Helper to get binary from GitHub raw
 async function rawGetBinary(path){
   try{
@@ -5322,10 +6002,6 @@ async function rawGetBinary(path){
     const response = await fetch(url);
     if(response.ok){
       const blob = await response.blob();
-      
-      // Track download
-      trackDownload(blob.size, path.split('/').pop());
-      
       return { ok: true, blob, status: response.status };
     }else{
       return { ok: false, status: response.status };
@@ -5337,12 +6013,6 @@ async function rawGetBinary(path){
 
 // Start recording
 async function startAudioRecording(){
-  // Prevent multiple recordings
-  if(mediaRecorder && mediaRecorder.state !== 'inactive'){
-    showToast('Recording already in progress', 'warning');
-    return;
-  }
-  
   try{
     // Request microphone permission
     audioStream = await navigator.mediaDevices.getUserMedia({ 
@@ -5703,14 +6373,6 @@ function closeAudioModal(){
   audioChunks = [];
   isRecordingLocked = false;
   isMobileGestureRecording = false;
-  
-  // Clean up audio preview
-  const previewAudio = audioModal.querySelector('audio');
-  if(previewAudio){
-    previewAudio.pause();
-    previewAudio.src = '';
-    previewAudio.load();
-  }
 }
 
 // Event listeners
@@ -5956,12 +6618,6 @@ window.addEventListener("load", async ()=>{
     applySessionToUi();
 
     installInteractionListeners();
-    
-    // ========================================
-    // Initialize Resource Monitor
-    // ========================================
-    initResourceMonitor();
-    log("📊 Resource monitor initialized", "INFO");
     
     // Initialize pull-to-refresh gesture (tap-hold-drag only)
     initPullToRefreshGesture();
