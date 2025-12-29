@@ -2687,6 +2687,33 @@ async function ensureGhToken(){
 // In-memory ETag cache per raw URL
 const RAW_ETAG = new Map(); // key: rawUrl -> {etag, text}
 
+// In-memory SHA cache to avoid CORS preflight requests
+const SHA_CACHE = new Map(); // key: path -> {sha, timestamp}
+const SHA_CACHE_TTL = 30000; // 30 seconds cache validity
+
+// Get cached SHA if valid
+function getCachedSha(path){
+  const cached = SHA_CACHE.get(path);
+  if(!cached) return null;
+  
+  // Check if cache expired
+  if(Date.now() - cached.timestamp > SHA_CACHE_TTL){
+    SHA_CACHE.delete(path);
+    return null;
+  }
+  
+  return cached.sha;
+}
+
+// Cache SHA after successful operations
+function cacheSha(path, sha){
+  if(!sha || typeof sha !== 'string') return;
+  SHA_CACHE.set(path, {
+    sha,
+    timestamp: Date.now()
+  });
+}
+
 // Fetch with timeout wrapper
 async function fetchWithTimeout(url, options = {}, timeoutMs = 25000) {
   const controller = new AbortController();
@@ -2895,6 +2922,16 @@ async function ghPutJson(path, obj, sha=null, message="update"){
     content: b64EncodeUtf8(jsonText),
     branch: GH_BRANCH
   };
+  
+  // Try to use cached SHA first if no SHA provided
+  if(!sha){
+    const cachedSha = getCachedSha(path);
+    if(cachedSha){
+      sha = cachedSha;
+      console.log('[ghPutJson] Using cached SHA for', path);
+    }
+  }
+  
   // CRITICAL: Only add sha if it's a valid string. undefined = omit property entirely
   if(sha !== undefined && sha !== null && typeof sha === 'string' && sha.length > 0){
     body.sha = sha;
@@ -2923,14 +2960,25 @@ async function ghPutJson(path, obj, sha=null, message="update"){
       const { res, raw } = await doPut(body);
     if(res.ok){
       const data = JSON.parse(raw || '{}');
-      return { ok:true, status: res.status, sha: data?.content?.sha || null };
+      const newSha = data?.content?.sha || null;
+      
+      // Cache the new SHA for future updates
+      if(newSha){
+        cacheSha(path, newSha);
+      }
+      
+      return { ok:true, status: res.status, sha: newSha };
     }
 
     // If GitHub complains about missing sha or conflict, try to GET current sha and retry once
     if((res.status === 422 || res.status === 409) && attempt === 0){
+      console.warn(`[ghPutJson] ${res.status} conflict, fetching fresh SHA...`);
       try{
         const freshSha = await ghGetSha(path);
-        if(freshSha) body.sha = freshSha;
+        if(freshSha){
+          body.sha = freshSha;
+          cacheSha(path, freshSha); // Cache it for next time
+        }
         // If no SHA available, leave body.sha as is (don't set to null)
         attempt++;
         continue;
@@ -4963,7 +5011,18 @@ async function readMasterValue(roomName){
 async function saveMasterValue(roomName, value){
   const p = masterPath(roomName);
   try{
-    // Fetch SHA from API (required for updates to existing files)
+    // Try with cached SHA first
+    const cachedSha = getCachedSha(p);
+    
+    if(cachedSha){
+      const result = await ghPutJson(p, !!value, cachedSha, "set master");
+      if(result && result.ok){
+        log(`✓ Master flag set to ${value}`, "INFO");
+        return;
+      }
+    }
+    
+    // No cache or failed - fetch fresh SHA from API
     const sha = await ghGetSha(p);
     const result = await ghPutJson(p, !!value, sha, "set master");
     
@@ -6143,11 +6202,26 @@ async function presenceWrite(obj){
   if(!currentRoom) return;
   const p = presencePath(currentRoom, obj.userId);
   
-  // Always fetch fresh SHA from API to avoid 409 conflicts
-  const sha = await ghGetSha(p);
-  
-  // Pass undefined for new files (sha will be null), or the fetched SHA for updates
-  await ghPutJson(p, obj, sha || undefined, "presence");
+  try {
+    // Try optimistic write with cached SHA (no CORS preflight needed if using cache)
+    const cachedSha = getCachedSha(p);
+    
+    if(cachedSha){
+      // We have cached SHA - try write immediately
+      const result = await ghPutJson(p, obj, cachedSha, "presence");
+      if(result && result.ok) return; // Success!
+    }
+    
+    // No cached SHA or write failed - try without SHA (for new files)
+    const result = await ghPutJson(p, obj, undefined, "presence");
+    if(result && result.ok) return; // Success!
+    
+  } catch(error) {
+    // CORS or network error - log but don't throw
+    // This allows app to continue working even when GitHub API is slow
+    console.warn('[presenceWrite] Failed (CORS/network):', error.message);
+    // Don't show toast - presence updates are not critical
+  }
 }
 
 async function presenceSetOnline(online, reason=""){
