@@ -2547,6 +2547,20 @@ async function rawGetText(path){
 
 // Contents GET JSON + sha
 async function ghGetJsonWithSha(path){
+  // ALWAYS use raw endpoint first to avoid slow CORS preflight (5-11 second delay!)
+  // Only use API when we absolutely need SHA for writes
+  const rawResult = await rawGetText(path);
+  if(rawResult.ok){
+    try{
+      const obj = JSON.parse(rawResult.text);
+      // For reads, we don't need SHA immediately - return fast
+      return {ok:true, obj, sha:null, status:200, source:'raw', rawText:rawResult.text};
+    }catch(e){
+      console.warn('[ghGetJsonWithSha] Raw parse failed:', e.message);
+    }
+  }
+  
+  // Only if raw fails (404 or network error), try API as last resort
   await ensureGhToken();
   
   try {
@@ -2556,8 +2570,8 @@ async function ghGetJsonWithSha(path){
         "Accept":"application/vnd.github+json",
         "Authorization":`Bearer ${GH_TOKEN}`
       },
-      cache: 'no-store' // Disable cache for real-time updates
-    }, 2, 25000); // 25s timeout, 2 retries
+      cache: 'no-store'
+    }, 1, 40000); // 40s timeout for API fallback, only 1 retry
 
     if(res.status===404) return { ok:false, status:404, obj:null, sha:null, rawText:null };
     const rawText = await res.text();
@@ -2566,9 +2580,9 @@ async function ghGetJsonWithSha(path){
     const contentB64 = (data.content||"").replace(/\n/g,"");
     const jsonText = contentB64 ? b64DecodeUtf8(contentB64) : "";
     const obj = jsonText.trim() ? JSON.parse(jsonText) : null;
-    return { ok:true, status:res.status, obj, sha:data.sha||null, rawText };
+    return { ok:true, status:res.status, obj, sha:data.sha||null, rawText, source:'api' };
   } catch (error) {
-    console.error('[ghGetJsonWithSha] Failed after retries:', path, error.message);
+    console.error('[ghGetJsonWithSha] API fallback failed:', path, error.message);
     return { ok:false, status:0, obj:null, sha:null, rawText:null, error: error.message };
   }
 }
@@ -2593,7 +2607,7 @@ async function ghPutFile(path, base64Content, sha=null, message="upload file"){
         "Content-Type":"application/json"
       },
       body: JSON.stringify(putBody)
-    }, 1, 30000); // 30s timeout for PUT, 1 retry
+    }, 1, 60000); // 60s timeout for PUT (GitHub is very slow), 1 retry
     const raw = await res.text();
     return { res, raw };
   };
@@ -2662,7 +2676,7 @@ async function ghPutJson(path, obj, sha=null, message="update"){
         "Content-Type":"application/json"
       },
       body: JSON.stringify(putBody)
-    }, 1, 30000); // 30s timeout for PUT, 1 retry
+    }, 1, 60000); // 60s timeout for PUT (GitHub API very slow), 1 retry
     const raw = await res.text();
     return { res, raw };
   };
@@ -2709,6 +2723,44 @@ async function ghPutJson(path, obj, sha=null, message="update"){
 
   throw lastErr || new Error(`ghPutJson failed for ${path}`);
 }
+
+// List directory contents (returns array of {name, type:"file"|"dir", sha, size})
+async function ghListDir(path){
+  await ensureGhToken();
+  
+  try {
+    const res = await fetchWithRetry(ghFileUrl(path), {
+      method:"GET",
+      headers:{
+        "Accept":"application/vnd.github+json",
+        "Authorization":`Bearer ${GH_TOKEN}`
+      },
+      cache: 'no-store'
+    }, 2, 40000); // 40s timeout, 2 retries for directory listings
+
+    if(res.status===404) return { ok:false, status:404, items:[] };
+    if(!res.ok) return { ok:false, status:res.status, items:[] };
+    
+    const data = await res.json();
+    // GitHub returns array of {name, type, sha, size} for directories
+    if(!Array.isArray(data)) return { ok:false, status:200, items:[] };
+    
+    return { 
+      ok:true, 
+      status:res.status, 
+      items: data.map(item => ({
+        name: item.name,
+        type: item.type === 'dir' ? 'dir' : 'file',
+        sha: item.sha || null,
+        size: item.size || 0
+      }))
+    };
+  } catch (error) {
+    console.error('[ghListDir] Failed:', path, error.message);
+    return { ok:false, status:0, items:[], error: error.message };
+  }
+}
+
 let PWD_DICT_ERROR = null;
 
 function setAuthDisabled(reason){
