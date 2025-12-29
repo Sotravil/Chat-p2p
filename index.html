@@ -2610,6 +2610,29 @@ async function ghGetJsonWithSha(path){
   }
 }
 
+// Fetch ONLY the SHA from GitHub API (for updates)
+async function ghGetSha(path){
+  await ensureGhToken();
+  try {
+    const res = await fetchWithRetry(ghFileUrl(path), {
+      method:"GET",
+      headers:{
+        "Accept":"application/vnd.github+json",
+        "Authorization":`Bearer ${GH_TOKEN}`
+      },
+      cache: 'no-store'
+    }, 1, 40000);
+
+    if(res.status===404) return null; // File doesn't exist
+    if(!res.ok) return null;
+    const data = await res.json();
+    return data.sha || null;
+  } catch (error) {
+    console.error('[ghGetSha] Failed:', path, error.message);
+    return null;
+  }
+}
+
 // Contents PUT File (for binary data like audio)
 async function ghPutFile(path, base64Content, sha=null, message="upload file"){
   await ensureGhToken();
@@ -4759,16 +4782,15 @@ async function readMasterValue(roomName){
 async function saveMasterValue(roomName, value){
   const p = masterPath(roomName);
   try{
-    const got = await ghGetJsonWithSha(p);
-    const sha = got.ok ? got.sha : undefined;
+    // Fetch SHA from API (required for updates to existing files)
+    const sha = await ghGetSha(p);
     const result = await ghPutJson(p, !!value, sha, "set master");
     
     if(!result || !result.ok){
       // Retry once if failed
       log(`⚠️ Master flag update failed, retrying...`, "WARN");
       await sleep(500);
-      const got2 = await ghGetJsonWithSha(p);
-      const sha2 = got2.ok ? got2.sha : undefined;
+      const sha2 = await ghGetSha(p);
       await ghPutJson(p, !!value, sha2, "set master (retry)");
     }else{
       log(`✓ Master flag set to ${value}`, "INFO");
