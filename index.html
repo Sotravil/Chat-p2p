@@ -3176,18 +3176,11 @@ async function openRoomBrowser(){
     return;
   }
   
-  // Get presence for each room (in parallel batches of 3)
-  const roomsWithPresence = [];
-  for(let i = 0; i < rooms.length; i += 3){
-    const batch = rooms.slice(i, i + 3);
-    const results = await Promise.all(
-      batch.map(async room => ({
-        ...room,
-        presence: await getRoomActiveUsers(room.name)
-      }))
-    );
-    roomsWithPresence.push(...results);
-  }
+  // Initialize rooms with empty presence (will be populated in background)
+  const roomsWithPresence = rooms.map(room => ({
+    ...room,
+    presence: { active: 0, recent: 0, users: [], lastActivityAt: 0, loading: true }
+  }));
   
   // Function to sort rooms based on selected criteria
   const sortRooms = (sortType) => {
@@ -3307,8 +3300,11 @@ async function openRoomBrowser(){
     count.className = 'user-count';
     const total = room.presence.active + room.presence.recent;
     
-    // Show presence with more detail
-    if(room.presence.active > 0){
+    // Show presence with more detail (or loading state)
+    if(room.presence.loading){
+      count.textContent = `⏳ ...`; // Loading indicator
+      count.title = 'Loading presence...';
+    }else if(room.presence.active > 0){
       count.textContent = `🟢 ${room.presence.active}`; // Green dot for active
       count.title = `${room.presence.active} active now${room.presence.recent > 0 ? `, ${room.presence.recent} recent` : ''}`;
     }else if(room.presence.recent > 0){
@@ -3339,8 +3335,28 @@ async function openRoomBrowser(){
     bodyEl.appendChild(listDiv);
   };
   
-  // Initial render
+  // Initial render (shows rooms immediately with loading state)
   renderRoomList();
+  
+  // Fetch presence data in background (non-blocking)
+  // Process rooms one at a time to avoid overwhelming the API
+  (async () => {
+    for(const room of roomsWithPresence){
+      try{
+        // Fetch presence for this room
+        const presence = await getRoomActiveUsers(room.name);
+        room.presence = presence;
+        
+        // Re-sort and re-render after each update
+        const sortType = sortSelect.value;
+        sortedRooms = sortRooms(sortType);
+        renderRoomList();
+      }catch(e){
+        console.warn(`[Room Browser] Failed to fetch presence for ${room.name}:`, e.message);
+        room.presence = { active: 0, recent: 0, users: [], lastActivityAt: 0 };
+      }
+    }
+  })();
 }
 
 function formatTimeAgo(timestamp){
