@@ -4930,7 +4930,19 @@ function renderAll(messages){
   messagesEl.innerHTML = "";
   loadedMessages = [];
   for(const m of messages) addMessageToDom(m, true);
+  
+  // Scroll immediately
   messagesEl.scrollTop = messagesEl.scrollHeight;
+  
+  // Scroll again after media loads (images, videos, etc.)
+  setTimeout(() => {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }, 100);
+  
+  setTimeout(() => {
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }, 300);
+  
   setupReadObserver(); // attach read receipts to current DOM nodes
   
   // Check for unread messages and mentions
@@ -6656,6 +6668,15 @@ async function syncLatestFromStorage(){
   if(loadedCellsMax === null){
     const msgs = await loadLatestMessages(currentRoom, 50);
     renderAll(msgs);
+    
+    // Ensure scroll to bottom after initial load (with delay for media)
+    setTimeout(() => {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }, 200);
+    setTimeout(() => {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }, 500);
+    
     updateReadBadges();
     return;
   }
@@ -6684,6 +6705,11 @@ async function syncLatestFromStorage(){
     if(addedCount > 0){
       log(`📨 ${addedCount} new message(s) received (loaded cells)`, "INFO");
       setupReadObserver();
+      
+      // Scroll to bottom after adding new messages
+      setTimeout(() => {
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      }, 100);
     }
     
     // Update cell metadata after sync
@@ -6753,6 +6779,11 @@ async function syncLatestFromStorage(){
     
     // Check for new messages and mentions
     checkNewMessages(newMsgs);
+    
+    // Scroll to bottom after adding new messages
+    setTimeout(() => {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }, 100);
   }
   
   // Update cell metadata after sync
