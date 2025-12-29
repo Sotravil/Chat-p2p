@@ -2748,8 +2748,8 @@ async function ghPutJson(path, obj, sha=null, message="update"){
     // If GitHub complains about missing sha or conflict, try to GET current sha and retry once
     if((res.status === 422 || res.status === 409) && attempt === 0){
       try{
-        const got = await ghGetJsonWithSha(path);
-        if(got.sha) body.sha = got.sha;
+        const freshSha = await ghGetSha(path);
+        if(freshSha) body.sha = freshSha;
         // If no SHA available, leave body.sha as is (don't set to null)
         attempt++;
         continue;
@@ -5930,37 +5930,11 @@ const presenceState = {
 async function presenceWrite(obj){
   if(!currentRoom) return;
   const p = presencePath(currentRoom, obj.userId);
-  const got = await ghGetJsonWithSha(p);
-  let sha = null;
   
-  // Determine SHA: must be string or undefined (never null/false)
-  if(got.ok && got.sha && typeof got.sha === 'string'){
-    // We have a valid SHA from read
-    sha = got.sha;
-  } else if(got.ok && got.source === 'raw'){
-    // Raw endpoint succeeded but didn't provide SHA - fetch from API
-    await ensureGhToken();
-    try{
-      const res = await fetchWithTimeout(ghFileUrl(p), {
-        method:"GET",
-        headers:{
-          "Accept":"application/vnd.github+json",
-          "Authorization":`Bearer ${GH_TOKEN}`
-        }
-      }, 15000);
-      if(res.ok){
-        const data = await res.json();
-        if(data.sha && typeof data.sha === 'string'){
-          sha = data.sha;
-        }
-      }
-    }catch(e){
-      console.warn('[presenceWrite] Could not fetch SHA:', e.message);
-    }
-  }
-  // If got.ok is false (404), sha remains null = new file creation
+  // Always fetch fresh SHA from API to avoid 409 conflicts
+  const sha = await ghGetSha(p);
   
-  // Pass undefined instead of null to prevent GitHub rejection
+  // Pass undefined for new files (sha will be null), or the fetched SHA for updates
   await ghPutJson(p, obj, sha || undefined, "presence");
 }
 
