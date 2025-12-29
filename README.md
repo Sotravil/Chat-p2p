@@ -97,7 +97,7 @@ Contributions are welcome! Here's how you can help:
 
 ## 🤖 GitHub Copilot
 
-This project supports GitHub Copilot! Check out [COPILOT_GUIDE.md](COPILOT_GUIDE.md) to learn how to use Copilot's agent capabilities to automatically edit files and make improvements.
+This project supports GitHub Copilot! The repository can be edited using Copilot's agent capabilities to automatically make improvements and add features.
 
 ## 🔒 Privacy & Security
 
