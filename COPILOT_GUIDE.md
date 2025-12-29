@@ -2,7 +2,7 @@
 
 ## Yes, GitHub Copilot Can Edit Your Files! 🎉
 
-You asked: "do you are authorized to edit files from my repos how could i give you access so you can do edit mode agent like we do it in vs code extension"
+You asked: "Are you authorized to edit files from my repos? How could I give you access so you can work as an edit mode agent like the VS Code extension?"
 
 **Great news:** GitHub Copilot is **already authorized** and **actively editing files** in your repository right now! In fact, this very file you're reading was created by Copilot as a demonstration.
 

@@ -1,6 +1,6 @@
 # Chat P2P - Serverless Real-Time Chat
 
-![Preview](preview.png)
+![Chat P2P Application Preview](preview.png)
 
 A modern, open-source peer-to-peer chat application with **no backend required**. Send messages, voice notes, images, and files using GitHub as storage. Built with a mobile-first approach, completely secure, and 100% free.
 
