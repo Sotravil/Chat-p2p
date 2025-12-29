@@ -2041,7 +2041,7 @@
 
 <header>
   <div class="left">
-    <h1>Chat‑p2p V3</h1>
+    <h1>Chat‑p2p V6</h1>
     <span class="status"><span id="netDot" class="dot"></span><span id="netText">booting…</span></span>
   </div>
   <div class="right">
@@ -2595,7 +2595,11 @@ async function ghPutFile(path, base64Content, sha=null, message="upload file"){
     content: base64Content,
     branch: GH_BRANCH
   };
-  if(sha) body.sha = sha;
+  // CRITICAL: Only add sha if it's a valid string. undefined = omit property entirely
+  if(sha !== undefined && sha !== null && typeof sha === 'string' && sha.length > 0){
+    body.sha = sha;
+  }
+  // If sha is undefined/null/empty = new file creation (no sha property in body)
 
   // Try PUT, and on 422/409 attempt one retry by fetching current sha
   const doPut = async (putBody) => {
@@ -2664,7 +2668,11 @@ async function ghPutJson(path, obj, sha=null, message="update"){
     content: b64EncodeUtf8(jsonText),
     branch: GH_BRANCH
   };
-  if(sha) body.sha = sha;
+  // CRITICAL: Only add sha if it's a valid string. undefined = omit property entirely
+  if(sha !== undefined && sha !== null && typeof sha === 'string' && sha.length > 0){
+    body.sha = sha;
+  }
+  // If sha is undefined/null/empty = new file creation (no sha property in body)
 
   // Try PUT, and on 422/409 attempt one retry by fetching current sha.
   const doPut = async (putBody) => {
@@ -5862,8 +5870,37 @@ async function presenceWrite(obj){
   if(!currentRoom) return;
   const p = presencePath(currentRoom, obj.userId);
   const got = await ghGetJsonWithSha(p);
-  const sha = got.ok ? got.sha : null;
-  await ghPutJson(p, obj, sha, "presence");
+  let sha = null;
+  
+  // Determine SHA: must be string or undefined (never null/false)
+  if(got.ok && got.sha && typeof got.sha === 'string'){
+    // We have a valid SHA from read
+    sha = got.sha;
+  } else if(got.ok && got.source === 'raw'){
+    // Raw endpoint succeeded but didn't provide SHA - fetch from API
+    await ensureGhToken();
+    try{
+      const res = await fetchWithTimeout(ghFileUrl(p), {
+        method:"GET",
+        headers:{
+          "Accept":"application/vnd.github+json",
+          "Authorization":`Bearer ${GH_TOKEN}`
+        }
+      }, 15000);
+      if(res.ok){
+        const data = await res.json();
+        if(data.sha && typeof data.sha === 'string'){
+          sha = data.sha;
+        }
+      }
+    }catch(e){
+      console.warn('[presenceWrite] Could not fetch SHA:', e.message);
+    }
+  }
+  // If got.ok is false (404), sha remains null = new file creation
+  
+  // Pass undefined instead of null to prevent GitHub rejection
+  await ghPutJson(p, obj, sha || undefined, "presence");
 }
 
 async function presenceSetOnline(online, reason=""){
