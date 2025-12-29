@@ -2727,7 +2727,7 @@ async function ghPutJson(path, obj, sha=null, message="update"){
       try{
         const got = await ghGetJsonWithSha(path);
         if(got.sha) body.sha = got.sha;
-        else body.sha = null; // still try even if null
+        // If no SHA available, leave body.sha as is (don't set to null)
         attempt++;
         continue;
       }catch(e){
@@ -4760,7 +4760,7 @@ async function saveMasterValue(roomName, value){
   const p = masterPath(roomName);
   try{
     const got = await ghGetJsonWithSha(p);
-    const sha = got.ok ? got.sha : null;
+    const sha = got.ok ? got.sha : undefined;
     const result = await ghPutJson(p, !!value, sha, "set master");
     
     if(!result || !result.ok){
@@ -4768,7 +4768,7 @@ async function saveMasterValue(roomName, value){
       log(`⚠️ Master flag update failed, retrying...`, "WARN");
       await sleep(500);
       const got2 = await ghGetJsonWithSha(p);
-      const sha2 = got2.ok ? got2.sha : null;
+      const sha2 = got2.ok ? got2.sha : undefined;
       await ghPutJson(p, !!value, sha2, "set master (retry)");
     }else{
       log(`✓ Master flag set to ${value}`, "INFO");
