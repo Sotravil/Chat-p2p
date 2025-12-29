@@ -2483,41 +2483,94 @@ async function ensureGhToken(){
 // In-memory ETag cache per raw URL
 const RAW_ETAG = new Map(); // key: rawUrl -> {etag, text}
 
+// Fetch with timeout wrapper
+async function fetchWithTimeout(url, options = {}, timeoutMs = 25000) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+    return response;
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error(`Request timeout after ${timeoutMs}ms`);
+    }
+    throw error;
+  }
+}
+
+// Retry wrapper with exponential backoff
+async function fetchWithRetry(url, options = {}, retries = 2, timeoutMs = 25000) {
+  let lastError;
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fetchWithTimeout(url, options, timeoutMs);
+    } catch (error) {
+      lastError = error;
+      
+      if (attempt < retries) {
+        const delay = Math.min(1000 * Math.pow(2, attempt), 5000); // 1s, 2s, 4s max
+        console.warn(`[Retry ${attempt + 1}/${retries}] ${error.message} - waiting ${delay}ms`);
+        await sleep(delay);
+      }
+    }
+  }
+  
+  throw lastError;
+}
+
 async function rawGetText(path){
   const url = rawUrl(path);
   const headers = {};
   const cached = RAW_ETAG.get(url);
   if(cached?.etag) headers["If-None-Match"] = cached.etag;
 
-  const res = await fetch(url, { method:"GET", headers });
-  if(res.status === 304 && cached) return { ok:true, status:304, text: cached.text, etag: cached.etag };
-  if(!res.ok) return { ok:false, status:res.status, text:"", etag:null };
-  const etag = res.headers.get("etag");
-  const text = await res.text();
-  if(etag) RAW_ETAG.set(url, { etag, text });
-  return { ok:true, status:res.status, text, etag };
+  try {
+    const res = await fetchWithRetry(url, { method:"GET", headers }, 1, 15000); // 15s timeout, 1 retry
+    if(res.status === 304 && cached) return { ok:true, status:304, text: cached.text, etag: cached.etag };
+    if(!res.ok) return { ok:false, status:res.status, text:"", etag:null };
+    const etag = res.headers.get("etag");
+    const text = await res.text();
+    if(etag) RAW_ETAG.set(url, { etag, text });
+    return { ok:true, status:res.status, text, etag };
+  } catch (error) {
+    console.error('[rawGetText] Failed:', error.message);
+    return { ok:false, status:0, text:"", etag:null, error: error.message };
+  }
 }
 
 // Contents GET JSON + sha
 async function ghGetJsonWithSha(path){
   await ensureGhToken();
-  const res = await fetch(ghFileUrl(path), {
-    method:"GET",
-    headers:{
-      "Accept":"application/vnd.github+json",
-      "Authorization":`Bearer ${GH_TOKEN}`
-    },
-    cache: 'no-store' // Disable cache for real-time updates
-  });
+  
+  try {
+    const res = await fetchWithRetry(ghFileUrl(path), {
+      method:"GET",
+      headers:{
+        "Accept":"application/vnd.github+json",
+        "Authorization":`Bearer ${GH_TOKEN}`
+      },
+      cache: 'no-store' // Disable cache for real-time updates
+    }, 2, 25000); // 25s timeout, 2 retries
 
-  if(res.status===404) return { ok:false, status:404, obj:null, sha:null, rawText:null };
-  const rawText = await res.text();
-  if(!res.ok) return { ok:false, status:res.status, obj:null, sha:null, rawText };
-  const data = JSON.parse(rawText);
-  const contentB64 = (data.content||"").replace(/\n/g,"");
-  const jsonText = contentB64 ? b64DecodeUtf8(contentB64) : "";
-  const obj = jsonText.trim() ? JSON.parse(jsonText) : null;
-  return { ok:true, status:res.status, obj, sha:data.sha||null, rawText };
+    if(res.status===404) return { ok:false, status:404, obj:null, sha:null, rawText:null };
+    const rawText = await res.text();
+    if(!res.ok) return { ok:false, status:res.status, obj:null, sha:null, rawText };
+    const data = JSON.parse(rawText);
+    const contentB64 = (data.content||"").replace(/\n/g,"");
+    const jsonText = contentB64 ? b64DecodeUtf8(contentB64) : "";
+    const obj = jsonText.trim() ? JSON.parse(jsonText) : null;
+    return { ok:true, status:res.status, obj, sha:data.sha||null, rawText };
+  } catch (error) {
+    console.error('[ghGetJsonWithSha] Failed after retries:', path, error.message);
+    return { ok:false, status:0, obj:null, sha:null, rawText:null, error: error.message };
+  }
 }
 
 // Contents PUT File (for binary data like audio)
@@ -2532,7 +2585,7 @@ async function ghPutFile(path, base64Content, sha=null, message="upload file"){
 
   // Try PUT, and on 422/409 attempt one retry by fetching current sha
   const doPut = async (putBody) => {
-    const res = await fetch(ghFileUrl(path), {
+    const res = await fetchWithRetry(ghFileUrl(path), {
       method:"PUT",
       headers:{
         "Accept":"application/vnd.github+json",
@@ -2540,7 +2593,7 @@ async function ghPutFile(path, base64Content, sha=null, message="upload file"){
         "Content-Type":"application/json"
       },
       body: JSON.stringify(putBody)
-    });
+    }, 1, 30000); // 30s timeout for PUT, 1 retry
     const raw = await res.text();
     return { res, raw };
   };
@@ -2548,30 +2601,41 @@ async function ghPutFile(path, base64Content, sha=null, message="upload file"){
   let attempt = 0;
   let lastErr = null;
   while(attempt < 2){
-    const { res, raw } = await doPut(body);
-    if(res.ok){
-      const data = JSON.parse(raw || '{}');
-      return { ok:true, status: res.status, sha: data?.content?.sha || null, url: data?.content?.download_url || null };
-    }
-
-    // If GitHub complains about missing sha or conflict, try to GET current sha and retry once
-    if((res.status === 422 || res.status === 409) && attempt === 0){
-      try{
-        const got = await ghGetJsonWithSha(path);
-        if(got.sha) body.sha = got.sha;
-        else body.sha = null;
-        attempt++;
-        continue;
-      }catch(e){
-        lastErr = e;
-        break;
+    try {
+      const { res, raw } = await doPut(body);
+      if(res.ok){
+        const data = JSON.parse(raw || '{}');
+        return { ok:true, status: res.status, sha: data?.content?.sha || null, url: data?.content?.download_url || null };
       }
-    }
 
-    // Other failures: capture and throw
-    console.error("[ghPutFile ERROR]", {path, status: res.status, raw});
-    lastErr = new Error(`ghPutFile failed status=${res.status} path=${path}`);
-    break;
+      // If GitHub complains about missing sha or conflict, try to GET current sha and retry once
+      if((res.status === 422 || res.status === 409) && attempt === 0){
+        try{
+          const got = await ghGetJsonWithSha(path);
+          if(got.sha) body.sha = got.sha;
+          else body.sha = null;
+          attempt++;
+          continue;
+        }catch(e){
+          lastErr = e;
+          break;
+        }
+      }
+
+      // Other failures: capture and throw
+      console.error("[ghPutFile ERROR]", {path, status: res.status, raw});
+      lastErr = new Error(`ghPutFile failed status=${res.status} path=${path}`);
+      break;
+    } catch (error) {
+      console.error("[ghPutFile EXCEPTION]", {path, error: error.message});
+      lastErr = error;
+      if (attempt === 0 && error.message.includes('timeout')) {
+        attempt++;
+        await sleep(2000);
+        continue;
+      }
+      break;
+    }
   }
 
   throw lastErr || new Error(`ghPutFile failed for ${path}`);
@@ -2590,7 +2654,7 @@ async function ghPutJson(path, obj, sha=null, message="update"){
 
   // Try PUT, and on 422/409 attempt one retry by fetching current sha.
   const doPut = async (putBody) => {
-    const res = await fetch(ghFileUrl(path), {
+    const res = await fetchWithRetry(ghFileUrl(path), {
       method:"PUT",
       headers:{
         "Accept":"application/vnd.github+json",
@@ -2598,7 +2662,7 @@ async function ghPutJson(path, obj, sha=null, message="update"){
         "Content-Type":"application/json"
       },
       body: JSON.stringify(putBody)
-    });
+    }, 1, 30000); // 30s timeout for PUT, 1 retry
     const raw = await res.text();
     return { res, raw };
   };
@@ -2606,7 +2670,8 @@ async function ghPutJson(path, obj, sha=null, message="update"){
   let attempt = 0;
   let lastErr = null;
   while(attempt < 2){
-    const { res, raw } = await doPut(body);
+    try {
+      const { res, raw } = await doPut(body);
     if(res.ok){
       const data = JSON.parse(raw || '{}');
       return { ok:true, status: res.status, sha: data?.content?.sha || null };
@@ -2630,33 +2695,20 @@ async function ghPutJson(path, obj, sha=null, message="update"){
     console.error("[ghPutJson ERROR]", {path, status: res.status, raw});
     lastErr = new Error(`ghPutJson failed status=${res.status} path=${path} raw=${raw}`);
     break;
+    } catch (error) {
+      console.error("[ghPutJson EXCEPTION]", {path, error: error.message});
+      lastErr = error;
+      if (attempt === 0 && error.message.includes('timeout')) {
+        attempt++;
+        await sleep(2000);
+        continue;
+      }
+      break;
+    }
   }
 
   throw lastErr || new Error(`ghPutJson failed for ${path}`);
 }
-
-// List directory via Contents API (needed for auth + presence browsing)
-async function ghListDir(path){
-  await ensureGhToken();
-  const res = await fetch(ghFileUrl(path), {
-    method:"GET",
-    headers:{
-      "Accept":"application/vnd.github+json",
-      "Authorization":`Bearer ${GH_TOKEN}`
-    }
-  });
-  if(res.status===404) return { ok:false, status:404, items:[] };
-  const raw = await res.text();
-  if(!res.ok) return { ok:false, status:res.status, items:[] };
-  const items = JSON.parse(raw);
-  return { ok:true, status:res.status, items: Array.isArray(items)? items: [] };
-}
-
-/* ============================================================
-   === DICTIONARY LOADER (READ ONLY) ===
-   ============================================================ */
-let PWD_DICT = null;            // { sha, charset, map }
-let PWD_DICT_READY = false;
 let PWD_DICT_ERROR = null;
 
 function setAuthDisabled(reason){
@@ -4408,31 +4460,53 @@ async function ensureCellExists(roomName, cellNum){
 
 async function loadCellsRange(roomName, startCell, endCell){
   const out = [];
+  const failedCells = [];
+  
   for(let c=startCell;c<=endCell;c++){
-    const got = await ghGetJsonWithSha(cellPath(roomName,c));
-    if(got.ok && Array.isArray(got.obj)){
-      for(const raw of got.obj){
-        const msg = normalizeMessage(raw);
-        if(msg){
-          // Tag message with cell number for live tracking
-          msg.cell = c;
-          out.push(msg);
-          
-          // Debug: Log audio messages
-          if(msg.type === 'audio'){
-            console.log('📼 Loaded audio message from GitHub:', {
-              msgId: msg.id,
-              hasPath: !!msg.audioPath,
-              hasData: !!msg.audioData,
-              size: formatBytes(msg.audioSize || 0),
-              duration: msg.audioDuration,
-              path: msg.audioPath
-            });
+    try{
+      const got = await ghGetJsonWithSha(cellPath(roomName,c));
+      if(got.ok && Array.isArray(got.obj)){
+        for(const raw of got.obj){
+          const msg = normalizeMessage(raw);
+          if(msg){
+            // Tag message with cell number for live tracking
+            msg.cell = c;
+            out.push(msg);
+            
+            // Debug: Log audio messages
+            if(msg.type === 'audio'){
+              console.log('📼 Loaded audio message from GitHub:', {
+                msgId: msg.id,
+                hasPath: !!msg.audioPath,
+                hasData: !!msg.audioData,
+                size: formatBytes(msg.audioSize || 0),
+                duration: msg.audioDuration,
+                path: msg.audioPath
+              });
+            }
           }
         }
+      }else if(got.status === 404){
+        // Cell doesn't exist yet, that's OK
+        console.log(`Cell ${c} not found (may be empty)`);
+      }else{
+        failedCells.push(c);
+        console.warn(`Failed to load cell ${c}: ${got.error || 'unknown error'}`);
       }
+    }catch(error){
+      failedCells.push(c);
+      console.error(`Exception loading cell ${c}:`, error.message);
     }
   }
+  
+  if(failedCells.length > 0){
+    console.warn(`⚠️ Failed to load ${failedCells.length} cells: ${failedCells.join(', ')}`);
+    // Show user notification if too many failures
+    if(failedCells.length > (endCell - startCell + 1) / 2){
+      showToast('Network issues detected. Some messages may not load.', 'warning', 5000);
+    }
+  }
+  
   out.sort((a,b)=>a.ts-b.ts);
   return out;
 }
