@@ -851,30 +851,47 @@
       align-items:center;
       gap:2px;
       cursor:pointer;
+      padding:0 4px;
+      transition:gap .2s ease;
+    }
+    .audio-waveform:hover{
+      gap:3px;
     }
     .audio-wave-bar{
       width:3px;
       background:rgba(56,189,248,.3);
       border-radius:2px;
       opacity:.6;
-      transition:all .05s ease;
+      transition:all .1s cubic-bezier(0.4, 0, 0.2, 1);
       position:relative;
+      transform-origin:center;
+    }
+    .audio-wave-bar:hover{
+      opacity:.8;
+      transform:scaleY(1.1);
     }
     .audio-wave-bar.active{
       opacity:1;
       background:linear-gradient(to top, var(--accent-primary), var(--accent-secondary));
-      box-shadow:0 0 4px rgba(56,189,248,.5);
+      box-shadow:0 0 6px rgba(56,189,248,.6), 0 0 12px rgba(56,189,248,.3);
+      transform:scaleY(1.05);
+      animation:pulse-bar .6s ease-in-out infinite;
+    }
+    @keyframes pulse-bar{
+      0%, 100%{ transform:scaleY(1.05); }
+      50%{ transform:scaleY(1.15); }
     }
     .audio-wave-bar.active::after{
       content:'';
       position:absolute;
       top:0;
-      left:0;
-      right:0;
+      left:-1px;
+      right:-1px;
       bottom:0;
       background:linear-gradient(to top, rgba(56,189,248,.4), rgba(168,85,247,.4));
-      filter:blur(2px);
+      filter:blur(3px);
       z-index:-1;
+      border-radius:2px;
     }
     .audio-duration{
       font-size:12px;
@@ -916,6 +933,28 @@
       transform:scale(1.05);
     }
     .media-attach-btn:active{
+      transform:scale(0.95);
+    }
+    
+    /* Paste Clipboard Button */
+    .paste-clipboard-btn{
+      width:46px; height:46px;
+      border-radius:12px;
+      border:1px solid rgba(168,85,247,.3);
+      background:linear-gradient(135deg, rgba(168,85,247,.12), rgba(147,51,234,.12));
+      color:rgba(168,85,247,1);
+      font-size:20px;
+      cursor:pointer;
+      transition:all .2s;
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0;
+    }
+    .paste-clipboard-btn:hover{
+      background:linear-gradient(135deg, rgba(168,85,247,.2), rgba(147,51,234,.2));
+      transform:scale(1.05);
+      border-color:rgba(168,85,247,.5);
+    }
+    .paste-clipboard-btn:active{
       transform:scale(0.95);
     }
 
@@ -965,50 +1004,103 @@
     /* Video Card */
     .msg-video{
       position:relative;
-      max-width:320px;
-      margin:8px 0;
-      border-radius:16px;
+      max-width:420px;
+      margin:12px 0;
+      border-radius:20px;
       overflow:hidden;
-      background:rgba(0,0,0,.3);
+      background:linear-gradient(145deg, rgba(15,15,20,.95), rgba(25,25,35,.95));
+      box-shadow:0 8px 32px rgba(0,0,0,.4), 0 0 0 1px rgba(255,255,255,.05);
+      transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .msg-video:hover{
+      transform:translateY(-2px);
+      box-shadow:0 12px 40px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.1);
     }
     .msg-video-poster{
       position:relative;
       width:100%;
       aspect-ratio:16/9;
       cursor:pointer;
+      background:linear-gradient(135deg, rgba(30,30,40,.9), rgba(20,20,30,.9));
+      overflow:hidden;
     }
     .msg-video-poster img{
       width:100%; height:100%;
       object-fit:cover;
-      filter:blur(6px);
+      filter:blur(8px) brightness(0.7);
+      transition:filter .4s ease;
     }
     .msg-video-poster.loaded img{
-      filter:blur(0);
+      filter:blur(0) brightness(1);
     }
     .msg-video-play-btn{
       position:absolute;
       top:50%; left:50%;
       transform:translate(-50%, -50%);
-      width:64px; height:64px;
+      width:80px; height:80px;
       border-radius:50%;
-      background:rgba(255,255,255,.9);
-      color:#000;
+      background:linear-gradient(135deg, rgba(56,189,248,.95), rgba(59,130,246,.95));
+      color:#fff;
       border:none;
-      font-size:28px;
+      font-size:32px;
       display:flex; align-items:center; justify-content:center;
+      padding-left:6px; /* Ajustar icono de play al centro visual */
       cursor:pointer;
-      transition:all .2s;
-      box-shadow:0 4px 12px rgba(0,0,0,.3);
+      transition:all .3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow:0 8px 24px rgba(56,189,248,.4), 0 0 0 4px rgba(255,255,255,.1);
+      backdrop-filter:blur(8px);
+    }
+    .msg-video-play-btn::before{
+      content:'';
+      position:absolute;
+      inset:0;
+      border-radius:50%;
+      background:linear-gradient(135deg, transparent, rgba(255,255,255,.2));
+      opacity:0;
+      transition:opacity .3s;
     }
     .msg-video-play-btn:hover{
-      transform:translate(-50%, -50%) scale(1.1);
-      background:white;
+      transform:translate(-50%, -50%) scale(1.15);
+      box-shadow:0 12px 32px rgba(56,189,248,.6), 0 0 0 6px rgba(255,255,255,.15), 0 0 60px rgba(56,189,248,.3);
+    }
+    .msg-video-play-btn:hover::before{
+      opacity:1;
+    }
+    .msg-video-play-btn:active{
+      transform:translate(-50%, -50%) scale(1.05);
+    }
+    .msg-video-close-btn{
+      position:absolute;
+      top:12px; right:12px;
+      width:36px; height:36px;
+      border-radius:50%;
+      background:rgba(0,0,0,.7);
+      color:#fff;
+      border:none;
+      font-size:20px;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer;
+      z-index:10;
+      transition:all .2s ease;
+      backdrop-filter:blur(8px);
+      opacity:0;
+      pointer-events:none;
+    }
+    .msg-video-poster.playing .msg-video-close-btn{
+      opacity:1;
+      pointer-events:auto;
+    }
+    .msg-video-close-btn:hover{
+      background:rgba(239,68,68,.9);
+      transform:scale(1.1);
     }
     .msg-video-info{
-      padding:10px 12px;
+      padding:12px 16px;
       display:flex; align-items:center; justify-content:space-between;
       font-size:11px;
-      color:var(--muted);
+      color:rgba(255,255,255,.6);
+      background:rgba(0,0,0,.2);
+      backdrop-filter:blur(10px);
     }
     .msg-video-preview-overlay{
       position:absolute;
@@ -2216,9 +2308,1276 @@
     @media (prefers-color-scheme: light){
       /* User can add light mode overrides here if needed */
     }
+
+    /* ============================================================
+       WELCOME SCREEN STYLES
+       ============================================================ */
+    .welcome-screen{
+      position:fixed;
+      top:0; left:0; right:0; bottom:0;
+      background:linear-gradient(135deg, rgba(15,23,42,.98), rgba(11,15,23,.95));
+      z-index:99999;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      overflow-y:auto;
+      animation:fadeIn .6s ease-out;
+      backdrop-filter:blur(20px);
+    }
+    .welcome-screen.hide{
+      animation:fadeOut .5s ease-in forwards;
+      pointer-events:none;
+    }
+    @keyframes fadeIn{
+      from{ opacity:0; }
+      to{ opacity:1; }
+    }
+    @keyframes fadeOut{
+      from{ opacity:1; }
+      to{ opacity:0; }
+    }
+    .welcome-container{
+      max-width:650px;
+      max-height:90vh;
+      width:100%;
+      background:linear-gradient(180deg, rgba(17,28,54,.95), rgba(15,23,42,.9));
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:24px;
+      padding:32px 28px;
+      box-shadow:0 20px 60px rgba(0,0,0,.5), 0 0 1px rgba(255,255,255,.2);
+      position:relative;
+      overflow-y:auto;
+      overflow-x:hidden;
+      animation:slideUp .6s ease-out;
+      /* Custom scrollbar */
+      scrollbar-width:thin;
+      scrollbar-color:rgba(56,189,248,.3) transparent;
+    }
+    .welcome-container::-webkit-scrollbar{
+      width:8px;
+    }
+    .welcome-container::-webkit-scrollbar-track{
+      background:transparent;
+    }
+    .welcome-container::-webkit-scrollbar-thumb{
+      background:rgba(56,189,248,.3);
+      border-radius:4px;
+    }
+    .welcome-container::-webkit-scrollbar-thumb:hover{
+      background:rgba(56,189,248,.5);
+    }
+    @keyframes slideUp{
+      from{ opacity:0; transform:translateY(30px); }
+      to{ opacity:1; transform:translateY(0); }
+    }
+    .welcome-container::before{
+      content:'';
+      position:absolute;
+      inset:0;
+      border-radius:24px;
+      padding:1px;
+      background:linear-gradient(135deg, rgba(56,189,248,.3), transparent 40%, rgba(168,85,247,.25));
+      -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite:xor;
+      mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite:exclude;
+      pointer-events:none;
+      opacity:.6;
+    }
+    .welcome-header{
+      text-align:center;
+      margin-bottom:24px;
+      position:relative;
+    }
+    .welcome-logo{
+      font-size:48px;
+      margin-bottom:8px;
+      display:inline-block;
+      animation:float 3s ease-in-out infinite;
+    }
+    @keyframes float{
+      0%, 100%{ transform:translateY(0px); }
+      50%{ transform:translateY(-10px); }
+    }
+    .welcome-title{
+      font-size:28px;
+      font-weight:700;
+      margin:0 0 8px 0;
+      background:linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+      background-clip:text;
+    }
+    .welcome-subtitle{
+      font-size:15px;
+      color:var(--muted);
+      margin:0;
+      line-height:1.5;
+    }
+    .welcome-features{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+      gap:12px;
+      margin:20px 0;
+    }
+    .feature-card{
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:14px;
+      padding:16px;
+      transition:all .3s ease;
+      position:relative;
+      overflow:hidden;
+    }
+    .feature-card::before{
+      content:'';
+      position:absolute;
+      top:0; left:0; right:0;
+      height:3px;
+      background:linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transform:scaleX(0);
+      transition:transform .3s ease;
+    }
+    .feature-card:hover{
+      background:rgba(255,255,255,.06);
+      border-color:rgba(56,189,248,.3);
+      transform:translateY(-4px);
+      box-shadow:0 8px 24px rgba(0,0,0,.3);
+    }
+    .feature-card:hover::before{
+      transform:scaleX(1);
+    }
+    .feature-icon{
+      font-size:28px;
+      margin-bottom:8px;
+      display:block;
+    }
+    .feature-title{
+      font-size:14px;
+      font-weight:650;
+      margin:0 0 4px 0;
+      color:var(--txt);
+    }
+    .feature-desc{
+      font-size:12px;
+      color:var(--muted);
+      margin:0;
+      line-height:1.4;
+    }
+    .welcome-actions{
+      display:flex;
+      gap:10px;
+      margin-top:24px;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+    .welcome-btn{
+      padding:12px 24px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:linear-gradient(135deg, rgba(56,189,248,.18), rgba(56,189,248,.12));
+      border-color:rgba(56,189,248,.4);
+      color:var(--accent-primary);
+      font-size:14px;
+      font-weight:600;
+      cursor:pointer;
+      transition:all .3s ease;
+      box-shadow:0 4px 12px rgba(56,189,248,.2);
+      position:relative;
+      overflow:hidden;
+    }
+    .welcome-btn::before{
+      content:'';
+      position:absolute;
+      top:50%; left:50%;
+      width:0; height:0;
+      border-radius:50%;
+      background:rgba(255,255,255,.2);
+      transform:translate(-50%, -50%);
+      transition:width .5s, height .5s;
+    }
+    .welcome-btn:hover::before{
+      width:300px;
+      height:300px;
+    }
+    .welcome-btn:hover{
+      transform:translateY(-2px);
+      box-shadow:0 8px 24px rgba(56,189,248,.35);
+      border-color:rgba(56,189,248,.6);
+    }
+    .welcome-btn.secondary{
+      background:rgba(255,255,255,.05);
+      border-color:rgba(255,255,255,.2);
+      color:var(--txt);
+      box-shadow:0 4px 12px rgba(0,0,0,.2);
+    }
+    .welcome-btn.secondary:hover{
+      background:rgba(255,255,255,.08);
+      box-shadow:0 8px 24px rgba(0,0,0,.3);
+      border-color:rgba(255,255,255,.3);
+    }
+    .welcome-footer{
+      text-align:center;
+      margin-top:20px;
+      padding-top:20px;
+      border-top:1px solid rgba(255,255,255,.08);
+    }
+    .welcome-footer-text{
+      font-size:12px;
+      color:var(--muted);
+      margin:0;
+    }
+    .welcome-skip{
+      color:var(--accent-primary);
+      text-decoration:none;
+      cursor:pointer;
+      transition:all .2s ease;
+      position:relative;
+    }
+    .welcome-skip::after{
+      content:'';
+      position:absolute;
+      bottom:-2px;
+      left:0;
+      right:0;
+      height:1px;
+      background:var(--accent-primary);
+      transform:scaleX(0);
+      transition:transform .2s ease;
+    }
+    .welcome-skip:hover{
+      color:var(--accent-secondary);
+    }
+    .welcome-skip:hover::after{
+      transform:scaleX(1);
+    }
+    /* Tablet adjustments */
+    @media (max-width: 768px){
+      .welcome-container{
+        max-width:90%;
+        max-height:85vh;
+        padding:24px 20px;
+      }
+      .welcome-logo{
+        font-size:42px;
+      }
+      .welcome-title{
+        font-size:24px;
+      }
+      .welcome-subtitle{
+        font-size:14px;
+      }
+      .welcome-features{
+        grid-template-columns:repeat(2, 1fr);
+        gap:10px;
+      }
+      .feature-card{
+        padding:14px;
+      }
+      .feature-icon{
+        font-size:24px;
+      }
+      .feature-title{
+        font-size:13px;
+      }
+      .feature-desc{
+        font-size:11px;
+      }
+    }
+    /* Mobile adjustments */
+    @media (max-width: 640px){
+      .welcome-screen{
+        padding:12px;
+      }
+      .welcome-container{
+        max-width:100%;
+        max-height:90vh;
+        padding:20px 16px;
+        border-radius:20px;
+      }
+      .welcome-header{
+        margin-bottom:18px;
+      }
+      .welcome-logo{
+        font-size:40px;
+        margin-bottom:6px;
+      }
+      .welcome-title{
+        font-size:22px;
+      }
+      .welcome-subtitle{
+        font-size:13px;
+      }
+      .welcome-features{
+        grid-template-columns:1fr;
+        gap:10px;
+        margin:16px 0;
+      }
+      .feature-card{
+        padding:12px;
+      }
+      .feature-icon{
+        font-size:24px;
+        margin-bottom:6px;
+      }
+      .feature-title{
+        font-size:13px;
+        margin-bottom:3px;
+      }
+      .feature-desc{
+        font-size:11px;
+        line-height:1.35;
+      }
+      .welcome-actions{
+        flex-direction:column;
+        margin-top:18px;
+        gap:8px;
+      }
+      .welcome-btn{
+        width:100%;
+        padding:11px 20px;
+        font-size:14px;
+      }
+      .welcome-footer{
+        margin-top:16px;
+        padding-top:16px;
+      }
+    }
+    /* Small mobile devices */
+    @media (max-width: 375px){
+      .welcome-container{
+        padding:16px 12px;
+      }
+      .welcome-logo{
+        font-size:36px;
+      }
+      .welcome-title{
+        font-size:20px;
+      }
+      .welcome-subtitle{
+        font-size:12px;
+      }
+      .feature-card{
+        padding:10px;
+      }
+      .feature-icon{
+        font-size:22px;
+      }
+      .feature-title{
+        font-size:12px;
+      }
+      .feature-desc{
+        font-size:10px;
+      }
+    }
+
+    /* ============================================================
+       TUTORIAL/LEARN MORE MODAL STYLES
+       ============================================================ */
+    .tutorial-modal{
+      position:fixed;
+      top:0; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,.85);
+      backdrop-filter:blur(10px);
+      z-index:100000;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      animation:fadeIn .4s ease-out;
+    }
+    .tutorial-modal.show{
+      display:flex;
+    }
+    .tutorial-container{
+      max-width:750px;
+      max-height:88vh;
+      width:100%;
+      background:linear-gradient(180deg, rgba(17,28,54,.98), rgba(15,23,42,.95));
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:20px;
+      overflow:hidden;
+      box-shadow:0 25px 70px rgba(0,0,0,.6), 0 0 1px rgba(255,255,255,.2);
+      display:flex;
+      flex-direction:column;
+      position:relative;
+      animation:slideUp .5s ease-out;
+    }
+    .tutorial-container::before{
+      content:'';
+      position:absolute;
+      inset:0;
+      border-radius:20px;
+      padding:1px;
+      background:linear-gradient(135deg, rgba(56,189,248,.35), transparent 40%, rgba(168,85,247,.3));
+      -webkit-mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite:xor;
+      mask:linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask-composite:exclude;
+      pointer-events:none;
+      opacity:.7;
+    }
+    .tutorial-header{
+      padding:20px 24px;
+      border-bottom:1px solid rgba(255,255,255,.1);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      background:rgba(0,0,0,.2);
+      position:relative;
+      z-index:1;
+    }
+    .tutorial-header-left{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .tutorial-icon{
+      font-size:28px;
+    }
+    .tutorial-header-text{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .tutorial-title{
+      font-size:18px;
+      font-weight:700;
+      margin:0;
+      color:var(--txt);
+    }
+    .tutorial-subtitle{
+      font-size:12px;
+      color:var(--muted);
+      margin:0;
+    }
+    .tutorial-close{
+      width:36px;
+      height:36px;
+      border-radius:8px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      color:var(--txt);
+      font-size:20px;
+      cursor:pointer;
+      transition:all .2s ease;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .tutorial-close:hover{
+      background:rgba(255,255,255,.1);
+      border-color:rgba(239,68,68,.4);
+      color:var(--bad);
+      transform:scale(1.05);
+    }
+    .tutorial-content{
+      flex:1;
+      overflow-y:auto;
+      overflow-x:hidden;
+      padding:24px;
+      position:relative;
+      z-index:1;
+      scrollbar-width:thin;
+      scrollbar-color:rgba(56,189,248,.3) transparent;
+    }
+    .tutorial-content::-webkit-scrollbar{
+      width:8px;
+    }
+    .tutorial-content::-webkit-scrollbar-track{
+      background:transparent;
+    }
+    .tutorial-content::-webkit-scrollbar-thumb{
+      background:rgba(56,189,248,.3);
+      border-radius:4px;
+    }
+    .tutorial-content::-webkit-scrollbar-thumb:hover{
+      background:rgba(56,189,248,.5);
+    }
+    .tutorial-step{
+      display:none;
+      animation:fadeIn .4s ease-out;
+    }
+    .tutorial-step.active{
+      display:block;
+    }
+    .tutorial-step-title{
+      font-size:22px;
+      font-weight:700;
+      margin:0 0 14px 0;
+      color:var(--txt);
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .tutorial-step-icon{
+      font-size:30px;
+    }
+    .tutorial-step-desc{
+      font-size:14px;
+      color:var(--muted);
+      line-height:1.6;
+      margin:0 0 18px 0;
+    }
+    .tutorial-points{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      margin:18px 0;
+    }
+    .tutorial-point{
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:12px;
+      padding:13px;
+      transition:all .2s ease;
+    }
+    .tutorial-point:hover{
+      background:rgba(255,255,255,.06);
+      border-color:rgba(56,189,248,.2);
+      transform:translateX(4px);
+    }
+    .tutorial-point-icon{
+      font-size:24px;
+      flex-shrink:0;
+      margin-top:2px;
+    }
+    .tutorial-point-content{
+      flex:1;
+    }
+    .tutorial-point-title{
+      font-size:14px;
+      font-weight:650;
+      margin:0 0 4px 0;
+      color:var(--txt);
+    }
+    .tutorial-point-desc{
+      font-size:13px;
+      color:var(--muted);
+      margin:0;
+      line-height:1.55;
+    }
+    .tutorial-code{
+      display:inline-block;
+      background:rgba(56,189,248,.15);
+      border:1px solid rgba(56,189,248,.3);
+      padding:2px 8px;
+      border-radius:6px;
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--accent-primary);
+    }
+    .tutorial-highlight{
+      color:var(--accent-primary);
+      font-weight:600;
+    }
+    .tutorial-footer{
+      padding:18px 24px;
+      border-top:1px solid rgba(255,255,255,.1);
+      background:rgba(0,0,0,.2);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      position:relative;
+      z-index:1;
+    }
+    .tutorial-progress{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .tutorial-dot{
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:rgba(255,255,255,.2);
+      cursor:pointer;
+      transition:all .3s ease;
+    }
+    .tutorial-dot.active{
+      background:linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+      width:24px;
+      border-radius:5px;
+      box-shadow:0 0 12px rgba(56,189,248,.5);
+    }
+    .tutorial-dot:hover{
+      background:rgba(255,255,255,.4);
+      transform:scale(1.2);
+    }
+    .tutorial-nav{
+      display:flex;
+      gap:10px;
+    }
+    .tutorial-nav-btn{
+      padding:10px 20px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      background:rgba(255,255,255,.05);
+      color:var(--txt);
+      font-size:14px;
+      font-weight:600;
+      cursor:pointer;
+      transition:all .2s ease;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+    .tutorial-nav-btn:hover{
+      background:rgba(255,255,255,.1);
+      border-color:rgba(56,189,248,.4);
+      transform:translateY(-1px);
+    }
+    .tutorial-nav-btn.primary{
+      background:linear-gradient(135deg, rgba(56,189,248,.2), rgba(56,189,248,.15));
+      border-color:rgba(56,189,248,.4);
+      color:var(--accent-primary);
+    }
+    .tutorial-nav-btn.primary:hover{
+      background:linear-gradient(135deg, rgba(56,189,248,.3), rgba(56,189,248,.2));
+      border-color:rgba(56,189,248,.5);
+      box-shadow:0 4px 12px rgba(56,189,248,.3);
+    }
+    .tutorial-nav-btn:disabled{
+      opacity:.4;
+      cursor:not-allowed;
+      pointer-events:none;
+    }
+    /* Tablet landscape (769px-1024px) */
+    @media (min-width: 769px) and (max-width: 1024px){
+      .tutorial-container{
+        max-width:90%;
+        max-height:85vh;
+      }
+      .tutorial-content{
+        padding:20px;
+      }
+    }
+    /* Tablet portrait (641px-768px) */
+    @media (max-width: 768px) and (min-width: 641px){
+      .tutorial-container{
+        max-width:92%;
+        max-height:88vh;
+      }
+      .tutorial-header{
+        padding:16px 18px;
+      }
+      .tutorial-title{
+        font-size:17px;
+      }
+      .tutorial-icon{
+        font-size:24px;
+      }
+      .tutorial-content{
+        padding:18px;
+      }
+      .tutorial-step-title{
+        font-size:19px;
+      }
+      .tutorial-step-icon{
+        font-size:26px;
+      }
+      .tutorial-step-desc{
+        font-size:13px;
+      }
+      .tutorial-point{
+        padding:12px;
+      }
+      .tutorial-point-title{
+        font-size:13px;
+      }
+      .tutorial-point-desc{
+        font-size:12px;
+      }
+    }
+    /* Mobile devices - Android & iOS (640px and below) */
+    @media (max-width: 640px){
+      .tutorial-modal{
+        padding:10px;
+      }
+      .tutorial-container{
+        max-width:100%;
+        max-height:92vh;
+        border-radius:18px;
+      }
+      .tutorial-header{
+        padding:14px 16px;
+      }
+      .tutorial-title{
+        font-size:16px;
+      }
+      .tutorial-subtitle{
+        font-size:11px;
+      }
+      .tutorial-icon{
+        font-size:22px;
+      }
+      .tutorial-content{
+        padding:16px;
+      }
+      .tutorial-step-title{
+        font-size:17px;
+        flex-direction:row;
+        align-items:center;
+        gap:10px;
+      }
+      .tutorial-step-icon{
+        font-size:24px;
+      }
+      .tutorial-step-desc{
+        font-size:13px;
+        line-height:1.55;
+        margin:0 0 14px 0;
+      }
+      .tutorial-points{
+        gap:10px;
+        margin:14px 0;
+      }
+      .tutorial-point{
+        padding:11px;
+        gap:10px;
+      }
+      .tutorial-point-icon{
+        font-size:20px;
+      }
+      .tutorial-point-title{
+        font-size:13px;
+      }
+      .tutorial-point-desc{
+        font-size:12px;
+        line-height:1.5;
+      }
+      .tutorial-code{
+        font-size:11px;
+        padding:2px 6px;
+      }
+      .tutorial-footer{
+        padding:12px 14px;
+        flex-wrap:wrap;
+        gap:10px;
+      }
+      .tutorial-progress{
+        order:2;
+        width:100%;
+        justify-content:center;
+      }
+      .tutorial-nav{
+        order:1;
+        width:100%;
+        justify-content:space-between;
+      }
+      .tutorial-nav-btn{
+        flex:1;
+        padding:10px 16px;
+        font-size:13px;
+      }
+    }
+    /* Small mobile devices (480px and below) */
+    @media (max-width: 480px){
+      .tutorial-modal{
+        padding:8px;
+      }
+      .tutorial-container{
+        max-height:94vh;
+        border-radius:16px;
+      }
+      .tutorial-header{
+        padding:12px 14px;
+      }
+      .tutorial-title{
+        font-size:15px;
+      }
+      .tutorial-subtitle{
+        font-size:10px;
+      }
+      .tutorial-icon{
+        font-size:20px;
+      }
+      .tutorial-close{
+        width:32px;
+        height:32px;
+        font-size:18px;
+      }
+      .tutorial-content{
+        padding:14px;
+      }
+      .tutorial-step-title{
+        font-size:16px;
+        gap:8px;
+      }
+      .tutorial-step-icon{
+        font-size:22px;
+      }
+      .tutorial-step-desc{
+        font-size:12px;
+        margin:0 0 12px 0;
+      }
+      .tutorial-points{
+        gap:9px;
+        margin:12px 0;
+      }
+      .tutorial-point{
+        padding:10px;
+        gap:9px;
+        border-radius:10px;
+      }
+      .tutorial-point-icon{
+        font-size:18px;
+      }
+      .tutorial-point-title{
+        font-size:12px;
+        margin:0 0 3px 0;
+      }
+      .tutorial-point-desc{
+        font-size:11px;
+        line-height:1.45;
+      }
+      .tutorial-code{
+        font-size:10px;
+        padding:1px 5px;
+      }
+      .tutorial-footer{
+        padding:10px 12px;
+      }
+      .tutorial-dot{
+        width:8px;
+        height:8px;
+      }
+      .tutorial-dot.active{
+        width:20px;
+      }
+      .tutorial-nav-btn{
+        padding:9px 14px;
+        font-size:12px;
+      }
+    }
+    /* Extra small devices - Small Android phones (375px and below) */
+    @media (max-width: 375px){
+      .tutorial-container{
+        max-height:95vh;
+      }
+      .tutorial-header{
+        padding:10px 12px;
+      }
+      .tutorial-title{
+        font-size:14px;
+      }
+      .tutorial-content{
+        padding:12px;
+      }
+      .tutorial-step-title{
+        font-size:15px;
+      }
+      .tutorial-step-icon{
+        font-size:20px;
+      }
+      .tutorial-step-desc{
+        font-size:11px;
+      }
+      .tutorial-point{
+        padding:9px;
+      }
+      .tutorial-point-title{
+        font-size:11px;
+      }
+      .tutorial-point-desc{
+        font-size:10px;
+      }
+    }
+    /* iOS safe area support for notched devices */
+    @supports (padding: max(0px)){
+      @media (max-width: 640px){
+        .tutorial-modal{
+          padding:max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+        }
+      }
+    }
+    /* Mobile landscape optimization (Android/iOS) */
+    @media (max-width: 896px) and (orientation: landscape){
+      .tutorial-modal{
+        padding:8px;
+      }
+      .tutorial-container{
+        max-height:96vh;
+        max-width:95%;
+      }
+      .tutorial-header{
+        padding:10px 14px;
+      }
+      .tutorial-title{
+        font-size:15px;
+      }
+      .tutorial-subtitle{
+        display:none; /* Hide subtitle in landscape to save space */
+      }
+      .tutorial-content{
+        padding:14px 16px;
+      }
+      .tutorial-step-title{
+        font-size:16px;
+        margin-bottom:10px;
+      }
+      .tutorial-step-desc{
+        font-size:12px;
+        margin-bottom:12px;
+      }
+      .tutorial-points{
+        gap:8px;
+        margin:12px 0;
+      }
+      .tutorial-point{
+        padding:9px;
+      }
+      .tutorial-point-title{
+        font-size:12px;
+      }
+      .tutorial-point-desc{
+        font-size:11px;
+        line-height:1.4;
+      }
+      .tutorial-footer{
+        padding:8px 12px;
+      }
+    }
   </style>
 </head>
 <body>
+<!-- WELCOME SCREEN -->
+<div class="welcome-screen" id="welcomeScreen">
+  <div class="welcome-container">
+    <div class="welcome-header">
+      <div class="welcome-logo">💬</div>
+      <h1 class="welcome-title">Chat P2P</h1>
+      <p class="welcome-subtitle">Modern, real-time messaging - Connect instantly with anyone, anywhere</p>
+    </div>
+
+    <div class="welcome-features">
+      <div class="feature-card">
+        <span class="feature-icon">⚡</span>
+        <h3 class="feature-title">Instant Messaging</h3>
+        <p class="feature-desc">Send text messages, emojis, and reactions in real-time</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🎤</span>
+        <h3 class="feature-title">Voice Messages</h3>
+        <p class="feature-desc">Record and share voice notes with one tap</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">📸</span>
+        <h3 class="feature-title">Media Sharing</h3>
+        <p class="feature-desc">Share photos, videos, and files effortlessly</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🔐</span>
+        <h3 class="feature-title">Secure & Private</h3>
+        <p class="feature-desc">Your conversations stay safe with modern security</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">👥</span>
+        <h3 class="feature-title">Group Rooms</h3>
+        <p class="feature-desc">Create or join rooms to chat with multiple people</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">🌐</span>
+        <h3 class="feature-title">Works Everywhere</h3>
+        <p class="feature-desc">No downloads needed - works on any device with a browser</p>
+      </div>
+    </div>
+
+    <div class="welcome-actions">
+      <button class="welcome-btn" id="welcomeGetStarted">Get Started</button>
+      <button class="welcome-btn secondary" id="welcomeLearnMore">Learn More</button>
+    </div>
+
+    <div class="welcome-footer">
+      <p class="welcome-footer-text">
+        <a class="welcome-skip" id="welcomeSkip">Skip intro</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- TUTORIAL/LEARN MORE MODAL -->
+<div class="tutorial-modal" id="tutorialModal">
+  <div class="tutorial-container">
+    <div class="tutorial-header">
+      <div class="tutorial-header-left">
+        <span class="tutorial-icon">📚</span>
+        <div class="tutorial-header-text">
+          <h2 class="tutorial-title">How to Use Chat P2P</h2>
+          <p class="tutorial-subtitle">Quick guide to get you started</p>
+        </div>
+      </div>
+      <button class="tutorial-close" id="tutorialClose">✕</button>
+    </div>
+    
+    <div class="tutorial-content" id="tutorialContent">
+      <!-- Step 1: Getting Started -->
+      <div class="tutorial-step active" data-step="1">
+        <h3 class="tutorial-step-title">
+          <span class="tutorial-step-icon">🚀</span>
+          <span>Getting Started</span>
+        </h3>
+        <p class="tutorial-step-desc">
+          Welcome! Chat P2P is a modern messaging platform that lets you connect with anyone instantly. Here's how to begin your journey.
+        </p>
+        <div class="tutorial-points">
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">1️⃣</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Choose a Room Name</h4>
+              <p class="tutorial-point-desc">
+                Enter any room name (e.g., <span class="tutorial-code">general</span>, <span class="tutorial-code">friends</span>, <span class="tutorial-code">team-project</span>). Anyone with the same room name can join the conversation.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">2️⃣</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Pick Your Display Name</h4>
+              <p class="tutorial-point-desc">
+                Choose a name that others will see. You can use your real name or a fun nickname. Make it memorable!
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">3️⃣</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Hit Join</h4>
+              <p class="tutorial-point-desc">
+                Click the <span class="tutorial-highlight">Join</span> button and you're in! Start chatting immediately.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">💡</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Pro Tip: Browse Rooms</h4>
+              <p class="tutorial-point-desc">
+                After logging in, click <span class="tutorial-highlight">Browse Rooms</span> to discover active conversations and see who's online.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Messaging Basics -->
+      <div class="tutorial-step" data-step="2">
+        <h3 class="tutorial-step-title">
+          <span class="tutorial-step-icon">💬</span>
+          <span>Messaging Basics</span>
+        </h3>
+        <p class="tutorial-step-desc">
+          Master the art of messaging with these essential features and shortcuts.
+        </p>
+        <div class="tutorial-points">
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">⌨️</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Send Messages</h4>
+              <p class="tutorial-point-desc">
+                Type your message and press <span class="tutorial-code">Enter</span> to send. Use <span class="tutorial-code">Shift + Enter</span> for a new line without sending.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">@</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Mention Someone</h4>
+              <p class="tutorial-point-desc">
+                Type <span class="tutorial-code">@username</span> to notify a specific person. They'll see a badge counter and the message will be highlighted.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">↩️</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Reply to Messages</h4>
+              <p class="tutorial-point-desc">
+                Hover over any message and click <span class="tutorial-highlight">Reply</span>. Your response will be linked to the original message.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">😊</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Use Emojis</h4>
+              <p class="tutorial-point-desc">
+                Express yourself with emojis! They work in all messages and are displayed beautifully.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Voice & Media -->
+      <div class="tutorial-step" data-step="3">
+        <h3 class="tutorial-step-title">
+          <span class="tutorial-step-icon">🎤</span>
+          <span>Voice & Media Sharing</span>
+        </h3>
+        <p class="tutorial-step-desc">
+          Go beyond text with rich media features including voice notes, images, and videos.
+        </p>
+        <div class="tutorial-points">
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">🎙️</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Record Voice Messages</h4>
+              <p class="tutorial-point-desc">
+                Click the <span class="tutorial-highlight">microphone button</span> to record audio. On mobile, hold to record, slide up to lock, or slide left to cancel.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">📷</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Share Photos & Videos</h4>
+              <p class="tutorial-point-desc">
+                Click the <span class="tutorial-highlight">📎 attachment button</span> to upload images and videos. You can send multiple files at once!
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">📄</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Send Files</h4>
+              <p class="tutorial-point-desc">
+                Share documents (PDF, DOC, TXT) and compressed files (ZIP, RAR) with your team.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">🖼️</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">View Media Gallery</h4>
+              <p class="tutorial-point-desc">
+                Click any image or video to open the viewer. Navigate between media items with arrow buttons.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 4: Advanced Features -->
+      <div class="tutorial-step" data-step="4">
+        <h3 class="tutorial-step-title">
+          <span class="tutorial-step-icon">⚡</span>
+          <span>Advanced Features</span>
+        </h3>
+        <p class="tutorial-step-desc">
+          Unlock the full potential of Chat P2P with these powerful features.
+        </p>
+        <div class="tutorial-points">
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">👁️</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Read Receipts</h4>
+              <p class="tutorial-point-desc">
+                See when your messages are <span class="tutorial-highlight">delivered</span> and <span class="tutorial-highlight">read</span>. Check marks show message status.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">🔔</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Unread & Mention Badges</h4>
+              <p class="tutorial-point-desc">
+                Never miss important messages! Badges show unread count and mentions with <span class="tutorial-highlight">@</span> symbol.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">⛶</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Fullscreen Mode</h4>
+              <p class="tutorial-point-desc">
+                Click the <span class="tutorial-highlight">fullscreen button</span> to focus on your conversation without distractions.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">🔄</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Pull to Refresh</h4>
+              <p class="tutorial-point-desc">
+                On mobile, pull down to manually refresh and check for new messages.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 5: Tips & Tricks -->
+      <div class="tutorial-step" data-step="5">
+        <h3 class="tutorial-step-title">
+          <span class="tutorial-step-icon">💡</span>
+          <span>Tips & Best Practices</span>
+        </h3>
+        <p class="tutorial-step-desc">
+          Get the most out of Chat P2P with these helpful tips and tricks.
+        </p>
+        <div class="tutorial-points">
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">🔐</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Privacy First</h4>
+              <p class="tutorial-point-desc">
+                Your conversations are secure. Only people who know the room name can join. Choose unique room names for private chats.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">⚡</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Automatic Sync</h4>
+              <p class="tutorial-point-desc">
+                Messages sync automatically when you're active. The app is smart about network usage to save your data.
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">📱</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Mobile Friendly</h4>
+              <p class="tutorial-point-desc">
+                Works perfectly on phones, tablets, and computers. No app download needed - just open in your browser!
+              </p>
+            </div>
+          </div>
+          <div class="tutorial-point">
+            <span class="tutorial-point-icon">🌟</span>
+            <div class="tutorial-point-content">
+              <h4 class="tutorial-point-title">Share Room Names</h4>
+              <p class="tutorial-point-desc">
+                Invite friends by sharing the room name and a link. Everyone with the room name can join the conversation.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="tutorial-footer">
+      <div class="tutorial-progress" id="tutorialProgress">
+        <span class="tutorial-dot active" data-step="1"></span>
+        <span class="tutorial-dot" data-step="2"></span>
+        <span class="tutorial-dot" data-step="3"></span>
+        <span class="tutorial-dot" data-step="4"></span>
+        <span class="tutorial-dot" data-step="5"></span>
+      </div>
+      <div class="tutorial-nav">
+        <button class="tutorial-nav-btn" id="tutorialPrev" disabled>← Previous</button>
+        <button class="tutorial-nav-btn primary" id="tutorialNext">Next →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Pull to Refresh Indicator -->
 <div class="pull-refresh-indicator" id="pullRefreshIndicator">
   <span class="icon">🔄</span>
@@ -2299,6 +3658,7 @@
       </div>
       <div class="composer-main">
         <button id="mediaAttachBtn" class="media-attach-btn" title="Attach image, video, or file">📎</button>
+        <button id="pasteClipboardBtn" class="paste-clipboard-btn" title="Paste image from clipboard">📋</button>
         <input type="file" id="mediaFileInput" style="display:none" multiple accept="image/*,video/*,.pdf,.doc,.docx,.txt,.zip,.rar" />
         <button id="audioRecordBtn" class="audio-record-btn" title="Record audio message">🎤</button>
         <textarea id="msgInput" placeholder="Type… (Enter to send — Shift+Enter for newline)"></textarea>
@@ -2435,7 +3795,7 @@ const PRESENCE_ACTIVE_HEARTBEAT_MS = 10_000;   // 10s while ACTIVE
 const PRESENCE_RECENT_MS           = 5 * 60_000; // 5 min "recent"
 
 // === ACTIVITY TRACKER ===
-const POLL_MS_BURST          = 500;     // Fast checks during conversation burst
+const POLL_MS_BURST          = 300;     // ⚡ 300ms - Ultra rápido durante conversación activa
 const POLL_MS_INTERACTION    = 2000;    // Check after interaction
 const POLL_BURST_DURATION    = 10_000;  // 10s burst after sending message
 const POLL_MS_IDLE           = 90_000;  // 90s (for presence only)
@@ -2529,6 +3889,7 @@ const pullRefreshText = el("pullRefreshText");
 
 // Media DOM elements
 const mediaAttachBtn = el("mediaAttachBtn");
+const pasteClipboardBtn = el("pasteClipboardBtn");
 const mediaFileInput = el("mediaFileInput");
 const imageViewer = el("imageViewer");
 const imageViewerImg = el("imageViewerImg");
@@ -2546,6 +3907,210 @@ const mediaUploadProgress = el("mediaUploadProgress");
 const mediaUploadProgressText = el("mediaUploadProgressText");
 const mediaUploadProgressFill = el("mediaUploadProgressFill");
 
+// Welcome Screen DOM elements
+const welcomeScreen = el("welcomeScreen");
+const welcomeGetStarted = el("welcomeGetStarted");
+const welcomeLearnMore = el("welcomeLearnMore");
+const welcomeSkip = el("welcomeSkip");
+
+/* ============================================================
+   WELCOME SCREEN LOGIC
+   ============================================================ */
+// Check if user has seen the welcome screen before
+const WELCOME_SEEN_KEY = "chatP2P_welcomeSeen";
+
+// === TESTING/DEBUG MODE ===
+// Check URL parameters for testing mode
+const urlParams = new URLSearchParams(window.location.search);
+const forceWelcome = urlParams.has('welcome') || urlParams.has('test') || urlParams.has('debug');
+
+// Check localStorage (can be overridden by URL params)
+let hasSeenWelcome = !forceWelcome && localStorage.getItem(WELCOME_SEEN_KEY) === "true";
+
+// Global functions for testing (accessible from console)
+window.resetWelcome = function(){
+  localStorage.removeItem(WELCOME_SEEN_KEY);
+  return "Reload the page to see the welcome screen";
+};
+
+window.showWelcome = function(){
+  welcomeScreen.style.display = "flex";
+  welcomeScreen.classList.remove("hide");
+};
+
+window.showTutorial = function(){
+  showTutorialModal();
+};
+
+// Hide welcome screen and show main app
+function hideWelcomeScreen(){
+  welcomeScreen.classList.add("hide");
+  setTimeout(()=>{
+    welcomeScreen.style.display = "none";
+  }, 500); // Match animation duration
+  localStorage.setItem(WELCOME_SEEN_KEY, "true");
+  hasSeenWelcome = true;
+}
+
+// Show welcome screen on first visit
+function initWelcomeScreen(){
+  if(hasSeenWelcome){
+    welcomeScreen.style.display = "none";
+  }else{
+    welcomeScreen.style.display = "flex";
+  }
+  
+  // Get Started button - scroll to join section
+  welcomeGetStarted.addEventListener("click", ()=>{
+    hideWelcomeScreen();
+    // Focus on room input for better UX
+    setTimeout(()=>{
+      roomInput.focus();
+    }, 600);
+  });
+  
+  // Learn More button - expand features and focus on room
+  welcomeLearnMore.addEventListener("click", ()=>{
+    hideWelcomeScreen();
+    // Show tutorial modal after welcome screen fades out
+    setTimeout(()=>{
+      showTutorialModal();
+    }, 600);
+  });
+  
+  // Skip link
+  welcomeSkip.addEventListener("click", (e)=>{
+    e.preventDefault();
+    hideWelcomeScreen();
+  });
+  
+  // Keyboard shortcut for testing: Ctrl+Shift+W
+  document.addEventListener("keydown", (e)=>{
+    if(e.ctrlKey && e.shiftKey && e.key === 'W'){
+      e.preventDefault();
+      if(welcomeScreen.style.display === "none" || welcomeScreen.classList.contains("hide")){
+        window.showWelcome();
+      }else{
+        hideWelcomeScreen();
+      }
+    }
+  });
+}
+
+// Initialize welcome screen on page load
+initWelcomeScreen();
+
+/* ============================================================
+   TUTORIAL MODAL LOGIC
+   ============================================================ */
+const tutorialModal = el("tutorialModal");
+const tutorialClose = el("tutorialClose");
+const tutorialContent = el("tutorialContent");
+const tutorialPrev = el("tutorialPrev");
+const tutorialNext = el("tutorialNext");
+const tutorialProgress = el("tutorialProgress");
+
+let currentTutorialStep = 1;
+const totalTutorialSteps = 5;
+
+function showTutorialModal(){
+  tutorialModal.classList.add("show");
+  currentTutorialStep = 1;
+  updateTutorialStep();
+}
+
+function hideTutorialModal(){
+  tutorialModal.classList.remove("show");
+}
+
+function updateTutorialStep(){
+  // Update step visibility
+  const steps = tutorialContent.querySelectorAll(".tutorial-step");
+  steps.forEach((step, index) => {
+    step.classList.toggle("active", (index + 1) === currentTutorialStep);
+  });
+  
+  // Update progress dots
+  const dots = tutorialProgress.querySelectorAll(".tutorial-dot");
+  dots.forEach((dot, index) => {
+    dot.classList.toggle("active", (index + 1) === currentTutorialStep);
+  });
+  
+  // Update navigation buttons
+  tutorialPrev.disabled = currentTutorialStep === 1;
+  
+  if(currentTutorialStep === totalTutorialSteps){
+    tutorialNext.textContent = "Get Started! 🚀";
+  }else{
+    tutorialNext.textContent = "Next →";
+  }
+  
+  // Scroll to top of content
+  tutorialContent.scrollTop = 0;
+}
+
+function nextTutorialStep(){
+  if(currentTutorialStep < totalTutorialSteps){
+    currentTutorialStep++;
+    updateTutorialStep();
+  }else{
+    // Last step - close tutorial and hide welcome
+    hideTutorialModal();
+    hideWelcomeScreen();
+    setTimeout(()=>{
+      roomInput.focus();
+    }, 600);
+  }
+}
+
+function prevTutorialStep(){
+  if(currentTutorialStep > 1){
+    currentTutorialStep--;
+    updateTutorialStep();
+  }
+}
+
+function goToTutorialStep(step){
+  if(step >= 1 && step <= totalTutorialSteps){
+    currentTutorialStep = step;
+    updateTutorialStep();
+  }
+}
+
+// Tutorial event listeners
+tutorialClose.addEventListener("click", hideTutorialModal);
+tutorialNext.addEventListener("click", nextTutorialStep);
+tutorialPrev.addEventListener("click", prevTutorialStep);
+
+// Progress dot navigation
+tutorialProgress.addEventListener("click", (e)=>{
+  if(e.target.classList.contains("tutorial-dot")){
+    const step = parseInt(e.target.dataset.step);
+    goToTutorialStep(step);
+  }
+});
+
+// Close on backdrop click
+tutorialModal.addEventListener("click", (e)=>{
+  if(e.target === tutorialModal){
+    hideTutorialModal();
+  }
+});
+
+// Keyboard navigation for tutorial
+document.addEventListener("keydown", (e)=>{
+  if(tutorialModal.classList.contains("show")){
+    if(e.key === "Escape"){
+      hideTutorialModal();
+    }else if(e.key === "ArrowRight" || e.key === "ArrowDown"){
+      e.preventDefault();
+      nextTutorialStep();
+    }else if(e.key === "ArrowLeft" || e.key === "ArrowUp"){
+      e.preventDefault();
+      prevTutorialStep();
+    }
+  }
+});
 
 /* ============================================================
    UTIL
@@ -2689,7 +4254,7 @@ const RAW_ETAG = new Map(); // key: rawUrl -> {etag, text}
 
 // In-memory SHA cache to avoid CORS preflight requests
 const SHA_CACHE = new Map(); // key: path -> {sha, timestamp}
-const SHA_CACHE_TTL = 30000; // 30 seconds cache validity
+const SHA_CACHE_TTL = 15000; // 15 seconds cache validity (reduced to minimize conflicts)
 
 // Get cached SHA if valid
 function getCachedSha(path){
@@ -2712,6 +4277,12 @@ function cacheSha(path, sha){
     sha,
     timestamp: Date.now()
   });
+}
+
+// Clear cached SHA (useful for retry scenarios)
+function clearCachedSha(path){
+  SHA_CACHE.delete(path);
+  console.log(`[clearCachedSha] Cleared cached SHA for ${path}`);
 }
 
 // Fetch with timeout wrapper
@@ -2777,32 +4348,40 @@ async function rawGetText(path){
 }
 
 // Contents GET JSON + sha
-async function ghGetJsonWithSha(path){
-  // ALWAYS use raw endpoint first to avoid slow CORS preflight (5-11 second delay!)
-  // Only use API when we absolutely need SHA for writes
-  const rawResult = await rawGetText(path);
-  if(rawResult.ok){
-    try{
-      const obj = JSON.parse(rawResult.text);
-      // For reads, we don't need SHA immediately - return fast
-      return {ok:true, obj, sha:null, status:200, source:'raw', rawText:rawResult.text};
-    }catch(e){
-      console.warn('[ghGetJsonWithSha] Raw parse failed:', e.message);
+// forceApi: true = usa API (instantáneo, consume rate limit), false = usa Raw (caché 5min, ahorra rate limit)
+async function ghGetJsonWithSha(path, forceApi = false){
+  // MODO HÍBRIDO:
+  // - forceApi=false: Raw primero (para historial, media, datos viejos) - Caché 5 min pero ahorra rate limit
+  // - forceApi=true: API directa (para master flag, última celda, índice) - Instantáneo pero consume rate limit
+  
+  if(!forceApi){
+    // Modo Raw: Rápido pero con caché de 5 minutos (perfecto para historial)
+    const rawResult = await rawGetText(path);
+    if(rawResult.ok){
+      try{
+        const obj = JSON.parse(rawResult.text);
+        console.log(`📦 [Raw] ${path.split('/').pop()} (cached, fast)`);
+        return {ok:true, obj, sha:null, status:200, source:'raw-cached', rawText:rawResult.text};
+      }catch(e){
+        console.warn('[ghGetJsonWithSha] Raw parse failed:', e.message);
+      }
     }
   }
   
-  // Only if raw fails (404 or network error), try API as last resort
+  // Modo API: Instantáneo, siempre datos frescos (para tiempo real)
   await ensureGhToken();
   
   try {
-    const res = await fetchWithRetry(ghFileUrl(path), {
+    // Cache busting: timestamp + random para evitar CUALQUIER caché
+    const antiCache = forceApi ? `?t=${Date.now()}&r=${Math.random().toString(36).slice(2)}` : '';
+    const res = await fetchWithRetry(ghFileUrl(path) + antiCache, {
       method:"GET",
       headers:{
         "Accept":"application/vnd.github+json",
         "Authorization":`Bearer ${GH_TOKEN}`
       },
       cache: 'no-store'
-    }, 1, 40000); // 40s timeout for API fallback, only 1 retry
+    }, 1, 40000);
 
     if(res.status===404) return { ok:false, status:404, obj:null, sha:null, rawText:null };
     const rawText = await res.text();
@@ -2811,6 +4390,7 @@ async function ghGetJsonWithSha(path){
     const contentB64 = (data.content||"").replace(/\n/g,"");
     const jsonText = contentB64 ? b64DecodeUtf8(contentB64) : "";
     const obj = jsonText.trim() ? JSON.parse(jsonText) : null;
+    console.log(`⚡ [API] ${path.split('/').pop()} (fresh, instant)${forceApi ? ' [FORCED]' : ''}`);
     return { ok:true, status:res.status, obj, sha:data.sha||null, rawText, source:'api' };
   } catch (error) {
     console.error('[ghGetJsonWithSha] API fallback failed:', path, error.message);
@@ -2955,7 +4535,9 @@ async function ghPutJson(path, obj, sha=null, message="update"){
 
   let attempt = 0;
   let lastErr = null;
-  while(attempt < 2){
+  const MAX_RETRIES = 4; // Increased from 2 to handle concurrent updates
+  
+  while(attempt < MAX_RETRIES){
     try {
       const { res, raw } = await doPut(body);
     if(res.ok){
@@ -2970,20 +4552,38 @@ async function ghPutJson(path, obj, sha=null, message="update"){
       return { ok:true, status: res.status, sha: newSha };
     }
 
-    // If GitHub complains about missing sha or conflict, try to GET current sha and retry once
-    if((res.status === 422 || res.status === 409) && attempt === 0){
-      console.warn(`[ghPutJson] ${res.status} conflict, fetching fresh SHA...`);
+    // If GitHub complains about missing sha or conflict, fetch fresh SHA and retry
+    if((res.status === 422 || res.status === 409) && attempt < MAX_RETRIES - 1){
+      const fileName = path.split('/').pop();
+      // Use console.log instead of warn - this is expected behavior, not an error
+      if(attempt === 0){
+        console.log(`[ghPutJson] ${res.status} conflict on ${fileName}, auto-retrying...`);
+      }
       try{
+        // Exponential backoff: 100ms, 200ms, 400ms, 800ms
+        const delayMs = 100 * Math.pow(2, attempt);
+        await sleep(delayMs);
+        
         const freshSha = await ghGetSha(path);
         if(freshSha){
           body.sha = freshSha;
           cacheSha(path, freshSha); // Cache it for next time
+          console.log(`[ghPutJson] Fresh SHA obtained, retrying after ${delayMs}ms delay...`);
+        }else{
+          // File might not exist yet, remove SHA for creation
+          delete body.sha;
+          console.log(`[ghPutJson] No SHA found, attempting file creation...`);
         }
-        // If no SHA available, leave body.sha as is (don't set to null)
         attempt++;
         continue;
       }catch(e){
+        console.warn(`[ghPutJson] Failed to fetch fresh SHA:`, e.message);
         lastErr = e;
+        attempt++;
+        if(attempt < MAX_RETRIES){
+          await sleep(200 * attempt); // Wait before next attempt
+          continue;
+        }
         break;
       }
     }
@@ -4508,6 +6108,7 @@ let typingTimeout = null;
 let lastTypingAt = 0;
 let burstModeUntil = 0;  // Timestamp for burst mode end
 let lastMessageSyncAt = 0; // Track last time we synced messages for active users
+let syncDebounceTimer = null; // ⚡ Evitar múltiples syncs simultáneos
 
 // V3 loaded window
 let loadedCellsMin = null;
@@ -4528,6 +6129,130 @@ const AUDIO_CACHE_MAX_AGE = 3600000; // 1 hour in milliseconds
 // Media cache for images/videos/files
 let mediaCache = new Map(); // mediaPath -> { blob, blobUrl, size, cachedAt, type }
 const MEDIA_CACHE_MAX_AGE = 900000; // 15 minutes in milliseconds
+
+// 💾 IndexedDB para persistencia de media (no se borra al recargar)
+let mediaDB = null;
+const MEDIA_DB_NAME = 'ChatMediaDB';
+const MEDIA_DB_VERSION = 1;
+const MEDIA_STORE_NAME = 'mediaStore';
+
+// Inicializar IndexedDB para media persistente
+async function initMediaDB(){
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(MEDIA_DB_NAME, MEDIA_DB_VERSION);
+    
+    request.onerror = () => {
+      console.error('❌ [MediaDB] Error opening database');
+      reject(request.error);
+    };
+    
+    request.onsuccess = () => {
+      mediaDB = request.result;
+      console.log('✅ [MediaDB] Database opened successfully');
+      resolve(mediaDB);
+    };
+    
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if(!db.objectStoreNames.contains(MEDIA_STORE_NAME)){
+        const objectStore = db.createObjectStore(MEDIA_STORE_NAME, { keyPath: 'path' });
+        objectStore.createIndex('type', 'type', { unique: false });
+        objectStore.createIndex('cachedAt', 'cachedAt', { unique: false });
+        console.log('💾 [MediaDB] Object store created');
+      }
+    };
+  });
+}
+
+// Guardar media en IndexedDB
+async function saveMediaToDB(path, blob, type){
+  if(!mediaDB) return false;
+  
+  return new Promise((resolve, reject) => {
+    const transaction = mediaDB.transaction([MEDIA_STORE_NAME], 'readwrite');
+    const objectStore = transaction.objectStore(MEDIA_STORE_NAME);
+    
+    const data = {
+      path,
+      blob,
+      type,
+      size: blob.size,
+      cachedAt: Date.now()
+    };
+    
+    const request = objectStore.put(data);
+    
+    request.onsuccess = () => {
+      console.log(`💾 [MediaDB] Saved: ${path} (${formatBytes(blob.size)})`);
+      resolve(true);
+    };
+    
+    request.onerror = () => {
+      console.error('❌ [MediaDB] Error saving:', request.error);
+      reject(request.error);
+    };
+  });
+}
+
+// Obtener media de IndexedDB
+async function getMediaFromDB(path){
+  if(!mediaDB) return null;
+  
+  return new Promise((resolve, reject) => {
+    const transaction = mediaDB.transaction([MEDIA_STORE_NAME], 'readonly');
+    const objectStore = transaction.objectStore(MEDIA_STORE_NAME);
+    const request = objectStore.get(path);
+    
+    request.onsuccess = () => {
+      if(request.result){
+        console.log(`💾 [MediaDB] Retrieved: ${path}`);
+        resolve(request.result);
+      }else{
+        resolve(null);
+      }
+    };
+    
+    request.onerror = () => {
+      console.error('❌ [MediaDB] Error retrieving:', request.error);
+      reject(request.error);
+    };
+  });
+}
+
+// Limpiar media vieja de IndexedDB (> 7 días)
+async function cleanOldMediaFromDB(){
+  if(!mediaDB) return;
+  
+  const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+  
+  return new Promise((resolve, reject) => {
+    const transaction = mediaDB.transaction([MEDIA_STORE_NAME], 'readwrite');
+    const objectStore = transaction.objectStore(MEDIA_STORE_NAME);
+    const index = objectStore.index('cachedAt');
+    const request = index.openCursor(IDBKeyRange.upperBound(sevenDaysAgo));
+    
+    let deletedCount = 0;
+    
+    request.onsuccess = (event) => {
+      const cursor = event.target.result;
+      if(cursor){
+        cursor.delete();
+        deletedCount++;
+        cursor.continue();
+      }else{
+        if(deletedCount > 0){
+          console.log(`🧹 [MediaDB] Cleaned ${deletedCount} old media files`);
+        }
+        resolve(deletedCount);
+      }
+    };
+    
+    request.onerror = () => {
+      console.error('❌ [MediaDB] Error cleaning:', request.error);
+      reject(request.error);
+    };
+  });
+}
 
 // Thumbnail cache
 let thumbnailCache = new Map(); // path -> base64DataUrl
@@ -4778,10 +6503,13 @@ function normalizeMessage(raw){
    V3 LOAD / APPEND
    ============================================================ */
 async function loadRoomIndex(roomName){
-  const got = await ghGetJsonWithSha(roomIndexPath(roomName));
+  // CRÍTICO: Usar API (true) para obtener el índice REAL instantáneamente
+  // El índice nos dice cuántos mensajes hay, debe ser preciso
+  const got = await ghGetJsonWithSha(roomIndexPath(roomName), true);
   if(got.ok && got.obj){
     roomIndex = got.obj;
     roomIndexSha = got.sha;
+    console.log(`📋 [loadRoomIndex] Loaded: latestCell=${roomIndex.latestCell}, totalMessages=${roomIndex.totalMessages}`);
     return roomIndex;
   }
   // If missing (shouldn't), rebuild from scratch empty
@@ -4789,6 +6517,7 @@ async function loadRoomIndex(roomName){
   roomIndex = { v:3, room:roomName, latestCell:1, totalMessages:0, updatedAt: now };
   const put = await ghPutJson(roomIndexPath(roomName), roomIndex, null, "repair room index");
   roomIndexSha = put.sha;
+  console.warn(`⚠️ [loadRoomIndex] Index missing, created new: latestCell=1, totalMessages=0`);
   return roomIndex;
 }
 
@@ -4813,9 +6542,16 @@ async function loadCellsRange(roomName, startCell, endCell){
   const out = [];
   const failedCells = [];
   
+  console.log(`📦 [loadCellsRange] Loading cells ${startCell} to ${endCell} (latest known: ${roomIndex?.latestCell || 'unknown'})`);
+  
   for(let c=startCell;c<=endCell;c++){
     try{
-      const got = await ghGetJsonWithSha(cellPath(roomName,c));
+      // LÓGICA HÍBRIDA INTELIGENTE:
+      // - Última celda (endCell): API (true) = Datos frescos instantáneos (1-2s latencia)
+      // - Celdas antiguas: Raw (false) = Caché 5min pero ahorra rate limit
+      const isLatestCell = (c === endCell);
+      console.log(`  Cell ${c}: ${isLatestCell ? '⚡ Forcing API (latest cell)' : '📦 Using Raw CDN (historical)'}`);
+      const got = await ghGetJsonWithSha(cellPath(roomName,c), isLatestCell);
       if(got.ok && Array.isArray(got.obj)){
         for(const raw of got.obj){
           const msg = normalizeMessage(raw);
@@ -4899,6 +6635,11 @@ async function appendMessageV3(roomName, msgObj){
     arr = [];
     sha = null;
     roomIndex.latestCell = cellNum;
+    
+    // Clear box-related caches to prevent SHA conflicts
+    const boxNum = Math.ceil(cellNum / CELLS_PER_BOX);
+    clearCachedSha(boxesIndexPath(roomName));
+    clearCachedSha(boxPath(roomName, boxNum));
 
     // ensure new cell file exists
     const initResult = await ghPutJson(cellPath(roomName, cellNum), [], null, `init cell ${cellNum}`);
@@ -4912,7 +6653,17 @@ async function appendMessageV3(roomName, msgObj){
 
   // write the cell index into the message for later edits
   msgObj.cell = cellNum;
-  arr.push(msgObj);
+  
+  // Check for duplicates before appending
+  const existingIdx = arr.findIndex(m => m.id === msgObj.id);
+  if(existingIdx >= 0){
+    // Message already exists, update it instead of appending
+    console.log(`[appendMessageV3] Message ${msgObj.id} already exists in cell ${cellNum}, updating...`);
+    arr[existingIdx] = msgObj;
+  }else{
+    // New message, append it
+    arr.push(msgObj);
+  }
   
   // Critical: Write message to GitHub and verify success
   const put = await ghPutJson(cellPath(roomName, cellNum), arr, sha, `append msg cell ${cellNum}`);
@@ -4920,8 +6671,10 @@ async function appendMessageV3(roomName, msgObj){
     throw new Error(`Failed to write message to cell ${cellNum} - no SHA returned`);
   }
   
-  // Update room index
-  roomIndex.totalMessages = (roomIndex.totalMessages || 0) + 1;
+  // Update room index (only increment if this was a new message, not an update)
+  if(existingIdx < 0){
+    roomIndex.totalMessages = (roomIndex.totalMessages || 0) + 1;
+  }
   await saveRoomIndex(roomName);
 
   // notify master (with retry logic)
@@ -4982,28 +6735,19 @@ async function ensureMasterExists(roomName){
 }
 
 async function readMasterValue(roomName){
-  const path = masterPath(roomName);
+  const p = masterPath(roomName);
   
-  // 1) Try raw read (fast)
-  const raw = await rawGetText(path);
-  if(raw.ok){
-    const t = raw.text.trim().toLowerCase();
-    if(t==="true" || t==="false") return { ok:true, value: t==="true", source:"raw" };
-    // Some builds store JSON "true"
-    try{
-      const v = JSON.parse(raw.text);
-      return { ok:true, value: !!v, source:"raw-json" };
-    }catch(_){}
-  }
-
-  // 2) Fallback to API
+  // CRÍTICO: SIEMPRE usar API (forceApi=true) para el master flag
+  // Este archivo es el "semáforo" que avisa de mensajes nuevos
+  // DEBE leerse en tiempo real, no puede tener caché de 5 minutos
   try{
-    const api = await ghGetJsonWithSha(path);
+    const api = await ghGetJsonWithSha(p, true); // <-- TRUE = API instantánea
     if(api.ok){
-      return { ok:true, value: !!api.obj, source:"api" };
+      return { ok:true, value: !!api.obj, source:"api-fresh" };
     }
     return { ok:false, status: api.status, value:false, source:"api" };
   }catch(e){
+    console.error('[readMasterValue] Error:', e.message);
     return { ok:false, status:0, value:false, source:"error" };
   }
 }
@@ -5109,12 +6853,15 @@ async function pollLoop(){
     // even if master flag is false. This ensures they see new messages
     // from other users without waiting for interactions.
     // ========================================
-    const shouldForceSync = active && (now - lastMessageSyncAt > 5000); // Sync every 5s when active
+    const inBurstMode = now < burstModeUntil;
+    const shouldForceSync = active && (now - lastMessageSyncAt > (inBurstMode ? 1000 : 5000)); // ⚡ 1s en burst mode para respuesta ultra-rápida
     
     // Sync if master=true OR if user is actively viewing (force sync)
     if(master.value || shouldForceSync){
       if(master.value){
         log(`🔄 Syncing new messages (master=true)...`, "INFO");
+      }else if(inBurstMode){
+        log(`⚡ Burst mode sync - checking for replies...`, "INFO");
       }else{
         log(`🔄 Active user sync - checking for new messages...`, "INFO");
       }
@@ -5140,13 +6887,13 @@ async function pollLoop(){
     // - Active viewing: moderate polling to catch new messages
     // - Otherwise: NO automatic polling (wait for interaction)
     
-    const inBurstMode = now < burstModeUntil;
+    // inBurstMode ya está declarado arriba
     
     if(inBurstMode || isTypingMode || active){
       // Continue polling during conversation or when actively viewing
       let interval;
       if(inBurstMode){
-        interval = POLL_MS_BURST;           // 500ms - very fast during conversation
+        interval = POLL_MS_BURST;           // 300ms - ultra rápido durante conversación
       }else if(isTypingMode){
         interval = POLL_MS_INTERACTION;     // 2000ms - while typing
       }else{
@@ -5169,19 +6916,28 @@ async function pollLoop(){
 function renderAll(messages){
   messagesEl.innerHTML = "";
   loadedMessages = [];
-  for(const m of messages) addMessageToDom(m, true);
   
-  // Scroll immediately
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+  // Use DocumentFragment for batch rendering (mucho más rápido)
+  const fragment = document.createDocumentFragment();
   
-  // Scroll again after media loads (images, videos, etc.)
-  setTimeout(() => {
+  for(const m of messages){
+    loadedMessages.push(m);
+    const msgElement = createMessageElement(m);
+    fragment.appendChild(msgElement);
+  }
+  
+  // Single DOM append (mucho más eficiente que múltiples appends)
+  messagesEl.appendChild(fragment);
+  
+  // Scroll immediately usando requestAnimationFrame
+  requestAnimationFrame(() => {
     messagesEl.scrollTop = messagesEl.scrollHeight;
-  }, 100);
-  
-  setTimeout(() => {
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-  }, 300);
+    
+    // Segundo scroll después de que las imágenes carguen
+    setTimeout(() => {
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }, 200);
+  });
   
   setupReadObserver(); // attach read receipts to current DOM nodes
   
@@ -5190,17 +6946,71 @@ function renderAll(messages){
 }
 
 function addMessageToDom(m, silent=false, prepend=false){
-  // Skip if message already exists in DOM
+  // Skip if message already exists in DOM (rápido)
   const existing = messagesEl.querySelector(`[data-msg-id="${m.id}"]`);
-  if(existing) return;
+  if(existing){
+    // ⚡ ACTUALIZACIÓN INTELIGENTE: Detectar cambios en el mensaje
+    const existingInMemory = loadedMessages.find(msg => msg.id === m.id);
+    
+    // Verificar si hay cambios importantes (deleted, edited, status)
+    const hasChanges = !existingInMemory || 
+                      existingInMemory.deleted !== m.deleted ||
+                      existingInMemory.edited !== m.edited ||
+                      existingInMemory.status !== m.status;
+    
+    if(hasChanges){
+      console.log(`🔄 [Update] Message ${m.id} changed - re-rendering`);
+      // Actualizar en memoria
+      const idx = loadedMessages.findIndex(msg => msg.id === m.id);
+      if(idx !== -1) loadedMessages[idx] = m;
+      else loadedMessages.push(m);
+      
+      // Reemplazar elemento en DOM
+      const newEl = createMessageElement(m);
+      existing.replaceWith(newEl);
+      if(readObserver) readObserver.observe(newEl);
+      return;
+    }
+    
+    // Si no hay cambios, solo actualizar status si existe
+    if(m.status && existing.querySelector('.msg-status')){
+      updateMessageStatus(m.id, m.status);
+    }
+    return;
+  }
   
-  // Skip if already in loadedMessages
-  if(loadedMessages.some(msg => msg.id === m.id)) return;
+  // Skip if already in loadedMessages (evitar duplicados en memoria)
+  const existingInMemory = loadedMessages.findIndex(msg => msg.id === m.id);
+  if(existingInMemory !== -1){
+    // Actualizar el mensaje existente en lugar de agregar duplicado
+    loadedMessages[existingInMemory] = m;
+    return;
+  }
   
   // Store to loaded list
   if(prepend) loadedMessages.unshift(m);
   else loadedMessages.push(m);
+  
+  // Create message element
+  const wrap = createMessageElement(m);
+  
+  // Add to DOM
+  if(prepend){
+    messagesEl.insertBefore(wrap, messagesEl.firstChild);
+  }else{
+    messagesEl.appendChild(wrap);
+    if(!silent){
+      requestAnimationFrame(() => {
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+      });
+    }
+  }
+  
+  // Observe for read receipts
+  if(readObserver) readObserver.observe(wrap);
+}
 
+function createMessageElement(m){
   const wrap = document.createElement("div");
   wrap.className = "msg" + ((session && m.userId===session.userId) ? " me" : "");
   wrap.dataset.msgId = m.id;
@@ -5403,36 +7213,56 @@ function addMessageToDom(m, silent=false, prepend=false){
       }
     };
     
-    // Update waveform and time during playback
+    // ⚡ Update waveform y tiempo durante reproducción (optimizado con requestAnimationFrame)
     let playbackAnimationId = null;
+    let lastUpdateTime = 0;
+    const UPDATE_INTERVAL = 50; // Actualizar cada 50ms para suavidad y eficiencia
     
-    const updatePlaybackProgress = () => {
-      if(!audioElement.duration) return;
+    const updatePlaybackProgress = (timestamp = 0) => {
+      // ⚡ Throttle: Solo actualizar cada 50ms para mejor performance
+      if(timestamp - lastUpdateTime < UPDATE_INTERVAL && lastUpdateTime !== 0){
+        if(!audioElement.paused){
+          playbackAnimationId = requestAnimationFrame(updatePlaybackProgress);
+        }
+        return;
+      }
+      lastUpdateTime = timestamp;
+      
+      if(!audioElement.duration) {
+        if(!audioElement.paused){
+          playbackAnimationId = requestAnimationFrame(updatePlaybackProgress);
+        }
+        return;
+      }
       
       const progress = audioElement.currentTime / audioElement.duration;
       const bars = audioWaveform.querySelectorAll('.audio-wave-bar');
       const activeBarCount = Math.floor(progress * bars.length);
       
-      bars.forEach((bar, idx) => {
-        if(idx < activeBarCount){
-          bar.classList.add('active');
-        }else{
-          bar.classList.remove('active');
-        }
+      // ⚡ Batch DOM updates para mejor performance
+      requestAnimationFrame(() => {
+        bars.forEach((bar, idx) => {
+          if(idx < activeBarCount){
+            bar.classList.add('active');
+          }else{
+            bar.classList.remove('active');
+          }
+        });
+        
+        // Update duration display con tiempo actual
+        const currentSec = Math.floor(audioElement.currentTime);
+        audioDuration.textContent = formatDuration(currentSec);
       });
       
-      // Update duration display with current time
-      const currentSec = Math.floor(audioElement.currentTime);
-      audioDuration.textContent = formatDuration(currentSec);
-      
-      // Continue animation while playing
+      // Continue animation mientras reproduce
       if(!audioElement.paused){
         playbackAnimationId = requestAnimationFrame(updatePlaybackProgress);
       }
     };
     
     audioElement.addEventListener('play', () => {
-      updatePlaybackProgress();
+      lastUpdateTime = 0; // Reset throttle
+      playbackAnimationId = requestAnimationFrame(updatePlaybackProgress);
     });
     
     audioElement.addEventListener('pause', () => {
@@ -5442,6 +7272,8 @@ function addMessageToDom(m, silent=false, prepend=false){
       }
     });
     
+    // ⚡ timeupdate: Importante para seek/skip y como backup
+    // El throttling (50ms) evita demasiadas actualizaciones
     audioElement.addEventListener('timeupdate', updatePlaybackProgress);
     
     audioElement.addEventListener('ended', () => {
@@ -5520,17 +7352,18 @@ function addMessageToDom(m, silent=false, prepend=false){
         
         const imgEl = document.createElement('img');
         imgEl.alt = img.fileName || 'Image';
+        imgEl.loading = 'lazy'; // 🚀 Browser native lazy loading
         
         // Load thumbnail or full image
         if(img.thumbPath){
-          downloadMediaFromGitHub(img.thumbPath, 'image').then(cached => {
+          downloadMediaFromGitHub(img.thumbPath, 'image', false, 0).then(cached => {
             if(cached){
               imgEl.src = cached.blobUrl;
               tile.classList.add('loaded');
             }
           });
         }else if(img.path){
-          downloadMediaFromGitHub(img.path, 'image').then(cached => {
+          downloadMediaFromGitHub(img.path, 'image', img.isChunked || false, img.chunkCount || 0).then(cached => {
             if(cached){
               imgEl.src = cached.blobUrl;
               tile.classList.add('loaded');
@@ -5539,6 +7372,15 @@ function addMessageToDom(m, silent=false, prepend=false){
         }
         
         tile.appendChild(imgEl);
+        
+        // Add caption if exists
+        if(img.caption && img.caption.trim()){
+          const captionEl = document.createElement('div');
+          captionEl.className = 'media-caption';
+          captionEl.textContent = img.caption;
+          captionEl.style.cssText = 'font-size:12px; color:var(--muted); margin-top:4px; padding:0 4px;';
+          tile.appendChild(captionEl);
+        }
         
         // If 4th tile and more images exist, add overlay
         if(idx === 3 && images.length > 4){
@@ -5580,7 +7422,12 @@ function addMessageToDom(m, silent=false, prepend=false){
       
       // Load poster
       if(video.posterPath){
-        downloadMediaFromGitHub(video.posterPath, 'image').then(cached => {
+        downloadMediaFromGitHub(
+          video.posterPath,
+          'image',
+          false,
+          0
+        ).then(cached => {
           if(cached){
             posterImg.src = cached.blobUrl;
             poster.classList.add('loaded');
@@ -5594,24 +7441,76 @@ function addMessageToDom(m, silent=false, prepend=false){
       const playBtn = document.createElement('button');
       playBtn.className = 'msg-video-play-btn';
       playBtn.textContent = '▶';
+      
+      // Close button (initially hidden)
+      const closeBtn = document.createElement('button');
+      closeBtn.className = 'msg-video-close-btn';
+      closeBtn.textContent = '✕';
+      closeBtn.title = 'Cerrar video';
+      
+      let currentVideoEl = null;
+      
       playBtn.onclick = async (e) => {
         e.stopPropagation();
+        
+        // If video is already playing, just resume
+        if(currentVideoEl){
+          posterImg.style.display = 'none';
+          playBtn.style.display = 'none';
+          currentVideoEl.style.display = 'block';
+          poster.classList.add('playing');
+          currentVideoEl.play();
+          return;
+        }
+        
         // Download and play video
-        const cached = await downloadMediaFromGitHub(video.path, 'video');
+        playBtn.textContent = '⏳';
+        playBtn.style.background = 'rgba(255,255,255,.5)';
+        
+        const cached = await downloadMediaFromGitHub(
+          video.path,
+          'video',
+          video.isChunked || false,
+          video.chunkCount || 0
+        );
         if(cached){
           const videoEl = document.createElement('video');
           videoEl.src = cached.blobUrl;
           videoEl.controls = true;
-          videoEl.style.cssText = 'max-width:100%; max-height:400px; border-radius:12px;';
-          videoEl.play();
+          videoEl.autoplay = true;
+          videoEl.style.cssText = 'width:100%; max-height:500px; border-radius:20px; box-shadow:0 8px 32px rgba(0,0,0,.4); display:block;';
           
-          // Replace poster with video player
-          poster.innerHTML = '';
+          // Hide poster elements and show video
+          posterImg.style.display = 'none';
+          playBtn.style.display = 'none';
           poster.appendChild(videoEl);
+          poster.classList.add('playing');
+          poster.style.aspectRatio = 'auto';
+          
+          currentVideoEl = videoEl;
+        }else{
+          playBtn.textContent = '❌';
+          playBtn.style.background = 'rgba(255,100,100,.8)';
         }
       };
       
+      closeBtn.onclick = (e) => {
+        e.stopPropagation();
+        // Pause video and show poster again
+        if(currentVideoEl){
+          currentVideoEl.pause();
+          currentVideoEl.style.display = 'none';
+        }
+        posterImg.style.display = 'block';
+        playBtn.style.display = 'flex';
+        playBtn.textContent = '▶';
+        playBtn.style.background = '';
+        poster.classList.remove('playing');
+        poster.style.aspectRatio = '16/9';
+      };
+      
       poster.appendChild(playBtn);
+      poster.appendChild(closeBtn);
       
       // Preview overlay for long-press
       const previewOverlay = document.createElement('div');
@@ -5625,7 +7524,12 @@ function addMessageToDom(m, silent=false, prepend=false){
       poster.addEventListener('touchstart', (e) => {
         longPressTimer = setTimeout(async () => {
           // Start 5-second preview
-          const cached = await downloadMediaFromGitHub(video.path, 'video');
+          const cached = await downloadMediaFromGitHub(
+            video.path,
+            'video',
+            video.isChunked || false,
+            video.chunkCount || 0
+          );
           if(cached){
             previewVideo = document.createElement('video');
             previewVideo.src = cached.blobUrl;
@@ -5678,6 +7582,16 @@ function addMessageToDom(m, silent=false, prepend=false){
       videoInfo.appendChild(sizeSpan);
       
       videoCard.appendChild(videoInfo);
+      
+      // Add caption if exists
+      if(video.caption && video.caption.trim()){
+        const captionEl = document.createElement('div');
+        captionEl.className = 'media-caption';
+        captionEl.textContent = video.caption;
+        captionEl.style.cssText = 'font-size:12px; color:var(--muted); margin-top:6px; padding:0 8px; word-break: break-word;';
+        videoCard.appendChild(captionEl);
+      }
+      
       text.appendChild(videoCard);
     });
     
@@ -5743,6 +7657,15 @@ function addMessageToDom(m, silent=false, prepend=false){
       fileChip.appendChild(fileInfo);
       fileChip.appendChild(downloadBtn);
       
+      // Add caption if exists
+      if(file.caption && file.caption.trim()){
+        const captionEl = document.createElement('div');
+        captionEl.className = 'media-caption';
+        captionEl.textContent = file.caption;
+        captionEl.style.cssText = 'font-size:11px; color:var(--muted); margin-top:4px; padding:0 8px; word-break: break-word;';
+        fileChip.appendChild(captionEl);
+      }
+      
       text.appendChild(fileChip);
     });
     
@@ -5768,7 +7691,11 @@ function addMessageToDom(m, silent=false, prepend=false){
       const highlightedContent = highlightMentions(m.text, currentUser);
       text.appendChild(highlightedContent);
     }else{
-      text.textContent = "[deleted]";
+      // 🗑️ Mensaje borrado: mostrar con estilo especial
+      const deletedEl = document.createElement('span');
+      deletedEl.style.cssText = 'font-style:italic; color:var(--muted); opacity:0.6;';
+      deletedEl.textContent = '🗑️ This message was deleted';
+      text.appendChild(deletedEl);
     }
   }
 
@@ -5778,7 +7705,17 @@ function addMessageToDom(m, silent=false, prepend=false){
   const hh = String(d.getHours()).padStart(2,"0");
   const mm = String(d.getMinutes()).padStart(2,"0");
   const timeText = document.createElement("span");
-  timeText.textContent = `${hh}:${mm} · ${m.sender}${m.edited ? " · edited":""}`;
+  
+  // 🗑️ Mostrar info de borrado si aplica
+  if(m.deleted && m.deletedAt){
+    const deletedDate = new Date(m.deletedAt);
+    const delHH = String(deletedDate.getHours()).padStart(2,"0");
+    const delMM = String(deletedDate.getMinutes()).padStart(2,"0");
+    timeText.textContent = `${hh}:${mm} · ${m.sender} · deleted at ${delHH}:${delMM}`;
+    timeText.style.color = 'var(--muted)';
+  }else{
+    timeText.textContent = `${hh}:${mm} · ${m.sender}${m.edited ? " · edited":""}`;
+  }
   meta.appendChild(timeText);
 
   // Message status indicator (for own messages only)
@@ -5844,16 +7781,9 @@ function addMessageToDom(m, silent=false, prepend=false){
   }
   
   wrap.appendChild(actions);
-
-  if(prepend){
-    messagesEl.insertBefore(wrap, messagesEl.firstChild);
-  }else{
-    messagesEl.appendChild(wrap);
-    if(!silent) messagesEl.scrollTop = messagesEl.scrollHeight;
-  }
-
-  // Observe for read receipts
-  if(readObserver) readObserver.observe(wrap);
+  
+  // Return the element instead of appending to DOM (for batch rendering)
+  return wrap;
 }
 
 function clearView(){
@@ -6175,14 +8105,33 @@ async function deleteMessageById(msgId){
 
   try{
     const put = await ghPutJson(cellPath(currentRoom, loc.cell), cellArr, cellSha, `delete msg ${msgId}`);
+    
+    // ⚡ NOTIFICAR A OTROS DISPOSITIVOS: Activar master flag
+    await saveMasterValue(currentRoom, true);
+    log('🔔 Master flag activated - other devices will sync deleted message', 'INFO');
+    
     // Update in-memory and DOM
-    for(const m of loadedMessages){ if(m.id === msgId){ m.deleted = true; } }
+    for(const m of loadedMessages){ 
+      if(m.id === msgId){ 
+        m.deleted = true; 
+        m.deletedAt = Date.now();
+        m.deletedBy = userId;
+      } 
+    }
+    
+    // 🗑️ Actualizar DOM con renderizado mejorado
     const el = messagesEl.querySelector(`[data-msg-id="${msgId}"]`);
     if(el){
-      const textEl = el.querySelector('.text'); if(textEl) textEl.textContent = '[deleted]';
-      const meta = el.querySelector('.meta'); if(meta){ meta.textContent = `deleted`; }
+      // Reemplazar completamente el elemento con versión borrada
+      const updatedMsg = loadedMessages.find(m => m.id === msgId);
+      if(updatedMsg){
+        const newEl = createMessageElement(updatedMsg);
+        el.replaceWith(newEl);
+        if(readObserver) readObserver.observe(newEl);
+      }
     }
-    log('Message deleted','INFO');
+    
+    log('Message deleted and synced to all devices','INFO');
     showToast('Message deleted successfully', 'success');
   }catch(e){ console.error('[deleteMessage ERROR]', e); log('Delete failed: '+String(e),'ERROR'); showToast('Delete failed: '+String(e), 'error'); }
 }
@@ -6675,7 +8624,7 @@ async function sendMessage(){
       setTimeout(() => {
         msg.status = 'delivered';
         updateMessageStatus(msg.id, 'delivered');
-      }, 500);
+      }, 300); // ⚡ Más rápido para mejor UX
     }else{
       throw new Error("GitHub write returned no SHA (write may have failed)");
     }
@@ -6736,7 +8685,52 @@ async function retryMessage(msg){
   updateMessageStatus(msg.id, 'sending');
   
   try{
-    await appendMessageV3(currentRoom, msg);
+    // For media messages: files are already uploaded, just need to save message metadata
+    // Check if message already exists in the cell to avoid duplicates
+    if(msg.cell){
+      const cellNum = msg.cell;
+      
+      // Clear cached SHA to force fresh fetch
+      const cellPathStr = cellPath(currentRoom, cellNum);
+      clearCachedSha(cellPathStr);
+      
+      // Fetch current cell content
+      const got = await ghGetJsonWithSha(cellPathStr);
+      if(!got.ok || !Array.isArray(got.obj)){
+        throw new Error(`Failed to fetch cell ${cellNum} for retry`);
+      }
+      
+      const cellArr = got.obj;
+      const existingIdx = cellArr.findIndex(m => m.id === msg.id);
+      
+      if(existingIdx >= 0){
+        // Message already exists, just update it
+        cellArr[existingIdx] = msg;
+        console.log(`[retryMessage] Updating existing message in cell ${cellNum}`);
+      }else{
+        // Message doesn't exist yet, append it
+        cellArr.push(msg);
+        console.log(`[retryMessage] Appending message to cell ${cellNum}`);
+      }
+      
+      // Write back with fresh SHA
+      const put = await ghPutJson(cellPathStr, cellArr, got.sha, `retry msg cell ${cellNum}`);
+      if(!put || !put.ok || !put.sha){
+        throw new Error(`Failed to write message to cell ${cellNum} - no SHA returned`);
+      }
+      
+      // Update room index if this was a new append
+      if(existingIdx < 0){
+        await loadRoomIndex(currentRoom);
+        roomIndex.totalMessages = (roomIndex.totalMessages || 0) + 1;
+        await saveRoomIndex(currentRoom);
+        await saveMasterValue(currentRoom, true);
+      }
+    }else{
+      // No cell assigned yet, use normal append
+      await appendMessageV3(currentRoom, msg);
+    }
+    
     updateMessageStatus(msg.id, 'sent');
     showToast('Message sent successfully', 'success');
     
@@ -6755,7 +8749,12 @@ async function retryMessage(msg){
    MEDIA MESSAGE SENDING
    ============================================================ */
 async function sendMediaMessage(files, captions = []){
-  if(!running || !currentRoom || !files || files.length === 0) return;
+  console.log('[sendMediaMessage] ENTRY', { filesCount: files?.length, captionsCount: captions?.length, running, currentRoom });
+  
+  if(!running || !currentRoom || !files || files.length === 0){
+    console.warn('[sendMediaMessage] Validation failed - aborting', { running, currentRoom, filesLength: files?.length });
+    return;
+  }
   
   const now = Date.now();
   const userId = session?.userId || localGuest.userId;
@@ -6776,6 +8775,13 @@ async function sendMediaMessage(files, captions = []){
       const file = files[i];
       const mimeType = file.type || 'application/octet-stream';
       const caption = captions[i] || ''; // Get caption for this file
+      
+      console.log(`[sendMediaMessage] Processing file ${i+1}/${files.length}:`, {
+        name: file.name,
+        type: mimeType,
+        size: file.size,
+        caption: caption || '(no caption)'
+      });
       
       // Update progress
       processedCount++;
@@ -6799,18 +8805,24 @@ async function sendMediaMessage(files, captions = []){
         
         // Generate thumbnail
         try{
+          console.log(`[sendMediaMessage] Generating thumbnail for ${file.name}...`);
           const thumb = await generateThumbnail(file, 480);
           attachment.width = thumb.width;
           attachment.height = thumb.height;
+          console.log(`[sendMediaMessage] ✓ Thumbnail generated: ${thumb.width}x${thumb.height}`);
           
           // Upload thumbnail
+          console.log(`[sendMediaMessage] Uploading thumbnail...`);
           const thumbUpload = await uploadThumbnailToGitHub(thumb.blob, msgId, i);
           if(thumbUpload.ok){
             attachment.thumbPath = thumbUpload.path;
             attachment.thumbUrl = thumbUpload.url;
+            console.log(`[sendMediaMessage] ✓ Thumbnail uploaded: ${thumbUpload.path}`);
+          }else{
+            console.warn(`[sendMediaMessage] ✗ Thumbnail upload failed`);
           }
         }catch(err){
-          console.warn('Thumbnail generation failed:', err);
+          console.warn('[sendMediaMessage] ✗ Thumbnail generation failed:', err);
         }
       }else if(mimeType.startsWith('video/')){
         kind = 'video';
@@ -6818,33 +8830,51 @@ async function sendMediaMessage(files, captions = []){
         
         // Generate poster
         try{
+          console.log(`[sendMediaMessage] Generating video poster for ${file.name}...`);
           const poster = await generateVideoPoster(file);
           attachment.duration = poster.duration || 0;
+          console.log(`[sendMediaMessage] ✓ Poster generated, duration: ${poster.duration}s`);
           
           // Upload poster
+          console.log(`[sendMediaMessage] Uploading poster...`);
           const posterBlob = poster.blob;
           const posterUpload = await uploadThumbnailToGitHub(posterBlob, msgId, i);
           if(posterUpload.ok){
             attachment.posterPath = posterUpload.path;
             attachment.posterUrl = posterUpload.url;
+            console.log(`[sendMediaMessage] ✓ Poster uploaded: ${posterUpload.path}`);
+          }else{
+            console.warn(`[sendMediaMessage] ✗ Poster upload failed`);
           }
         }catch(err){
-          console.warn('Poster generation failed:', err);
+          console.warn('[sendMediaMessage] ✗ Poster generation failed:', err);
         }
       }
       
       // Upload main file
+      console.log(`[sendMediaMessage] Uploading main file: ${file.name}...`);
       mediaUploadProgressText.textContent = `Uploading ${file.name}...`;
       const upload = await uploadMediaToGitHub(file, msgId, kind);
       
       if(!upload.ok){
+        console.error(`[sendMediaMessage] ✗ Upload failed for ${file.name}:`, upload.error);
         throw new Error(`Failed to upload ${file.name}: ${upload.error}`);
       }
       
+      console.log(`[sendMediaMessage] ✓ File uploaded: ${upload.path}`);
       attachment.path = upload.path;
       attachment.url = upload.url;
       
+      // Save chunking metadata if file was chunked
+      if(upload.isChunked){
+        attachment.isChunked = true;
+        attachment.chunkCount = upload.chunkCount;
+        attachment.totalSize = upload.totalSize;
+        console.log(`[sendMediaMessage] File was chunked: ${upload.chunkCount} chunks, ${formatBytes(upload.totalSize)} total`);
+      }
+      
       attachments.push(attachment);
+      console.log(`[sendMediaMessage] ✓ Attachment ${i+1}/${files.length} complete`);
       
       // Update progress
       processedCount++;
@@ -6889,18 +8919,40 @@ async function sendMediaMessage(files, captions = []){
       }
     };
     
+    // Debug: Log message being sent
+    console.log('📤 [sendMediaMessage] Creating message object:', {
+      msgId: msg.id,
+      type: msg.type,
+      attachmentsCount: msg.attachments?.length || 0,
+      text: msg.text || '(no caption)',
+      room: currentRoom
+    });
+    console.log('📤 [sendMediaMessage] Attachments detail:', msg.attachments);
+    
     // Show optimistically
+    console.log('[sendMediaMessage] Adding message to DOM (optimistic UI)...');
     addMessageToDom(msg);
     cancelReplyTo();
     markInteraction('send');
     
     // Upload to GitHub
+    console.log('[sendMediaMessage] Saving message metadata to GitHub...');
     mediaUploadProgressText.textContent = 'Saving message...';
     mediaUploadProgressFill.style.width = '95%';
     
+    // Clear cell cache to ensure fresh SHA for message save
+    if(roomIndex.latestCell){
+      const cellPathStr = cellPath(currentRoom, roomIndex.latestCell);
+      console.log(`[sendMediaMessage] Clearing cached SHA for ${cellPathStr}`);
+      clearCachedSha(cellPathStr);
+    }
+    
+    console.log('[sendMediaMessage] Calling appendMessageV3...');
     const result = await appendMessageV3(currentRoom, msg);
+    console.log('[sendMediaMessage] appendMessageV3 returned:', result);
     
     if(result && result.cellSha){
+      console.log(`✅ [sendMediaMessage] SUCCESS! Message saved to cell ${result.cellNum}`);
       msg.status = 'sent';
       updateMessageStatus(msg.id, 'sent');
       log(`✅ Media message sent (${attachments.length} attachment(s))`, 'INFO');
@@ -6911,6 +8963,7 @@ async function sendMediaMessage(files, captions = []){
       }, 1000);
       
       // Burst mode
+      console.log('[sendMediaMessage] Entering burst mode for quick response polling');
       burstModeUntil = Date.now() + POLL_BURST_DURATION;
       if(running && currentRoom){
         clearTimeout(pollTimer);
@@ -6923,21 +8976,35 @@ async function sendMediaMessage(files, captions = []){
       setTimeout(() => {
         msg.status = 'delivered';
         updateMessageStatus(msg.id, 'delivered');
-      }, 500);
+        console.log(`✅ [sendMediaMessage] Message marked as delivered`);
+      }, 200); // ⚡ 200ms para feedback instantáneo
       
+      console.log(`✅ [sendMediaMessage] COMPLETE - Sent ${attachments.length} file(s)`);
       showToast(`Sent ${attachments.length} file(s)`, 'success');
     }else{
+      console.error('❌ [sendMediaMessage] GitHub write returned no SHA');
       throw new Error('GitHub write returned no SHA');
     }
     
   }catch(error){
-    console.error('[sendMediaMessage ERROR]', error);
+    console.error('❌ [sendMediaMessage] FAILED:', error);
+    console.error('❌ [sendMediaMessage] Error stack:', error.stack);
     mediaUploadProgress.style.display = 'none';
     showToast(`Failed to send media: ${error.message}`, 'error', 5000);
   }
+  
+  console.log('[sendMediaMessage] EXIT');
 }
 
 async function syncLatestFromStorage(){
+  // DEBOUNCING: Evitar múltiples syncs simultáneos (mejora performance)
+  if(syncDebounceTimer){
+    console.log('⏭️ Sync ya programado, saltando...');
+    return;
+  }
+  
+  syncDebounceTimer = setTimeout(() => { syncDebounceTimer = null; }, 300);
+  
   // Load newest messages - check last 3 cells to ensure completeness
   await loadRoomIndex(currentRoom);
 
@@ -6948,20 +9015,17 @@ async function syncLatestFromStorage(){
     const msgs = await loadLatestMessages(currentRoom, 50);
     renderAll(msgs);
     
-    // Ensure scroll to bottom after initial load (with delay for media)
-    setTimeout(() => {
+    // Scroll usando requestAnimationFrame para mejor performance
+    requestAnimationFrame(() => {
       messagesEl.scrollTop = messagesEl.scrollHeight;
-    }, 200);
-    setTimeout(() => {
-      messagesEl.scrollTop = messagesEl.scrollHeight;
-    }, 500);
+    });
     
     updateReadBadges();
     return;
   }
 
-  // CRITICAL: Check if user is behind by comparing their last loaded cell to actual latest
-  // Always check the last 3 cells to catch any missed messages
+  // OPTIMIZACIÓN: Solo verificar si hay cambios reales
+  // Comparar loadedCellsMax con latestCellNum para detectar nuevas células
   const safeCheckFrom = Math.max(1, latestCellNum - 2); // Check last 3 cells
   const needToCheck = loadedCellsMax < safeCheckFrom;
   
@@ -7457,7 +9521,22 @@ async function downloadAudioFromGitHub(audioPath){
 
 // Get cached audio or download if not cached
 async function getCachedAudio(audioPath){
-  // Check cache first
+  // 💾 PASO 1: Verificar IndexedDB primero (persistente)
+  const dbAudio = await getMediaFromDB(audioPath);
+  if(dbAudio && dbAudio.blob){
+    const blobUrl = URL.createObjectURL(dbAudio.blob);
+    const cacheEntry = {
+      blob: dbAudio.blob,
+      blobUrl,
+      size: dbAudio.size,
+      cachedAt: dbAudio.cachedAt
+    };
+    audioCache.set(audioPath, cacheEntry);
+    log(`💾 Using persistent audio: ${audioPath}`, 'INFO');
+    return cacheEntry;
+  }
+  
+  // PASO 2: Verificar cache RAM
   const cached = audioCache.get(audioPath);
   if(cached){
     const age = Date.now() - cached.cachedAt;
@@ -7471,7 +9550,7 @@ async function getCachedAudio(audioPath){
     }
   }
   
-  // Download audio
+  // PASO 3: Descargar audio
   log(`📥 Downloading audio: ${audioPath}`, 'INFO');
   const blob = await downloadAudioFromGitHub(audioPath);
   if(!blob) return null;
@@ -7485,6 +9564,9 @@ async function getCachedAudio(audioPath){
     cachedAt: Date.now()
   };
   audioCache.set(audioPath, cacheEntry);
+  
+  // 💾 PASO 4: Guardar en IndexedDB
+  await saveMediaToDB(audioPath, blob, 'audio');
   
   log(`✅ Audio cached: ${audioPath} (${formatBytes(blob.size)})`, 'INFO');
   return cacheEntry;
@@ -7636,12 +9718,137 @@ function getFileIcon(mimeType){
   return '📄';
 }
 
+/* ============================================================
+   CHUNKED FILE UPLOAD/DOWNLOAD SYSTEM
+   For files >800KB, split into chunks to bypass GitHub API limits
+   ============================================================ */
+
+const CHUNK_SIZE = 800 * 1024; // 800KB chunks (safe under 1MB GitHub limit)
+
+// Split file into chunks
+function splitFileIntoChunks(file){
+  const chunks = [];
+  const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+  
+  for(let i = 0; i < totalChunks; i++){
+    const start = i * CHUNK_SIZE;
+    const end = Math.min(start + CHUNK_SIZE, file.size);
+    const chunk = file.slice(start, end);
+    chunks.push(chunk);
+  }
+  
+  return chunks;
+}
+
+// Upload file as chunks
+async function uploadFileAsChunks(file, messageId, kind){
+  const userId = session?.userId || localGuest.userId || 'anon';
+  const timestamp = Date.now();
+  const roomName = currentRoom;
+  const chunks = splitFileIntoChunks(file);
+  const totalChunks = chunks.length;
+  
+  console.log(`📦 [Chunks] Splitting file into ${totalChunks} chunks (${formatBytes(file.size)} total)`);
+  
+  let folderType = 'media-files';
+  if(kind === 'image') folderType = 'media-images';
+  else if(kind === 'video') folderType = 'media-videos';
+  
+  const ext = file.name.split('.').pop() || 'bin';
+  const baseFileName = `${userId}_${timestamp}_${messageId}`;
+  
+  // Upload each chunk
+  for(let i = 0; i < totalChunks; i++){
+    const chunk = chunks[i];
+    const chunkFileName = `${baseFileName}.chunk${i}.${ext}`;
+    const chunkPath = `${ROOMS_META_DIR}/${roomName}/${folderType}/${chunkFileName}`;
+    
+    console.log(`📦 [Chunks] Uploading chunk ${i+1}/${totalChunks} (${formatBytes(chunk.size)})...`);
+    
+    // Convert chunk to base64
+    const reader = new FileReader();
+    const base64Promise = new Promise((resolve, reject) => {
+      reader.onloadend = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+    });
+    reader.readAsDataURL(chunk);
+    const base64Content = await base64Promise;
+    
+    const result = await ghPutFile(chunkPath, base64Content, null, `Upload chunk ${i+1}/${totalChunks}`);
+    if(!result.ok){
+      throw new Error(`Failed to upload chunk ${i+1}/${totalChunks}`);
+    }
+    
+    console.log(`✅ [Chunks] Chunk ${i+1}/${totalChunks} uploaded`);
+  }
+  
+  // Return metadata for chunked file
+  const mainPath = `${ROOMS_META_DIR}/${roomName}/${folderType}/${baseFileName}.${ext}`;
+  return {
+    ok: true,
+    path: mainPath,
+    fileName: `${baseFileName}.${ext}`,
+    folderType: folderType,
+    isChunked: true,
+    chunkCount: totalChunks,
+    totalSize: file.size
+  };
+}
+
+// Download and reconstruct chunked file
+async function downloadChunkedFile(basePath, chunkCount){
+  try{
+    console.log(`📦 [Chunks] Downloading ${chunkCount} chunks for ${basePath}...`);
+    
+    const chunks = [];
+    const ext = basePath.split('.').pop();
+    const basePathWithoutExt = basePath.substring(0, basePath.lastIndexOf('.'));
+    
+    // Download all chunks
+    for(let i = 0; i < chunkCount; i++){
+      const chunkPath = `${basePathWithoutExt}.chunk${i}.${ext}`;
+      console.log(`📥 [Chunks] Downloading chunk ${i+1}/${chunkCount}...`);
+      
+      const response = await rawGetBinary(chunkPath);
+      if(!response.ok){
+        throw new Error(`Failed to download chunk ${i+1}/${chunkCount}`);
+      }
+      
+      chunks.push(response.blob);
+      console.log(`✅ [Chunks] Chunk ${i+1}/${chunkCount} downloaded (${formatBytes(response.blob.size)})`);
+    }
+    
+    // Reconstruct file from chunks
+    console.log(`🔧 [Chunks] Reconstructing file from ${chunkCount} chunks...`);
+    const completeBlob = new Blob(chunks);
+    console.log(`✅ [Chunks] File reconstructed: ${formatBytes(completeBlob.size)}`);
+    
+    return {
+      ok: true,
+      blob: completeBlob,
+      size: completeBlob.size
+    };
+  }catch(error){
+    console.error('[Chunks] Error downloading chunked file:', error);
+    return { ok: false, error: error.message };
+  }
+}
+
 // Upload media file to GitHub with proper folder structure
 async function uploadMediaToGitHub(file, messageId, kind){
   try{
     const userId = session?.userId || localGuest.userId || 'anon';
     const timestamp = Date.now();
     const roomName = currentRoom;
+    
+    // Check if file is large enough to need chunking
+    if(file.size > CHUNK_SIZE){
+      console.log(`📦 [Upload] File is large (${formatBytes(file.size)}), using chunked upload...`);
+      return await uploadFileAsChunks(file, messageId, kind);
+    }
+    
+    // Standard upload for small files
+    console.log(`📤 [Upload] File is small (${formatBytes(file.size)}), using standard upload...`);
     
     // Determine file extension
     let ext = file.name.split('.').pop() || 'bin';
@@ -7675,7 +9882,8 @@ async function uploadMediaToGitHub(file, messageId, kind){
         path: mediaPath,
         url: result.url,
         fileName: fileName,
-        folderType: folderType
+        folderType: folderType,
+        isChunked: false
       };
     }else{
       throw new Error(`Upload failed with status ${result.status}`);
@@ -7719,9 +9927,27 @@ async function uploadThumbnailToGitHub(thumbBlob, messageId, index){
 }
 
 // Download media from GitHub with caching
-async function downloadMediaFromGitHub(mediaPath, type = 'image'){
+async function downloadMediaFromGitHub(mediaPath, type = 'image', isChunked = false, chunkCount = 0){
   try{
-    // Check cache first
+    // 💾 PASO 1: Verificar IndexedDB primero (persistente)
+    const dbMedia = await getMediaFromDB(mediaPath);
+    if(dbMedia && dbMedia.blob){
+      // Crear nuevo blobUrl del blob almacenado
+      const blobUrl = URL.createObjectURL(dbMedia.blob);
+      const cacheEntry = {
+        blob: dbMedia.blob,
+        blobUrl,
+        size: dbMedia.size,
+        type: dbMedia.type || type,
+        cachedAt: dbMedia.cachedAt
+      };
+      // Agregar a memoria RAM para acceso rápido
+      mediaCache.set(mediaPath, cacheEntry);
+      log(`💾 Using persistent media: ${mediaPath}`, 'INFO');
+      return cacheEntry;
+    }
+    
+    // PASO 2: Verificar cache RAM (temporal)
     const cached = mediaCache.get(mediaPath);
     if(cached){
       const age = Date.now() - cached.cachedAt;
@@ -7735,12 +9961,23 @@ async function downloadMediaFromGitHub(mediaPath, type = 'image'){
       }
     }
     
-    // Download media
-    log(`📥 Downloading media: ${mediaPath}`, 'INFO');
-    const response = await rawGetBinary(mediaPath);
-    if(!response.ok) throw new Error('Download failed');
+    // PASO 3: Descargar media
+    let blob;
     
-    const blob = response.blob;
+    if(isChunked && chunkCount > 0){
+      // Download chunked file
+      log(`📥 Downloading chunked media: ${mediaPath} (${chunkCount} chunks)`, 'INFO');
+      const response = await downloadChunkedFile(mediaPath, chunkCount);
+      if(!response.ok) throw new Error('Chunked download failed');
+      blob = response.blob;
+    }else{
+      // Standard download
+      log(`📥 Downloading media: ${mediaPath}`, 'INFO');
+      const response = await rawGetBinary(mediaPath);
+      if(!response.ok) throw new Error('Download failed');
+      blob = response.blob;
+    }
+    
     const blobUrl = URL.createObjectURL(blob);
     
     const cacheEntry = {
@@ -7752,6 +9989,9 @@ async function downloadMediaFromGitHub(mediaPath, type = 'image'){
     };
     mediaCache.set(mediaPath, cacheEntry);
     
+    // 💾 PASO 4: Guardar en IndexedDB para persistencia
+    await saveMediaToDB(mediaPath, blob, type);
+    
     log(`✅ Media cached: ${mediaPath} (${formatBytes(blob.size)})`, 'INFO');
     return cacheEntry;
   }catch(error){
@@ -7760,17 +10000,52 @@ async function downloadMediaFromGitHub(mediaPath, type = 'image'){
   }
 }
 
-// Helper to get binary from GitHub raw
+// Helper to get binary from GitHub raw (with API fallback for fresh files)
 async function rawGetBinary(path){
   try{
-    const url = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${path}`;
-    const response = await fetch(url);
-    if(response.ok){
-      const blob = await response.blob();
-      return { ok: true, blob, status: response.status };
-    }else{
-      return { ok: false, status: response.status };
+    // Try Raw CDN first (faster, better for old files)
+    const rawUrl = `https://raw.githubusercontent.com/${GH_OWNER}/${GH_REPO}/${GH_BRANCH}/${path}`;
+    const rawResponse = await fetch(rawUrl);
+    if(rawResponse.ok){
+      const blob = await rawResponse.blob();
+      return { ok: true, blob, status: rawResponse.status, source: 'raw-cdn' };
     }
+    
+    // If Raw CDN returns 404, might be fresh file not propagated yet
+    if(rawResponse.status === 404){
+      console.warn(`⚠️ Raw CDN 404 for ${path}, trying API fallback...`);
+      
+      // Try API for small files (<1MB, API limit)
+      const apiUrl = `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${path}`;
+      const apiResponse = await fetch(apiUrl, {
+        headers: { 'Authorization': `token ${GH_TOKEN}` }
+      });
+      
+      if(apiResponse.ok){
+        const json = await apiResponse.json();
+        
+        // Check file size (API only supports <1MB)
+        if(json.size && json.size > 1000000){
+          console.warn(`⚠️ File too large for API (${formatBytes(json.size)}), waiting for CDN...`);
+          showToast(`Video is uploading to CDN... Please wait a moment and try again.`, 'info', 5000);
+          return { ok: false, status: 404, error: 'File too large for API, CDN not ready' };
+        }
+        
+        if(json.content && json.encoding === 'base64'){
+          // Decode base64 to blob
+          const binaryString = atob(json.content.replace(/\s/g, ''));
+          const bytes = new Uint8Array(binaryString.length);
+          for(let i = 0; i < binaryString.length; i++){
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          const blob = new Blob([bytes]);
+          console.log(`✅ Retrieved ${path} from API (${formatBytes(blob.size)}, bypassed CDN delay)`);
+          return { ok: true, blob, status: 200, source: 'api' };
+        }
+      }
+    }
+    
+    return { ok: false, status: rawResponse.status };
   }catch(error){
     return { ok: false, error: error.message };
   }
@@ -7804,7 +10079,12 @@ async function showViewerImage(index){
   imageViewerImg.alt = 'Loading...';
   
   // Download full image
-  const cached = await downloadMediaFromGitHub(img.path, 'image');
+  const cached = await downloadMediaFromGitHub(
+    img.path,
+    'image',
+    img.isChunked || false,
+    img.chunkCount || 0
+  );
   if(cached){
     imageViewerImg.src = cached.blobUrl;
     imageViewerImg.alt = img.fileName || 'Image';
@@ -7861,7 +10141,12 @@ async function downloadCurrentImage(){
   if(!currentViewerImages || currentViewerIndex < 0) return;
   
   const img = currentViewerImages[currentViewerIndex];
-  const cached = await downloadMediaFromGitHub(img.path, 'image');
+  const cached = await downloadMediaFromGitHub(
+    img.path,
+    'image',
+    img.isChunked || false,
+    img.chunkCount || 0
+  );
   
   if(cached){
     const a = document.createElement('a');
@@ -7896,11 +10181,11 @@ async function openGalleryDrawer(images, messageId = null){
     
     // Load thumbnail
     if(img.thumbPath){
-      downloadMediaFromGitHub(img.thumbPath, 'image').then(cached => {
+      downloadMediaFromGitHub(img.thumbPath, 'image', false, 0).then(cached => {
         if(cached) thumbImg.src = cached.blobUrl;
       });
     }else if(img.path){
-      downloadMediaFromGitHub(img.path, 'image').then(cached => {
+      downloadMediaFromGitHub(img.path, 'image', img.isChunked || false, img.chunkCount || 0).then(cached => {
         if(cached) thumbImg.src = cached.blobUrl;
       });
     }
@@ -7930,7 +10215,12 @@ async function openGalleryDrawer(images, messageId = null){
       downloadBtn.textContent = '⏳';
       
       try{
-        const cached = await downloadMediaFromGitHub(img.path, 'image');
+        const cached = await downloadMediaFromGitHub(
+          img.path,
+          'image',
+          img.isChunked || false,
+          img.chunkCount || 0
+        );
         if(cached){
           const a = document.createElement('a');
           a.href = cached.blobUrl;
@@ -7986,6 +10276,7 @@ let pendingMediaFiles = [];
 
 // Show media preview modal with files
 async function showMediaPreviewModal(files){
+  console.log('[showMediaPreviewModal] Opening modal with', files.length, 'files');
   pendingMediaFiles = files;
   const previewModal = document.getElementById('mediaPreviewModal');
   const previewContent = document.getElementById('mediaPreviewContent');
@@ -8111,20 +10402,35 @@ function closeMediaPreviewModal(){
 
 // Send media from preview modal
 async function sendMediaFromPreview(){
+  console.log('[sendMediaFromPreview] Send button clicked');
+  
   const previewContent = document.getElementById('mediaPreviewContent');
   const captions = [];
   
   // Collect captions from all textareas
   const textareas = previewContent.querySelectorAll('textarea');
-  textareas.forEach(textarea => {
-    captions.push(textarea.value.trim());
+  console.log(`[sendMediaFromPreview] Found ${textareas.length} caption textareas`);
+  
+  textareas.forEach((textarea, idx) => {
+    const caption = textarea.value.trim();
+    captions.push(caption);
+    console.log(`[sendMediaFromPreview] Caption ${idx}: "${caption}"`);
   });
+  
+  console.log(`[sendMediaFromPreview] Pending files count: ${pendingMediaFiles.length}`);
+  
+  // CRITICAL: Save files to local variable BEFORE closing modal
+  // (closeMediaPreviewModal clears pendingMediaFiles)
+  const filesToSend = [...pendingMediaFiles];
+  console.log(`[sendMediaFromPreview] Saved ${filesToSend.length} files to local variable`);
   
   // Close modal
   closeMediaPreviewModal();
   
-  // Send media with captions
-  await sendMediaMessage(pendingMediaFiles, captions);
+  // Send media with captions (using local copy of files)
+  console.log('[sendMediaFromPreview] Calling sendMediaMessage...');
+  await sendMediaMessage(filesToSend, captions);
+  console.log('[sendMediaFromPreview] sendMediaMessage completed');
 }
 
 // Start recording
@@ -8460,7 +10766,7 @@ async function sendAudioMessage(){
         setTimeout(() => {
           msg.status = 'delivered';
           updateMessageStatus(msg.id, 'delivered');
-        }, 500);
+        }, 200); // ⚡ 200ms para feedback instantáneo
       }else{
         throw new Error("GitHub write returned no SHA");
       }
@@ -8612,11 +10918,107 @@ audioRecordBtn.addEventListener('touchstart', (e) => {
   e.stopPropagation();
 }, { passive: false });
 
+// Global paste handler for images (works when chat is active)
+// Supports: PC (Ctrl+V), Mac (Cmd+V), iOS (long-press paste), Android (long-press paste)
+document.addEventListener('paste', async (e) => {
+  // Only handle paste when chat is active and in a room
+  if(!running || !currentRoom) return;
+  
+  // Don't handle if pasting in a textarea/input (except msgInput which has its own handler)
+  const target = e.target;
+  if(target.tagName === 'TEXTAREA' || target.tagName === 'INPUT'){
+    if(target.id !== 'msgInput') return; // Let msgInput handler deal with it
+  }
+  
+  const items = e.clipboardData?.items;
+  if(!items || items.length === 0){
+    console.log('[Global Paste] No clipboard items found');
+    return;
+  }
+  
+  const imageFiles = [];
+  
+  // Check for image items in clipboard
+  for(let i = 0; i < items.length; i++){
+    const item = items[i];
+    
+    // Check if item is an image
+    if(item.type.indexOf('image') !== -1){
+      e.preventDefault(); // Prevent default paste behavior for images
+      
+      const file = item.getAsFile();
+      if(file){
+        console.log('[Global Paste] Image detected:', file.name, file.type, formatBytes(file.size));
+        imageFiles.push(file);
+      }
+    }
+  }
+  
+  // If images were pasted, show preview modal
+  if(imageFiles.length > 0){
+    console.log(`[Global Paste] ${imageFiles.length} image(s) pasted from clipboard`);
+    showMediaPreviewModal(imageFiles);
+    showToast(`📋 ${imageFiles.length} image(s) pasted - Add caption and send`, 'success', 3000);
+  }
+});
+
 sendBtn.onclick = ()=>sendMessage();
 
 // Media attach button
 mediaAttachBtn.onclick = () => {
   mediaFileInput.click();
+};
+
+// Paste from clipboard button (works on mobile too)
+pasteClipboardBtn.onclick = async () => {
+  try{
+    // Check if Clipboard API is supported
+    if(!navigator.clipboard || !navigator.clipboard.read){
+      // Fallback: show instructions
+      showToast('📱 Tap on the chat area and use your device\'s paste gesture', 'info', 4000);
+      msgInput.focus();
+      return;
+    }
+    
+    console.log('[Paste Button] Reading clipboard...');
+    const clipboardItems = await navigator.clipboard.read();
+    const imageFiles = [];
+    
+    for(const item of clipboardItems){
+      // Check if item has image types
+      for(const type of item.types){
+        if(type.startsWith('image/')){
+          const blob = await item.getType(type);
+          // Convert blob to File
+          const file = new File([blob], `pasted-image-${Date.now()}.${type.split('/')[1]}`, { type });
+          console.log('[Paste Button] Image found:', file.name, file.type, formatBytes(file.size));
+          imageFiles.push(file);
+          break; // Only take first image type per item
+        }
+      }
+    }
+    
+    if(imageFiles.length > 0){
+      console.log(`[Paste Button] ${imageFiles.length} image(s) found in clipboard`);
+      showMediaPreviewModal(imageFiles);
+      showToast(`📋 ${imageFiles.length} image(s) pasted from clipboard`, 'success', 3000);
+    }else{
+      showToast('⚠️ No images found in clipboard', 'warning', 3000);
+      console.log('[Paste Button] No images in clipboard');
+    }
+  }catch(error){
+    console.error('[Paste Button] Error reading clipboard:', error);
+    
+    // Show helpful message based on error
+    if(error.name === 'NotAllowedError'){
+      showToast('⚠️ Clipboard access denied. Please grant permission.', 'warning', 4000);
+    }else{
+      showToast('📱 Use Ctrl+V (PC) or long-press paste (mobile) to paste images', 'info', 4000);
+    }
+    
+    // Focus input so traditional paste works
+    msgInput.focus();
+  }
 };
 
 // File input change handler
@@ -8648,9 +11050,26 @@ const mediaPreviewClose = document.getElementById('mediaPreviewClose');
 const mediaPreviewCancel = document.getElementById('mediaPreviewCancel');
 const mediaPreviewSend = document.getElementById('mediaPreviewSend');
 
-mediaPreviewClose.onclick = closeMediaPreviewModal;
-mediaPreviewCancel.onclick = closeMediaPreviewModal;
-mediaPreviewSend.onclick = sendMediaFromPreview;
+// Safety check: verify all elements exist
+if(!mediaPreviewModal) console.error('[Init] mediaPreviewModal element not found!');
+if(!mediaPreviewClose) console.error('[Init] mediaPreviewClose element not found!');
+if(!mediaPreviewCancel) console.error('[Init] mediaPreviewCancel element not found!');
+if(!mediaPreviewSend) console.error('[Init] mediaPreviewSend element not found!');
+
+if(mediaPreviewClose) mediaPreviewClose.onclick = closeMediaPreviewModal;
+if(mediaPreviewCancel) mediaPreviewCancel.onclick = closeMediaPreviewModal;
+if(mediaPreviewSend){
+  mediaPreviewSend.onclick = () => {
+    console.log('[Event] Media preview send button clicked');
+    sendMediaFromPreview().catch(err => {
+      console.error('[Event] Error in sendMediaFromPreview:', err);
+      showToast('Failed to send media: ' + err.message, 'error');
+    });
+  };
+  console.log('[Init] Media preview send button handler attached successfully');
+}else{
+  console.error('[Init] Cannot attach send handler - button not found');
+}
 
 // Keyboard navigation in viewer
 document.addEventListener('keydown', (e) => {
@@ -8803,6 +11222,37 @@ msgInput.addEventListener("keydown", (e)=>{
   }
 });
 
+// Paste images with Ctrl+V (PC)
+msgInput.addEventListener("paste", async (e)=>{
+  const items = e.clipboardData?.items;
+  if(!items) return;
+  
+  const imageFiles = [];
+  
+  // Check for image items in clipboard
+  for(let i = 0; i < items.length; i++){
+    const item = items[i];
+    
+    // Check if item is an image
+    if(item.type.indexOf('image') !== -1){
+      e.preventDefault(); // Prevent default paste behavior for images
+      
+      const file = item.getAsFile();
+      if(file){
+        console.log('[Paste] Image detected:', file.name, file.type, file.size);
+        imageFiles.push(file);
+      }
+    }
+  }
+  
+  // If images were pasted, show preview modal
+  if(imageFiles.length > 0){
+    console.log(`[Paste] ${imageFiles.length} image(s) pasted, opening preview modal...`);
+    showMediaPreviewModal(imageFiles);
+    showToast(`📋 ${imageFiles.length} image(s) pasted`, 'success', 2000);
+  }
+});
+
 /* ============================================================
    BOOT
    ============================================================ */
@@ -8838,6 +11288,18 @@ window.addEventListener("load", async ()=>{
       log("✅ Dictionary ready.","INFO");
     }else{
       log("❌ Dictionary missing. Login/Register disabled.","ERROR");
+    }
+
+    // 💾 Inicializar IndexedDB para persistencia de media
+    log("💾 Initializing media database…","INFO");
+    try{
+      await initMediaDB();
+      log("✅ Media database ready - files will persist across reloads","INFO");
+      // Limpiar archivos viejos (>7 días) en background
+      cleanOldMediaFromDB().catch(e => console.warn('Media cleanup warning:', e));
+    }catch(e){
+      console.error('❌ Media database failed:', e);
+      log("⚠️ Media persistence disabled (using RAM only)","WARN");
     }
 
     setNet("ok","ready");
