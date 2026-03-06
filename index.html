@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes"/>
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
   <meta name="theme-color" content="#0b0f17"/>
-  <link rel="icon" type="image/x-icon" href="/Chat-p2p/favicon.ico"/>
+  <link rel="icon" type="image/x-icon" href="./favicon.ico"/>
   
   <!-- Primary Meta Tags -->
   <title>Chat‑p2p V9 - Serverless</title>
@@ -190,6 +190,51 @@
       display:flex;
       flex-direction:column;
       gap:10px;
+      transition:padding .2s;
+    }
+    /* Compact connected bar — visible while in a room */
+    .join-connected-bar{
+      display:none;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:2px 4px;
+    }
+    .join-connected-room{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:12px;
+      color:var(--muted);
+      min-width:0;
+    }
+    .join-connected-room strong{
+      color:var(--accent-primary);
+      font-weight:700;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .join-expand-btn{
+      font-size:11px;
+      padding:4px 12px;
+      min-height:auto;
+      border-radius:8px;
+      white-space:nowrap;
+      flex-shrink:0;
+      background:rgba(56,189,248,.08);
+      border:1px solid rgba(56,189,248,.2);
+      color:rgba(56,189,248,.8);
+    }
+    .join-expand-btn:hover:not(:disabled){
+      background:rgba(56,189,248,.16);
+      transform:none;
+    }
+    .join.collapsed{
+      padding:8px 12px;
+    }
+    .join.collapsed .join-form{
+      display:none;
     }
     .row{display:flex; gap:10px; flex-wrap:wrap}
     .field{display:flex; flex-direction:column; gap:6px; flex:1; min-width:140px}
@@ -315,13 +360,12 @@
       background:rgba(255,255,255,.06);
       margin:10px 0;
       word-wrap:break-word;
-      transition:all .2s ease;
+      transition:border-color .2s ease, box-shadow .2s ease;
       box-shadow:0 2px 8px rgba(0,0,0,.15);
     }
     .msg:hover{
       border-color:rgba(255,255,255,.12);
       box-shadow:0 4px 12px rgba(0,0,0,.25);
-      transform:translateY(-1px);
     }
     .msg.me{
       margin-left:auto;
@@ -619,6 +663,109 @@
     }
     #cp2pProgressBar.done .cp2pbar-fill{width:100%;transition:width .3s, opacity .4s;}
     .cp2pbar-label{font-size:11px;color:var(--muted);font-weight:500;letter-spacing:.03em;}
+
+    /* ── Recovery Key Modal ── */
+    .recovery-modal-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(12px);
+      z-index:99990;display:none;align-items:center;justify-content:center;
+      animation:fadeIn .2s ease;
+    }
+    .recovery-modal-overlay.open{display:flex;}
+    .recovery-modal-box{
+      background:var(--panel);border:1px solid var(--border);border-radius:20px;
+      width:min(440px,96vw);display:flex;flex-direction:column;overflow:hidden;
+      box-shadow:0 24px 64px rgba(0,0,0,.7);
+    }
+    .recovery-modal-head{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:16px 20px;border-bottom:1px solid var(--border);background:var(--panel2);
+    }
+    .recovery-modal-title{font-size:15px;font-weight:700;color:var(--txt);}
+    .recovery-modal-sub{
+      font-size:12px;color:var(--muted);padding:14px 20px 0;line-height:1.5;
+    }
+    .recovery-qr-row{
+      display:flex;align-items:center;gap:16px;padding:16px 20px;
+    }
+    .recovery-qr-wrap{
+      width:100px;height:100px;min-width:100px;border-radius:10px;overflow:hidden;
+      border:2px solid var(--border);background:#fff;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .recovery-qr-wrap img{width:100%;height:100%;display:block;object-fit:cover;}
+    .recovery-key-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px;}
+    .recovery-key-info small{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+    .recovery-key-text{
+      font-family:var(--mono);font-size:12px;font-weight:700;color:var(--txt);
+      background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;
+      padding:8px 10px;word-break:break-all;line-height:1.6;
+      user-select:all;cursor:text;letter-spacing:.04em;
+    }
+    .recovery-warn{
+      background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.22);
+      border-radius:10px;margin:0 20px 14px;padding:10px 12px;
+      font-size:11px;color:#f87171;line-height:1.4;
+    }
+    .recovery-key-actions{display:flex;gap:8px;padding:0 20px 18px;}
+    .recovery-copy-btn{
+      flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--accent-primary);
+      background:transparent;color:var(--accent-primary);font-weight:600;font-size:13px;
+      cursor:pointer;transition:background .15s;font-family:inherit;
+    }
+    .recovery-copy-btn:hover{background:rgba(56,189,248,.12);}
+    .recovery-done-btn{
+      flex:1;padding:10px;border-radius:10px;border:none;
+      background:var(--accent-primary);color:#000;font-weight:700;font-size:13px;
+      cursor:pointer;transition:filter .15s;font-family:inherit;
+    }
+    .recovery-done-btn:hover{filter:brightness(1.1);}
+
+    /* ── Forgot Password Modal ── */
+    .forgot-modal-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(12px);
+      z-index:99990;display:none;align-items:center;justify-content:center;
+    }
+    .forgot-modal-overlay.open{display:flex;}
+    .forgot-modal-box{
+      background:var(--panel);border:1px solid var(--border);border-radius:20px;
+      width:min(420px,96vw);display:flex;flex-direction:column;overflow:hidden;
+      box-shadow:0 24px 64px rgba(0,0,0,.7);
+    }
+    .forgot-modal-head{
+      display:flex;align-items:center;justify-content:space-between;
+      padding:16px 20px;border-bottom:1px solid var(--border);background:var(--panel2);
+    }
+    .forgot-modal-title{font-size:15px;font-weight:700;color:var(--txt);}
+    .forgot-close-btn{
+      background:none;border:none;color:var(--muted);font-size:18px;
+      cursor:pointer;padding:4px 8px;border-radius:8px;
+    }
+    .forgot-close-btn:hover{background:rgba(255,255,255,.07);color:var(--txt);}
+    .forgot-modal-body{padding:18px 20px 4px;display:flex;flex-direction:column;gap:12px;}
+    .forgot-field label{font-size:12px;color:var(--muted);margin-bottom:4px;display:block;}
+    .forgot-field input{
+      width:100%;padding:10px 12px;border-radius:10px;
+      border:1.5px solid var(--border);background:rgba(255,255,255,.05);
+      color:var(--txt);font-size:14px;font-family:inherit;transition:border-color .15s;
+    }
+    .forgot-field input:focus{outline:none;border-color:var(--accent-primary);}
+    .forgot-field .f-hint{font-size:11px;color:var(--muted);margin-top:3px;}
+    .forgot-msg{font-size:13px;min-height:18px;padding:0 20px 10px;}
+    .forgot-modal-ftr{padding:2px 20px 18px;display:flex;gap:8px;}
+    .forgot-cancel-btn{
+      flex:1;padding:10px;border-radius:10px;border:1.5px solid var(--border);
+      background:transparent;color:var(--muted);font-weight:600;font-size:13px;
+      cursor:pointer;font-family:inherit;transition:background .15s;
+    }
+    .forgot-cancel-btn:hover{background:rgba(255,255,255,.05);}
+    .forgot-submit-btn{
+      flex:2;padding:10px;border-radius:10px;border:none;
+      background:var(--accent-primary);color:#000;font-weight:700;font-size:13px;
+      cursor:pointer;transition:filter .15s;font-family:inherit;
+    }
+    .forgot-submit-btn:hover{filter:brightness(1.1);}
+    .forgot-step-two{display:none;}
+    .forgot-step-two.visible{display:flex;flex-direction:column;gap:12px;}
 
     /* ── Roommate Activity (admin) Panel ── */
     .rma-overlay{
@@ -1674,6 +1821,40 @@
       transition:width .3s;
     }
 
+    /* Log drawer — collapsible developer console */
+    .log-drawer{
+      flex-shrink:0;
+      border-top:1px solid var(--border);
+    }
+    .log-toggle-btn{
+      width:100%;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:5px 12px;
+      background:transparent;
+      border:none;
+      border-bottom:1px solid transparent;
+      cursor:pointer;
+      font-size:10px;
+      font-family:var(--mono);
+      color:var(--muted);
+      min-height:auto;
+      box-shadow:none;
+      border-radius:0;
+      letter-spacing:.02em;
+      transition:background .15s;
+    }
+    .log-toggle-btn:hover:not(:disabled){
+      background:rgba(255,255,255,.04);
+      transform:none;
+      box-shadow:none;
+    }
+    .log-toggle-label{ flex:1; text-align:left; }
+    .log-toggle-chevron{ font-size:9px; opacity:.5; }
+    .log-drawer.open .log-toggle-btn{
+      border-bottom-color:var(--border);
+    }
     .log{
       padding:10px 12px;
       font-family:var(--mono);
@@ -1681,11 +1862,14 @@
       color:var(--muted);
       max-height:110px;
       overflow:auto;
-      border-top:1px solid var(--border);
       background:rgba(0,0,0,.12);
+      display:none;
       /* Hide scrollbar */
       scrollbar-width: none;
       -ms-overflow-style: none;
+    }
+    .log-drawer.open .log{
+      display:block;
     }
     .log::-webkit-scrollbar {
       display: none;
@@ -2374,18 +2558,44 @@
     .msg-row:hover .msg-share-btn{ opacity:1; pointer-events:all; }
     /* ---- Room share button in chat header ---- */
     .room-share-btn{
-      padding:4px 10px;
-      background:rgba(56,189,248,.1);
-      border:1px solid rgba(56,189,248,.22);
+      padding:5px 11px;
+      background:rgba(56,189,248,.08);
+      border:1px solid rgba(56,189,248,.18);
       border-radius:8px;
       color:var(--accent-primary);
       font-size:12px;
       cursor:pointer;
       font-family:inherit;
       font-weight:600;
-      transition:background .2s;
+      transition:background .2s,border-color .2s;
+      display:inline-flex;
+      align-items:center;
+      gap:5px;
+      min-height:auto;
+      white-space:nowrap;
     }
-    .room-share-btn:hover{ background:rgba(56,189,248,.2); }
+    .room-share-btn:hover:not(:disabled){ background:rgba(56,189,248,.18); border-color:rgba(56,189,248,.4); transform:none; box-shadow:none; }
+    /* Label spans inside header action buttons — hidden on narrow screens */
+    .btn-label{ pointer-events:none; }
+    /* Grouped header action cluster */
+    .chat-header-actions{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      flex-shrink:0;
+      flex-wrap:nowrap;
+    }
+    /* Clear view button in header — matches room-share-btn style but muted */
+    #clearBtn.room-share-btn{
+      background:rgba(255,255,255,.04);
+      border-color:rgba(255,255,255,.1);
+      color:var(--muted);
+    }
+    #clearBtn.room-share-btn:hover:not(:disabled){
+      background:rgba(255,255,255,.09);
+      border-color:rgba(255,255,255,.18);
+      color:var(--txt);
+    }
 
     /* ═══════════════════════════════════════════════════════
        READ-BY POPUP
@@ -2629,7 +2839,7 @@
     /* ═══════════════════════════════════════════════════════
        PROFILE SETTINGS TAB SYSTEM (shared links, rooms, etc.)
     ═══════════════════════════════════════════════════════ */
-    .prf-tabs{ display:flex; gap:0; border-bottom:1px solid var(--border); margin:-4px 0 12px; overflow-x:auto; scrollbar-width:none; }
+    .prf-tabs{ display:flex; gap:0; border-bottom:1px solid var(--border); margin:0; overflow-x:auto; scrollbar-width:none; flex-shrink:0; background:var(--panel); z-index:2; }
     .prf-tabs::-webkit-scrollbar{ display:none; }
     .prf-tab{
       padding:10px 16px; font-size:12px; font-weight:700; cursor:pointer;
@@ -2678,12 +2888,9 @@
 
     /* Fullscreen chat mode */
     .fullscreen-toggle{
-      position:absolute;
-      right:12px;
-      top:50%;
-      transform:translateY(-50%);
       width:36px;
       height:36px;
+      min-height:auto;
       padding:0;
       border-radius:10px;
       display:flex;
@@ -2694,17 +2901,17 @@
       border:1px solid rgba(56,189,248,.3);
       color:var(--txt);
       cursor:pointer;
-      transition:all .2s ease;
-      z-index:10;
+      transition:background .15s, border-color .15s, box-shadow .15s;
+      flex-shrink:0;
     }
     .fullscreen-toggle:hover{
       background:rgba(56,189,248,.2);
       border-color:rgba(56,189,248,.5);
-      transform:translateY(-50%) scale(1.05);
+      transform:scale(1.05);
     }
     body.chat-fullscreen header,
     body.chat-fullscreen .join,
-    body.chat-fullscreen .log{
+    body.chat-fullscreen .log-drawer{
       display:none !important;
     }
     body.chat-fullscreen main{
@@ -4213,22 +4420,9 @@
       box-shadow:0 6px 22px rgba(56,189,248,.5);
       transform:translateY(-1px);
     }
-    /* Clear btn */
+    /* Clear btn — now lives in header as .room-share-btn; legacy rules preserved for safety */
     #clearBtn{
-      height:36px;
-      padding:0 14px;
-      font-size:12px;
-      background:rgba(255,255,255,.04);
-      border:1px solid rgba(255,255,255,.1);
-      color:var(--muted);
-      border-radius:10px;
-      white-space:nowrap;
-      flex-shrink:0;
-    }
-    #clearBtn:hover:not(:disabled){
-      background:rgba(255,255,255,.08);
-      color:var(--txt);
-      transform:none;
+      /* inherits from .room-share-btn + #clearBtn.room-share-btn overrides */
     }
     /* Attach / paste */
     .media-attach-btn,.paste-clipboard-btn{
@@ -4401,12 +4595,17 @@
       .chatHeader .meta .room{font-size:14px;}
       .chatHeader .meta .sub{font-size:10px;}
       .chatHeader .people{width:100%; margin-top:2px;}
+      /* Hide text labels on header action buttons on mobile — keep icons only */
+      .btn-label{display:none;}
+      .chat-header-actions{gap:4px;}
+      .room-share-btn{padding:6px 8px; font-size:14px;}
+      /* Join connected bar */
+      .join-connected-bar{padding:4px 8px;}
       /* Composer */
       .composer{padding:8px 10px; padding-bottom:max(8px,env(safe-area-inset-bottom,0px)); gap:6px;}
       .composer textarea{font-size:15px; min-height:44px; padding:10px 12px;}
       .composer-main{gap:6px;}
       #sendBtn{height:44px; padding:0 14px; font-size:13px;}
-      #clearBtn{height:32px; padding:0 10px; font-size:11px;}
       .audio-record-btn{width:44px; height:44px; font-size:20px;}
       .media-attach-btn,.paste-clipboard-btn{width:36px; height:36px; font-size:15px;}
       /* Touch targets: minimum 44px */
@@ -4614,17 +4813,81 @@
     .profile-modal-back.open{display:flex;}
     .profile-modal-box{
       background:var(--panel);border:1px solid var(--border);border-radius:20px;
-      width:min(420px,95vw);max-height:88vh;overflow-y:auto;
-      box-shadow:0 20px 60px rgba(0,0,0,.6);display:flex;flex-direction:column;
+      width:min(420px,95vw);max-height:90vh;
+      overflow:hidden; /* shell clips — only body scrolls */
+      box-shadow:0 24px 64px rgba(0,0,0,.7),0 0 0 1px rgba(56,189,248,.08);
+      display:flex;flex-direction:column;
+      position:relative;
     }
     .profile-modal-hdr{
       display:flex;align-items:center;justify-content:space-between;
       padding:16px 20px;border-bottom:1px solid var(--border);
       font-weight:600;font-size:14px;flex-shrink:0;
+      background:var(--panel);
+      z-index:2;
     }
-    .prf-close{background:transparent;border:none;font-size:16px;color:var(--muted);cursor:pointer;padding:4px 8px;}
-    .prf-close:hover{background:rgba(255,255,255,.06);transform:none;box-shadow:none;}
-    .profile-modal-body{padding:20px;}
+    .prf-close{background:transparent;border:none;font-size:16px;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:6px;transition:background .15s;}
+    .prf-close:hover{background:rgba(255,255,255,.08);transform:none;box-shadow:none;}
+    /* Scrollable body — custom slim scrollbar */
+    .profile-modal-body{
+      padding:20px 14px 20px 20px; /* right padding tight for scrollbar breathing room */
+      overflow-y:auto;
+      overflow-x:hidden;
+      flex:1;
+      min-height:0; /* critical for flex overflow to work */
+      scroll-behavior:smooth;
+      scrollbar-gutter:stable; /* prevent layout shift */
+      /* Firefox */
+      scrollbar-width:thin;
+      scrollbar-color:rgba(56,189,248,.22) transparent;
+    }
+    /* WebKit / Blink (Chrome, Edge, Safari) */
+    .profile-modal-body::-webkit-scrollbar{
+      width:4px;
+    }
+    .profile-modal-body::-webkit-scrollbar-track{
+      background:transparent;
+      border-radius:99px;
+    }
+    .profile-modal-body::-webkit-scrollbar-thumb{
+      background:rgba(56,189,248,.22);
+      border-radius:99px;
+      transition:background .2s;
+    }
+    .profile-modal-body::-webkit-scrollbar-thumb:hover{
+      background:rgba(56,189,248,.48);
+      box-shadow:0 0 6px rgba(56,189,248,.35);
+    }
+    .profile-modal-body::-webkit-scrollbar-corner{
+      background:transparent;
+    }
+    /* Fade masks — hint scrollable content without JS */
+    .prf-scroll-mask{
+      position:relative;
+      flex:1;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+    }
+    .prf-scroll-mask::before,
+    .prf-scroll-mask::after{
+      content:'';
+      position:absolute;
+      left:0;right:0;
+      height:28px;
+      pointer-events:none;
+      z-index:1;
+      transition:opacity .2s;
+    }
+    .prf-scroll-mask::before{
+      top:0;
+      background:linear-gradient(to bottom,var(--panel) 0%,transparent 100%);
+      border-radius:0;
+    }
+    .prf-scroll-mask::after{
+      bottom:0;
+      background:linear-gradient(to top,var(--panel) 0%,transparent 100%);
+    }
     .prf-avatar-section{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:24px;}
     .prf-avatar-large{width:88px;height:88px;border-radius:50%;object-fit:cover;border:3px solid rgba(56,189,248,.5);background:var(--panel2);}
     .prf-field{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
@@ -4636,7 +4899,14 @@
       padding:10px 12px;resize:vertical;min-height:70px;
     }
     .prf-field textarea:focus{outline:none;border-color:rgba(56,189,248,.5);box-shadow:0 0 0 3px rgba(56,189,248,.1);}
-    .profile-modal-ftr{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0;}
+    .profile-modal-ftr{
+      padding:14px 20px;
+      border-top:1px solid var(--border);
+      display:flex;gap:10px;justify-content:flex-end;
+      flex-shrink:0;
+      background:var(--panel); /* covers scrolled content underneath */
+      z-index:2;
+    }
     /* Photo upload modal */
     .photo-modal-back{
       display:none;position:fixed;inset:0;z-index:10002;
@@ -4663,6 +4933,106 @@
     .photo-modal-btns button{flex:1;min-width:100px;max-width:160px;}
     .photo-modal-ftr{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;}
     #photoFileInput,#photoCameraInput{display:none;}
+
+    /* ── Clean Header: username + avatar + hamburger ── */
+    .header-username{
+      font-size:13px;font-weight:600;color:var(--txt);
+      opacity:.85;white-space:nowrap;user-select:none;-webkit-user-select:none;
+    }
+    .ham-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:36px;height:36px;padding:0;border-radius:10px;
+      background:rgba(255,255,255,.06)!important;border:1px solid var(--border)!important;
+      font-size:17px;cursor:pointer;flex-shrink:0;
+      transition:background .15s;box-shadow:none!important;
+    }
+    .ham-btn:hover:not(:disabled){
+      background:rgba(255,255,255,.12)!important;
+      transform:none!important;box-shadow:none!important;
+    }
+    .header-right-logged-out{display:flex;align-items:center;gap:8px;}
+    .header-right-logged-in{display:none;align-items:center;gap:8px;}
+    .header-right-logged-in.show{display:flex;}
+
+    /* ── What's New / Changelog Modal ── */
+    .wn-overlay{
+      position:fixed;inset:0;background:rgba(0,0,0,.82);backdrop-filter:blur(14px);
+      z-index:999995;display:none;align-items:center;justify-content:center;padding:16px;
+      animation:fadeIn .25s ease;
+    }
+    .wn-overlay.open{display:flex;}
+    .wn-box{
+      background:var(--panel);border:1px solid var(--border);border-radius:22px;
+      width:min(520px,96vw);max-height:90vh;display:flex;flex-direction:column;
+      box-shadow:0 28px 80px rgba(0,0,0,.7);overflow:hidden;
+    }
+    .wn-head{
+      padding:20px 24px 16px;border-bottom:1px solid var(--border);
+      background:rgba(17,28,54,.98);flex-shrink:0;
+    }
+    .wn-version-row{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+    .wn-logo{font-size:28px;}
+    .wn-app-name{font-size:17px;font-weight:800;color:var(--txt);}
+    .wn-version-badge{
+      padding:3px 10px;border-radius:99px;
+      background:linear-gradient(135deg,rgba(56,189,248,.2),rgba(168,85,247,.2));
+      border:1px solid rgba(56,189,248,.35);
+      font-size:11px;font-weight:700;color:var(--accent-primary);
+    }
+    .wn-subtitle{font-size:13px;color:var(--muted);line-height:1.5;}
+    .wn-date{font-size:11px;color:var(--muted);margin-top:2px;opacity:.7;}
+    .wn-body{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:6px;
+      scrollbar-width:thin;scrollbar-color:rgba(56,189,248,.3) transparent;}
+    .wn-section-label{
+      font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;
+      letter-spacing:.08em;margin:10px 0 4px;
+    }
+    .cl-entry{
+      display:flex;align-items:flex-start;gap:10px;
+      padding:9px 12px;border-radius:10px;background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.06);transition:background .15s;
+    }
+    .cl-entry:hover{background:rgba(255,255,255,.05);}
+    .cl-chip{
+      flex-shrink:0;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;
+      text-transform:uppercase;letter-spacing:.04em;margin-top:1px;
+    }
+    .cl-chip.new{background:rgba(34,197,94,.18);color:#4ade80;border:1px solid rgba(34,197,94,.25);}
+    .cl-chip.improved{background:rgba(56,189,248,.15);color:var(--accent-primary);border:1px solid rgba(56,189,248,.22);}
+    .cl-chip.fixed{background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.22);}
+    .cl-chip.removed{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.22);}
+    .cl-text{font-size:13px;color:var(--txt);line-height:1.5;}
+    .wn-prev-section{
+      margin-top:16px;padding:14px 16px;border-radius:12px;
+      background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.1);
+    }
+    .wn-prev-label{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;}
+    .wn-prev-item{font-size:12px;color:var(--muted);padding:3px 0;}
+    .wn-footer{
+      padding:16px 24px;border-top:1px solid var(--border);
+      display:flex;gap:10px;align-items:center;justify-content:space-between;
+      flex-shrink:0;background:rgba(15,23,42,.95);
+    }
+    .wn-dismiss-btn{
+      flex:1;padding:11px 20px;border-radius:11px;border:none;
+      background:var(--accent-primary);color:#000;font-weight:700;font-size:14px;
+      cursor:pointer;font-family:inherit;transition:filter .15s;
+    }
+    .wn-dismiss-btn:hover{filter:brightness(1.08);}
+    .wn-changelog-btn{
+      padding:11px 16px;border-radius:11px;border:1.5px solid var(--border);
+      background:transparent;color:var(--muted);font-weight:600;font-size:13px;
+      cursor:pointer;font-family:inherit;white-space:nowrap;transition:background .15s;
+    }
+    .wn-changelog-btn:hover{background:rgba(255,255,255,.06);color:var(--txt);}
+    /* loading state */
+    .wn-loading{display:flex;align-items:center;justify-content:center;padding:40px;gap:10px;color:var(--muted);font-size:13px;}
+    .wn-spinner{
+      width:18px;height:18px;border:2px solid var(--border);
+      border-top-color:var(--accent-primary);border-radius:50%;
+      animation:spin .7s linear infinite;flex-shrink:0;
+    }
+    @keyframes spin{to{transform:rotate(360deg);}}
   </style>
 </head>
 <body>
@@ -5006,40 +5376,65 @@
 
 <header>
   <div class="left">
-    <h1 id="homeLogoBtn" style="user-select:none;-webkit-user-select:none;-ms-user-select:none;cursor:pointer;" title="Go home">Chat‑p2p V9</h1>
-    <span class="status"><span id="netDot" class="dot"></span><span id="netText">booting…</span></span>
+    <h1 id="homeLogoBtn" style="user-select:none;-webkit-user-select:none;-ms-user-select:none;cursor:pointer;" title="Go home">Chat&#8209;p2p</h1>
+    <span class="status"><span id="netDot" class="dot"></span><span id="netText">booting&hellip;</span></span>
   </div>
   <div class="right">
-    <span class="pill" id="authPill">Guest</span>
-    <button id="browseRoomsBtn" class="browse-btn" style="display:none">📁 Browse Rooms</button>
-    <button id="loginBtn">Login</button>
-    <button id="registerBtn" class="primary">Register</button>
-    <button id="logoutBtn" class="danger" style="display:none">Logout</button>
-    <!-- Profile avatar button (logged-in only) -->
-    <button class="profile-avatar-btn" id="profileAvatarBtn" title="Profile &amp; Settings" style="display:none">
-      <img class="profile-header-img" id="profileHeaderImg" src="" alt="Me"/>
-      <span id="friendReqBadge" style="display:none;position:absolute;top:0;right:0;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#f87171;color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;pointer-events:none;z-index:10"></span>
+    <!-- GUEST state -->
+    <div class="header-right-logged-out" id="headerGuestSection">
+      <button id="loginBtn">Login</button>
+      <button id="registerBtn" class="primary">Register</button>
+    </div>
+    <!-- LOGGED-IN state: @username + avatar + hamburger -->
+    <div class="header-right-logged-in" id="headerUserSection">
+      <span class="header-username" id="headerUsername"></span>
+      <button class="profile-avatar-btn" id="profileAvatarBtn" title="Open menu" style="cursor:pointer;">
+        <img class="profile-header-img" id="profileHeaderImg" src="" alt="Me"/>
+        <span id="friendReqBadge" style="display:none;position:absolute;top:0;right:0;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#f87171;color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;pointer-events:none;z-index:10"></span>
+      </button>
+      <button class="ham-btn" id="hamburgerBtn" title="Menu" aria-label="Open menu">&#9776;</button>
+      <!-- Hamburger dropdown – positioned via JS -->
       <div class="profile-dropdown" id="profileDropdown">
         <div class="profile-drop-hdr">
           <img class="profile-drop-avatar" id="profileDropAvatar" src="" alt=""/>
           <div>
-            <div class="profile-drop-name" id="profileDropName">—</div>
+            <div class="profile-drop-name" id="profileDropName">&mdash;</div>
             <div class="profile-drop-sub">Profile &amp; Settings</div>
           </div>
         </div>
         <div class="profile-drop-divider"></div>
-        <button class="profile-drop-item" id="dropEditPhoto">📷 Change Photo</button>
-        <button class="profile-drop-item" id="dropOpenProfile">👤 Edit Profile &amp; Bio</button>
-        <button class="profile-drop-item" id="dropBrowseRooms2">📁 Browse Rooms</button>
+        <button class="profile-drop-item" id="dropEditPhoto">&#x1F4F7; Change Photo</button>
+        <button class="profile-drop-item" id="dropOpenProfile">&#x1F464; Edit Profile &amp; Bio</button>
+        <button class="profile-drop-item" id="dropBrowseRooms2">&#x1F4C1; Browse Rooms</button>
+        <button class="profile-drop-item" id="dropOpenFriends" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>&#x1F91D; Friends &amp; Requests</span>
+          <span id="dropFriendBadge" style="display:none;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#f87171;color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;"></span>
+        </button>
+        <button class="profile-drop-item" id="dropRecoveryKey">&#x1F511; Recovery Key</button>
+        <button class="profile-drop-item" id="dropWhatsNew">&#x1F4CB; What's New</button>
         <div class="profile-drop-divider"></div>
-        <button class="profile-drop-item danger" id="dropLogout">🚪 Logout</button>
+        <button class="profile-drop-item danger" id="dropLogout">&#x1F6AA; Logout</button>
       </div>
-    </button>
+    </div>
+    <!-- Hidden stubs for backward-compat JS references -->
+    <span class="pill" id="authPill" style="display:none"></span>
+    <button id="browseRoomsBtn" style="display:none"></button>
+    <button id="logoutBtn" style="display:none"></button>
   </div>
 </header>
 
 <main>
-  <section class="panel join">
+  <section class="panel join" id="joinSection">
+    <!-- Compact connected bar — shown after joining a room -->
+    <div class="join-connected-bar" id="joinConnectedBar">
+      <div class="join-connected-room">
+        <span style="font-size:10px">Connected to</span>
+        <strong id="joinConnectedRoomName">—</strong>
+      </div>
+      <button class="join-expand-btn" id="joinExpandBtn" title="Show/hide connection settings">⌄ Settings</button>
+    </div>
+    <!-- Full join form -->
+    <div class="join-form" id="joinForm">
     <div class="row">
       <div class="field">
         <label>Room</label>
@@ -5056,8 +5451,7 @@
     </div>
     <div class="row" style="align-items:center; justify-content:space-between">
       <div class="hint">
-        No backend: <b>Writes</b> via GitHub Contents API, <b>Reads</b> via raw + ETag cache with API fallback.
-        Idle = zero network. Active = fast sync.
+        <b>P2P &amp; serverless</b> — messages sync in real-time with no central server. Your data stays between you and the people you chat with. Zero telemetry. Always free.
       </div>
       <div style="display:flex; gap:10px; flex-wrap:wrap">
         <button id="joinBtn" class="primary">Join</button>
@@ -5066,6 +5460,7 @@
         <button id="syncBtn" style="display:none">🔄 Check Messages</button>
       </div>
     </div>
+    </div><!-- /join-form -->
   </section>
 
   <section class="panel chat" id="chatPanel" style="display:none">
@@ -5085,12 +5480,15 @@
         <span class="badge" id="unreadBadge"></span>
         <span class="badge mention-badge" id="mentionBadge"></span>
       </div>
-      <button id="roomShareBtn" class="room-share-btn" title="Copy room link" style="display:none">🔗 Share</button>
-      <button id="roomMembersBtn" class="room-share-btn" title="Roommates" style="display:none">👥 Roommates</button>
-      <button id="roomSettingsBtn" class="room-share-btn" title="Room Settings" style="display:none">⚙️</button>
-      <button id="dmClosetBtn" class="room-share-btn" title="My Closets (DMs)" style="">💌 Closets</button>
+      <div class="chat-header-actions" id="chatHeaderActions">
+      <button id="roomShareBtn" class="room-share-btn" title="Copy room link" style="display:none"><span class="btn-icon">🔗</span><span class="btn-label">Share</span></button>
+      <button id="roomMembersBtn" class="room-share-btn" title="Roommates" style="display:none"><span class="btn-icon">👥</span><span class="btn-label">Roommates</span></button>
+      <button id="roomSettingsBtn" class="room-share-btn" title="Room Settings" style="display:none"><span class="btn-icon">⚙️</span></button>
+      <button id="dmClosetBtn" class="room-share-btn" title="My Closets (DMs)"><span class="btn-icon">💌</span><span class="btn-label">Closets</span></button>
+      <button id="clearBtn" class="room-share-btn" title="Clear message view"><span class="btn-icon">🗑️</span><span class="btn-label">Clear</span></button>
       <button id="fullscreenBtn" class="fullscreen-toggle" title="Fullscreen chat">⛶</button>
-    </div>
+    </div><!-- /chat-header-actions -->
+    </div><!-- /chatHeader -->
 
     <div class="msgs-wrap">
       <div class="msgs" id="messages"></div>
@@ -5113,7 +5511,6 @@
         <button id="audioRecordBtn" class="audio-record-btn" title="Record audio message">🎤</button>
         <textarea id="msgInput" placeholder="Type… (Enter to send — Shift+Enter for newline)"></textarea>
         <button id="sendBtn" class="primary">Send</button>
-        <button id="clearBtn">Clear view</button>
       </div>
     </div>
 
@@ -5197,7 +5594,13 @@
       </div>
     </div>
 
-    <div class="log" id="log"></div>
+    <div class="log-drawer" id="logDrawer">
+      <button class="log-toggle-btn" id="logToggleBtn" title="Toggle developer console">
+        <span class="log-toggle-label">&#128269; Console</span>
+        <span class="log-toggle-chevron" id="logToggleChevron">&#9662;</span>
+      </button>
+      <div class="log" id="log"></div>
+    </div>
   </section>
 </main>
 
@@ -5218,6 +5621,7 @@
       <button class="prf-tab" data-tab="prf-tab-closets">💌 Closets</button>
       <button class="prf-tab" data-tab="prf-tab-friends">👥 Friends</button>
     </div>
+    <div class="prf-scroll-mask">
     <div class="profile-modal-body">
 
       <!-- TAB: PROFILE -->
@@ -5331,6 +5735,7 @@
       </div>
 
     </div>
+    </div><!-- /prf-scroll-mask -->
     <div class="profile-modal-ftr">
       <button id="profileModalCancel">Cancel</button>
       <button class="primary" id="profileModalSave">Save Changes</button>
@@ -5380,6 +5785,9 @@
         <div class="hint" id="dictHint">Loading password dictionary…</div>
       </div>
       <div class="hint" id="authMsg"></div>
+      <div style="text-align:right;padding:4px 0 0;">
+        <button id="forgotPassLink" style="background:none;border:none;color:var(--accent-primary);font-size:12px;cursor:pointer;padding:0;font-family:inherit;display:none;">🔑 Forgot password?</button>
+      </div>
     </div>
     <div class="footer">
       <button id="authActionBtn" class="primary">OK</button>
@@ -5387,6 +5795,88 @@
   </div>
 </div>
 
+<!-- Recovery Key Modal (shown after registration) -->
+<div class="recovery-modal-overlay" id="recoveryModalOverlay">
+  <div class="recovery-modal-box">
+    <div class="recovery-modal-head">
+      <b class="recovery-modal-title">🔑 Your Recovery Key</b>
+      <span style="font-size:11px;color:var(--muted);">Keep this secret</span>
+    </div>
+    <p class="recovery-modal-sub">This is your <strong style="color:var(--txt);">one-time backup key</strong> — the only way to recover your account if you forget your password. Save it somewhere safe.</p>
+    <div class="recovery-qr-row">
+      <div class="recovery-qr-wrap">
+        <img id="recoveryQrImg" src="" alt="Recovery QR" loading="lazy"/>
+      </div>
+      <div class="recovery-key-info">
+        <small>Tap key to select all</small>
+        <div class="recovery-key-text" id="recoveryKeyText" tabindex="0" onclick="const r=document.createRange();r.selectNodeContents(this);const s=window.getSelection();s.removeAllRanges();s.addRange(r);"></div>
+      </div>
+    </div>
+    <div class="recovery-warn">⚠️ This key will <strong>NOT</strong> be shown again. Screenshot it, write it down, or copy it to your notes app now.</div>
+    <div class="recovery-key-actions">
+      <button class="recovery-copy-btn" id="recoveryCopyBtn">📋 Copy Key</button>
+      <button class="recovery-done-btn" id="recoveryDoneBtn">✅ I've Saved It</button>
+    </div>
+  </div>
+</div>
+
+<!-- Forgot Password / Account Recovery Modal -->
+<div class="forgot-modal-overlay" id="forgotModalOverlay">
+  <div class="forgot-modal-box">
+    <div class="forgot-modal-head">
+      <b class="forgot-modal-title">🔑 Recover Account</b>
+      <button class="forgot-close-btn" id="forgotCloseBtn">✕</button>
+    </div>
+    <div class="forgot-modal-body">
+      <div class="forgot-field">
+        <label>Username</label>
+        <input id="forgotUserInput" placeholder="your username" autocomplete="username"/>
+      </div>
+      <div class="forgot-field">
+        <label>Recovery Key</label>
+        <input id="forgotKeyInput" placeholder="XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX" autocomplete="off" style="font-family:var(--mono);letter-spacing:.03em;"/>
+        <div class="f-hint">The 32-character key you received when you registered</div>
+      </div>
+      <div class="forgot-field">
+        <label>New Password</label>
+        <input id="forgotNewPassInput" type="password" placeholder="new password" autocomplete="new-password"/>
+      </div>
+    </div>
+    <div class="forgot-msg" id="forgotMsg"></div>
+    <div class="forgot-modal-ftr">
+      <button class="forgot-cancel-btn" id="forgotCancelBtn">Cancel</button>
+      <button class="forgot-submit-btn" id="forgotSubmitBtn">Reset Password</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     WHAT'S NEW / CHANGELOG MODAL
+     ============================================================ -->
+<div class="wn-overlay" id="wnOverlay">
+  <div class="wn-box">
+    <div class="wn-head">
+      <div class="wn-version-row">
+        <span class="wn-logo">&#x1F4AC;</span>
+        <span class="wn-app-name">Chat&#8209;p2p</span>
+        <span class="wn-version-badge" id="wnVersionBadge">v9.2</span>
+      </div>
+      <div class="wn-subtitle" id="wnTitle">What's New</div>
+      <div class="wn-date" id="wnDate"></div>
+    </div>
+    <div class="wn-body" id="wnBody">
+      <div class="wn-loading" id="wnLoading">
+        <div class="wn-spinner"></div>
+        Loading changelog&hellip;
+      </div>
+    </div>
+    <div class="wn-footer">
+      <button class="wn-changelog-btn" id="wnAllVersionsBtn">&#x1F4C5; All Versions</button>
+      <button class="wn-dismiss-btn" id="wnDismissBtn">Got it!</button>
+    </div>
+  </div>
+</div>
 <script>
 /* ============================================================
    CONFIG
@@ -5400,6 +5890,26 @@ const GH_BRANCH = "main";
 // Token from paste.rs (read-only) via CORS proxy
 const TOKEN_PASTE_URL = "https://jpst.it/4UyDz";
 const CORS_PROXY      = "https://corsproxy.io/?";
+
+// === APP VERSION & CHANGELOG ===
+// Bump APP_VERSION on every deploy so returning users see "What's New"
+const APP_VERSION        = "9.2.0";
+const CHANGELOG_SEEN_KEY = "chatP2P_lastVersionSeen";
+const CHANGELOGS_DIR     = "changelogs";
+
+// Inline changelog for current version (also written to repo on first run)
+const CURRENT_CHANGELOG = {
+  version : "9.2.0",
+  date    : "2026-03-06",
+  title   : "UI Bug Fixes \u00b7 Structure Repairs",
+  entries : [
+    { type:"fixed",    text:"Chat panel structure repaired \u2014 composer and messages were trapped inside the header\u2019s flex layout due to a missing closing tag" },
+    { type:"fixed",    text:"Fullscreen toggle button repositioned into the header action group (was position:absolute, now sits correctly in the flex row)" },
+    { type:"fixed",    text:"Messages no longer jump upward on hover \u2014 removed translateY lift from .msg:hover" },
+    { type:"fixed",    text:"Favicon path changed to relative (./) so the icon loads correctly when opening the file locally" },
+    { type:"improved", text:"Message transitions now only animate border-color and box-shadow \u2014 eliminates layout recomputes on every hover" },
+  ]
+};
 
 // Read receipts / presence
 const PRESENCE_ACTIVE_HEARTBEAT_MS = 10_000;   // 10s while ACTIVE
@@ -5468,6 +5978,13 @@ const dropOpenProfile    = el("dropOpenProfile");
 const dropBrowseRooms2   = el("dropBrowseRooms2");
 const dropOpenFriends    = el("dropOpenFriends");
 const dropLogout         = el("dropLogout");
+// New clean header elements
+const headerGuestSection = el("headerGuestSection");
+const headerUserSection  = el("headerUserSection");
+const headerUsername     = el("headerUsername");
+const hamburgerBtn       = el("hamburgerBtn");
+// What's New modal
+const wnOverlay          = el("wnOverlay");
 const profileModalBack   = el("profileModalBack");
 const profileModalClose  = el("profileModalClose");
 const profileModalAvatar = el("profileModalAvatar");
@@ -5587,61 +6104,166 @@ let hasSeenWelcome = !forceWelcome && localStorage.getItem(WELCOME_SEEN_KEY) ===
 // Global functions for testing (accessible from console)
 window.resetWelcome = function(){
   localStorage.removeItem(WELCOME_SEEN_KEY);
-  return "Reload the page to see the welcome screen";
+  localStorage.removeItem(CHANGELOG_SEEN_KEY);
+  return "Reload to see welcome screen + changelog";
 };
-
 window.showWelcome = function(){
   welcomeScreen.style.display = "flex";
   welcomeScreen.classList.remove("hide");
 };
-
-window.showTutorial = function(){
-  showTutorialModal();
-};
+window.showTutorial = function(){ showTutorialModal(); };
+window.showWhatsNewDebug = function(){ showWhatsNew(CURRENT_CHANGELOG); };
 
 // Hide welcome screen and show main app
 function hideWelcomeScreen(){
   welcomeScreen.classList.add("hide");
-  setTimeout(()=>{
-    welcomeScreen.style.display = "none";
-  }, 500); // Match animation duration
+  setTimeout(()=>{ welcomeScreen.style.display = "none"; }, 500);
   localStorage.setItem(WELCOME_SEEN_KEY, "true");
+  // Mark current version so first-time visitors don't also see What's New
+  localStorage.setItem(CHANGELOG_SEEN_KEY, APP_VERSION);
   hasSeenWelcome = true;
 }
 
-// Show welcome screen on first visit
+/* ============================================================
+   CHANGELOG / WHAT'S NEW
+   ============================================================ */
+
+/** Render a changelog object into the wn-body element */
+function renderChangelogEntries(cl){
+  const body = el('wnBody');
+  if(!body) return;
+  if(cl.title) { const t=el('wnTitle'); if(t) t.textContent=cl.title; }
+  if(cl.version){ const b=el('wnVersionBadge'); if(b) b.textContent=`v${cl.version}`; }
+  if(cl.date){ const d=el('wnDate'); if(d){ const dt=new Date(cl.date); d.textContent=dt.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}); } }
+
+  const byType = {};
+  const order = ['new','improved','fixed','removed'];
+  for(const e of (cl.entries||[])){
+    const t = (e.type||'new').toLowerCase();
+    (byType[t]||(byType[t]=[])).push(e.text);
+  }
+  let html = '';
+  for(const type of order){
+    if(!byType[type]?.length) continue;
+    const labels = { new:'New', improved:'Improved', fixed:'Fixed', removed:'Removed' };
+    html += `<div class="wn-section-label">${labels[type]||type}</div>`;
+    for(const text of byType[type]){
+      html += `<div class="cl-entry"><span class="cl-chip ${type}"></span><span class="cl-text"></span></div>`;
+    }
+  }
+  body.innerHTML = html;
+  // Safely set text (avoid XSS)
+  let i=0;
+  for(const type of order){
+    for(const text of (byType[type]||[])){
+      const chips = body.querySelectorAll('.cl-chip');
+      const texts  = body.querySelectorAll('.cl-text');
+      if(chips[i]) chips[i].textContent = ({new:'New',improved:'Improved',fixed:'Fixed',removed:'Removed'}[type]||type);
+      if(texts[i]) texts[i].textContent = text;
+      i++;
+    }
+  }
+}
+
+/** Open the What's New modal with a given changelog object */
+function showWhatsNew(cl){
+  if(!wnOverlay) return;
+  // Show loading state first
+  const body = el('wnBody');
+  if(body) body.innerHTML = '<div class="wn-loading"><div class="wn-spinner"></div>Loading changelog…</div>';
+  wnOverlay.classList.add('open');
+  // Render with slight delay so animation is visible
+  setTimeout(()=>{ renderChangelogEntries(cl); }, 60);
+}
+
+function closeWhatsNew(){
+  wnOverlay?.classList.remove('open');
+  // Mark this version as seen
+  localStorage.setItem(CHANGELOG_SEEN_KEY, APP_VERSION);
+}
+
+/** Fetch changelog from GitHub repo — tries raw CDN first, then API */
+async function loadChangelog(version){
+  try{
+    const path = `${CHANGELOGS_DIR}/v${version}.json`;
+    const raw = await ghGetJsonWithSha(path);
+    if(raw.ok && raw.obj) return raw.obj;
+  }catch(_){}
+  return null;
+}
+
+/** Fetch the changelogs/index.json from repo to find all available versions */
+async function loadChangelogIndex(){
+  try{
+    const r = await ghGetJsonWithSha(`${CHANGELOGS_DIR}/index.json`);
+    if(r.ok && r.obj) return r.obj;
+  }catch(_){}
+  return null;
+}
+
+/** Write current changelog to repo if not already there (runs once per version) */
+async function ensureChangelogInRepo(){
+  if(!GH_TOKEN_READY) return; // token not loaded yet
+  try{
+    const idxPath = `${CHANGELOGS_DIR}/index.json`;
+    const clPath  = `${CHANGELOGS_DIR}/v${APP_VERSION}.json`;
+
+    // Check index first
+    const idxRaw = await ghGetJsonWithSha(idxPath);
+    const idx = idxRaw.ok && idxRaw.obj ? idxRaw.obj : { v:1, latest:'', versions:[] };
+
+    // Write current changelog file if missing
+    const clRaw = await ghGetJsonWithSha(clPath);
+    if(!clRaw.ok || !clRaw.obj){
+      await ghPutJson(clPath, CURRENT_CHANGELOG, null, `add changelog v${APP_VERSION}`);
+    }
+
+    // Update index if needed
+    if(idx.latest !== APP_VERSION || !idx.versions.includes(APP_VERSION)){
+      idx.latest = APP_VERSION;
+      if(!idx.versions.includes(APP_VERSION)) idx.versions.unshift(APP_VERSION);
+      idx.updatedAt = Date.now();
+      await ghPutJson(idxPath, idx, idxRaw.sha||null, `update changelog index → v${APP_VERSION}`);
+    }
+  }catch(e){
+    console.warn('[changelog] ensureChangelogInRepo failed:', e?.message||e);
+  }
+}
+
+// Show welcome screen on first visit; show What's New on version bump
 function initWelcomeScreen(){
-  if(hasSeenWelcome){
+  const lastVersion = localStorage.getItem(CHANGELOG_SEEN_KEY);
+  const isVersionBump = !forceWelcome && !!lastVersion && lastVersion !== APP_VERSION;
+
+  if(hasSeenWelcome && !forceWelcome){
     welcomeScreen.style.display = "none";
+    // Returning user on a new version => show What's New modal after a short delay
+    if(isVersionBump){
+      setTimeout(()=>{ showWhatsNew(CURRENT_CHANGELOG); }, 1200);
+    }
   }else{
     welcomeScreen.style.display = "flex";
   }
-  
-  // Get Started button - scroll to join section
+
+  // Get Started button
   welcomeGetStarted.addEventListener("click", ()=>{
     hideWelcomeScreen();
-    // Focus on room input for better UX
-    setTimeout(()=>{
-      roomInput.focus();
-    }, 600);
+    setTimeout(()=>{ roomInput.focus(); }, 600);
   });
-  
-  // Learn More button - expand features and focus on room
+
+  // Learn More button
   welcomeLearnMore.addEventListener("click", ()=>{
     hideWelcomeScreen();
-    // Show tutorial modal after welcome screen fades out
-    setTimeout(()=>{
-      showTutorialModal();
-    }, 600);
+    setTimeout(()=>{ showTutorialModal(); }, 600);
   });
-  
+
   // Skip link
   welcomeSkip.addEventListener("click", (e)=>{
     e.preventDefault();
     hideWelcomeScreen();
   });
-  
-  // Keyboard shortcut for testing: Ctrl+Shift+W
+
+  // Keyboard shortcut: Ctrl+Shift+W
   document.addEventListener("keydown", (e)=>{
     if(e.ctrlKey && e.shiftKey && e.key === 'W'){
       e.preventDefault();
@@ -5656,6 +6278,66 @@ function initWelcomeScreen(){
 
 // Initialize welcome screen on page load
 initWelcomeScreen();
+
+/* ---- Hamburger button: opens the same profile dropdown ---- */
+hamburgerBtn?.addEventListener('click', e=>{
+  e.stopPropagation();
+  if(!profileDropdown) return;
+  if(profileDropdown.classList.contains('open')){
+    profileDropdown.classList.remove('open');
+  }else{
+    // Position dropdown relative to hamburger button
+    const rect = hamburgerBtn.getBoundingClientRect();
+    profileDropdown.style.top  = (rect.bottom + 6) + 'px';
+    profileDropdown.style.right = (window.innerWidth - rect.right) + 'px';
+    profileDropdown.style.left  = 'auto';
+    profileDropdown.classList.add('open');
+  }
+});
+
+/* ---- "What's New" dropdown item ---- */
+el('dropWhatsNew')?.addEventListener('click', async e=>{
+  e.stopPropagation();
+  profileDropdown?.classList.remove('open');
+  // Try to fetch live changelog from repo first, fall back to inline
+  showWhatsNew(CURRENT_CHANGELOG); // show inline immediately
+  try{
+    const live = await loadChangelog(APP_VERSION);
+    if(live && live.entries?.length) renderChangelogEntries(live);
+  }catch(_){}
+});
+
+/* ---- What's New modal buttons ---- */
+el('wnDismissBtn')?.addEventListener('click', ()=>{
+  closeWhatsNew();
+});
+el('wnAllVersionsBtn')?.addEventListener('click', async ()=>{
+  const body = el('wnBody');
+  if(!body) return;
+  body.innerHTML = '<div class="wn-loading"><div class="wn-spinner"></div>Fetching all versions…</div>';
+  try{
+    const idx = await loadChangelogIndex();
+    if(!idx || !idx.versions?.length){
+      body.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;">No version history found yet.</div>';
+      return;
+    }
+    let html = '';
+    for(const v of idx.versions){
+      const cl = await loadChangelog(v);
+      if(!cl) continue;
+      const isLatest = v === idx.latest;
+      const dt = cl.date ? new Date(cl.date).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '';
+      html += `<div class="wn-prev-section">
+        <div class="wn-prev-label">v${cl.version}${isLatest ? ' <span style="color:#4ade80;font-size:10px;">LATEST</span>' : ''} &nbsp;&middot;&nbsp; ${dt}</div>
+        ${(cl.entries||[]).map(e=>`<div class="wn-prev-item">&#x25B8; ${e.text}</div>`).join('')}
+      </div>`;
+    }
+    body.innerHTML = html || '<div style="padding:20px;color:var(--muted);">No history found.</div>';
+  }catch(err){
+    body.innerHTML = `<div style="padding:20px;color:var(--bad);font-size:12px;">${err?.message||err}</div>`;
+  }
+});
+wnOverlay?.addEventListener('click', e=>{ if(e.target===wnOverlay) closeWhatsNew(); });
 
 // Home logo: non-selectable, click = leave room (go home) or scroll to join panel
 document.getElementById('homeLogoBtn').addEventListener('click', () => {
@@ -6588,6 +7270,11 @@ async function registerUser(username, password){
   idx.obj.updatedAt = Date.now();
   await ghPutJson("users/index.json", idx.obj, idx.sha, "register user index");
 
+  // Generate + save recovery key
+  updateProgressBar(93, 'Generating recovery key…');
+  const recoveryKey = generateRawRecoveryKey();
+  await saveRecoveryKeyToGh(userId, recoveryKey);
+
   // Save session device-bound
   session = { userId, username, loginAt: Date.now() };
   _logSessionStart = Date.now();
@@ -6596,6 +7283,7 @@ async function registerUser(username, password){
   // Log registration event and flush immediately
   logUserEvent("register", { username, platform: navigator.platform || "unknown", ua: navigator.userAgent.slice(0,80) });
   flushUserLogs().catch(()=>{});
+  return { recoveryKey };
 }
 
 async function loginUser(username, password){
@@ -6641,6 +7329,128 @@ async function loginUser(username, password){
   flushUserLogs().catch(()=>{});
 }
 
+/* ============================================================
+   RECOVERY KEY SYSTEM
+   ============================================================ */
+
+/** Generate a 32-char hex recovery key formatted as 8-8-8-8 groups */
+function generateRawRecoveryKey(){
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  const hex = [...bytes].map(b=>b.toString(16).padStart(2,'0')).join('').toUpperCase();
+  return `${hex.slice(0,8)}-${hex.slice(8,16)}-${hex.slice(16,24)}-${hex.slice(24,32)}`;
+}
+
+/** Hash + save a recovery key for userId on GitHub */
+async function saveRecoveryKeyToGh(userId, rawKey, existingSha=null){
+  const clean = rawKey.replace(/[\s\-]/g,'').toUpperCase();
+  const keyHashHex = await sha256Hex(clean);
+  await ghPutJson(`users/${userId}/recovery.json`,
+    { v:1, keyHashHex, createdAt: Date.now() },
+    existingSha, "save recovery key");
+}
+
+/** Show the recovery key modal with QR code */
+function openRecoveryKeyModal(rawKey){
+  const keyEl = el('recoveryKeyText');
+  const qrEl  = el('recoveryQrImg');
+  if(keyEl) keyEl.textContent = rawKey;
+  if(qrEl){
+    const qrData = encodeURIComponent(rawKey);
+    qrEl.src = `https://api.qrserver.com/v1/create-qr-code/?size=130x130&margin=4&data=${qrData}`;
+  }
+  const ov = el('recoveryModalOverlay');
+  if(ov) ov.classList.add('open');
+}
+
+function closeRecoveryKeyModal(){
+  const ov = el('recoveryModalOverlay');
+  if(ov) ov.classList.remove('open');
+}
+
+/** Open the forgot-password / account recovery modal */
+function openForgotModal(prefillUsername=''){
+  const ov = el('forgotModalOverlay');
+  if(!ov) return;
+  el('forgotUserInput').value = prefillUsername;
+  el('forgotKeyInput').value  = '';
+  el('forgotNewPassInput').value = '';
+  el('forgotMsg').textContent = '';
+  ov.classList.add('open');
+  const fi = prefillUsername ? el('forgotKeyInput') : el('forgotUserInput');
+  fi?.focus();
+}
+
+function closeForgotModal(){
+  el('forgotModalOverlay')?.classList.remove('open');
+}
+
+/** Full recovery flow: verify key → reset password → auto-login → return new key */
+async function recoverAccount(username, rawKey, newPassword){
+  const uLower = normalizeUsername(username);
+  if(!uLower) throw new Error("Username required.");
+  if(!rawKey.trim()) throw new Error("Recovery key required.");
+  if(!newPassword) throw new Error("New password required.");
+  if(!PWD_DICT_READY) throw new Error("Password dictionary not ready.");
+
+  const valid = validatePasswordWithDict(newPassword);
+  if(!valid.ok) throw new Error(valid.reason);
+
+  updateProgressBar(15, 'Looking up account…');
+  const idx = await ensureUsersIndex();
+  const userId = idx?.obj?.byUsernameLower?.[uLower];
+  if(!userId) throw new Error("User not found.");
+
+  updateProgressBar(30, 'Verifying recovery key…');
+  const rec = await ghGetJsonWithSha(`users/${userId}/recovery.json`);
+  if(!rec.ok || !rec.obj) throw new Error("No recovery key on file — contact support.");
+
+  const clean = rawKey.replace(/[\s\-]/g,'').toUpperCase();
+  const inputHash = await sha256Hex(clean);
+  if(inputHash !== rec.obj.keyHashHex) throw new Error("Recovery key is incorrect.");
+
+  updateProgressBar(45, 'Loading profile…');
+  const prof = await ghGetJsonWithSha(`users/${userId}/profile.json`);
+  if(!prof.ok || !prof.obj) throw new Error("Profile data missing.");
+  const salt = prof.obj.salt;
+
+  updateProgressBar(55, 'Hashing new password…');
+  const stream = passwordToNumericStream(newPassword);
+  const chunks = splitStream(stream, 500);
+  const hashes = await hashChunks(chunks, salt);
+
+  updateProgressBar(70, 'Writing new credentials…');
+  for(let i=0;i<hashes.length;i++){
+    const chunkPath = `users/${userId}/auth/chunk-${pad6(i+1)}.json`;
+    const existing  = await ghGetJsonWithSha(chunkPath);
+    await ghPutJson(chunkPath,
+      { v:1, idx:i+1, hashHex:hashes[i] },
+      existing?.sha||null, "reset pwd chunk");
+  }
+
+  // Update authChunks in profile if count changed
+  if(hashes.length !== prof.obj.authChunks){
+    prof.obj.authChunks = hashes.length;
+    await ghPutJson(`users/${userId}/profile.json`, prof.obj, prof.sha, "update authChunks after reset");
+  }
+
+  updateProgressBar(88, 'Rotating recovery key…');
+  // Invalidate old key, save a new one (security: old key can't be reused)
+  const newRawKey = generateRawRecoveryKey();
+  await saveRecoveryKeyToGh(userId, newRawKey, rec.sha);
+
+  // Auto-login the user
+  session = { userId, username: prof.obj.username||username, loginAt: Date.now() };
+  _logSessionStart = Date.now();
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  applySessionToUi();
+
+  logUserEvent("password_reset", { username });
+  flushUserLogs().catch(()=>{});
+
+  return newRawKey; // caller must show the new key to the user
+}
+
 function logout(){
   // Log logout event and flush before clearing session
   if(session?.userId){
@@ -6663,13 +7473,10 @@ function loadSessionFromStorage(){
 
 function applySessionToUi(){
   if(session){
-    authPill.textContent = `@${session.username}`;
-    authPill.style.display = "none";
-    loginBtn.style.display = "none";
-    registerBtn.style.display = "none";
-    logoutBtn.style.display = "none";
-    browseRoomsBtn.style.display = "none"; // moved into profile dropdown
-    profileAvatarBtn.style.display = "";
+    // New clean header: show logged-in row, hide guest row
+    if(headerGuestSection) headerGuestSection.style.display = "none";
+    if(headerUserSection)  headerUserSection.classList.add("show");
+    if(headerUsername)     headerUsername.textContent = `@${session.username}`;
     profileDropName.textContent = `@${session.username}`;
     // Helpful default display name
     if(!nameInput.value.trim()) nameInput.value = session.username;
@@ -6680,13 +7487,9 @@ function applySessionToUi(){
     // Check for pending friend requests (badge)
     setTimeout(()=>checkPendingFriendRequests().catch(()=>{}), 800);
   }else{
-    authPill.textContent = "Guest";
-    authPill.style.display = "";
-    loginBtn.style.display = "";
-    registerBtn.style.display = "";
-    logoutBtn.style.display = "none";
-    browseRoomsBtn.style.display = "none";
-    profileAvatarBtn.style.display = "none";
+    // Guest: show login/register buttons, hide logged-in row
+    if(headerGuestSection) headerGuestSection.style.display = "";
+    if(headerUserSection)  headerUserSection.classList.remove("show");
     profileHeaderImg.src = "";
     profileDropAvatar.src = "";
   }
@@ -6936,24 +7739,32 @@ async function preloadAvatarsForMessages(messages){
 }
 
 /* ============================================================
-   PROFILE DROPDOWN LOGIC
+   PROFILE DROPDOWN LOGIC  (hamburger is the sole toggle)
    ============================================================ */
+function openHamburgerDropdown(){
+  if(!profileDropdown) return;
+  const btn = hamburgerBtn || profileAvatarBtn;
+  const rect = btn.getBoundingClientRect();
+  profileDropdown.style.top   = (rect.bottom + 6) + 'px';
+  profileDropdown.style.right = (window.innerWidth - rect.right) + 'px';
+  profileDropdown.style.left  = 'auto';
+  profileDropdown.classList.add('open');
+}
+// Clicking the avatar also opens the menu (convenience)
 profileAvatarBtn.addEventListener('click', e=>{
   e.stopPropagation();
-  const isOpen = profileDropdown.classList.toggle('open');
-  if(isOpen){
-    // Position with fixed coords so it escapes all ancestor stacking contexts
-    const rect = profileAvatarBtn.getBoundingClientRect();
-    profileDropdown.style.top  = (rect.bottom + 10) + 'px';
-    profileDropdown.style.left = 'auto';
-    profileDropdown.style.right = (window.innerWidth - rect.right) + 'px';
+  if(profileDropdown.classList.contains('open')){
+    profileDropdown.classList.remove('open');
+  } else {
+    openHamburgerDropdown();
   }
 });
 document.addEventListener('click', ()=> profileDropdown.classList.remove('open'));
 window.addEventListener('resize', ()=>{
   if(profileDropdown.classList.contains('open')){
-    const rect = profileAvatarBtn.getBoundingClientRect();
-    profileDropdown.style.top   = (rect.bottom + 10) + 'px';
+    const btn = hamburgerBtn || profileAvatarBtn;
+    const rect = btn.getBoundingClientRect();
+    profileDropdown.style.top   = (rect.bottom + 6) + 'px';
     profileDropdown.style.right = (window.innerWidth - rect.right) + 'px';
   }
 });
@@ -13762,6 +14573,9 @@ function openAuth(mode){
   authActionBtn.textContent  = mode === "login" ? "Login" : "Register";
   authMsg.textContent = "";
   authModalBack.style.display = "flex";
+  // Show "Forgot password?" link only in login mode
+  const fpl = el('forgotPassLink');
+  if(fpl) fpl.style.display = (mode === 'login') ? '' : 'none';
   authUserInput.focus();
 }
 
@@ -13788,10 +14602,12 @@ authActionBtn.onclick = async ()=>{
     const p = authPassInput.value;
 
     if(authMode==="register"){
-      await registerUser(u, p);
+      const { recoveryKey } = await registerUser(u, p);
       authMsg.style.color = "rgba(34,197,94,.95)";
       authMsg.textContent = "Registered ✅";
       closeAuth();
+      // Show recovery key modal so user can save it
+      openRecoveryKeyModal(recoveryKey);
     }else{
       await loginUser(u, p);
       authMsg.style.color = "rgba(34,197,94,.95)";
@@ -13809,6 +14625,103 @@ authActionBtn.onclick = async ()=>{
     authMsg.textContent = String(e?.message || e);
   }
 };
+
+/* ---- Recovery key modal events ---- */
+el('forgotPassLink')?.addEventListener('click', ()=>{
+  closeAuth();
+  openForgotModal(el('authUserInput')?.value?.trim() || '');
+});
+
+el('recoveryCopyBtn')?.addEventListener('click', ()=>{
+  const key = el('recoveryKeyText')?.textContent || '';
+  const copyBtn = el('recoveryCopyBtn');
+  const doFallback = ()=>{
+    try{
+      const ta = document.createElement('textarea');
+      ta.value = key; ta.style.position='fixed'; ta.style.opacity='0';
+      document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); document.body.removeChild(ta);
+    }catch(_){}
+  };
+  if(navigator.clipboard?.writeText){
+    navigator.clipboard.writeText(key)
+      .then(()=>{ if(copyBtn){copyBtn.textContent='✅ Copied!'; setTimeout(()=>{copyBtn.textContent='📋 Copy Key';},2200);} })
+      .catch(doFallback);
+  } else { doFallback(); }
+});
+
+el('recoveryDoneBtn')?.addEventListener('click', closeRecoveryKeyModal);
+
+/* ---- Forgot password modal events ---- */
+el('forgotCloseBtn')?.addEventListener('click', closeForgotModal);
+el('forgotCancelBtn')?.addEventListener('click', closeForgotModal);
+el('forgotModalOverlay')?.addEventListener('click', e=>{ if(e.target===el('forgotModalOverlay')) closeForgotModal(); });
+
+el('forgotSubmitBtn')?.addEventListener('click', async ()=>{
+  const u   = el('forgotUserInput')?.value?.trim() || '';
+  const k   = el('forgotKeyInput')?.value?.trim()  || '';
+  const p   = el('forgotNewPassInput')?.value       || '';
+  const msgEl = el('forgotMsg');
+  if(!msgEl) return;
+  try{
+    msgEl.style.color = 'var(--muted)';
+    msgEl.textContent = 'Verifying…';
+    showProgressBar('Recovering account…');
+    const newKey = await recoverAccount(u, k, p);
+    updateProgressBar(100, 'Done!');
+    setTimeout(hideProgressBar, 600);
+    msgEl.style.color = 'rgba(34,197,94,.95)';
+    msgEl.textContent = 'Password reset ✅ — here is your new recovery key:';
+    setTimeout(()=>{ closeForgotModal(); openRecoveryKeyModal(newKey); }, 900);
+  }catch(err){
+    hideProgressBar();
+    msgEl.style.color = 'rgba(239,68,68,.95)';
+    msgEl.textContent = String(err?.message || err);
+  }
+});
+
+// Clean up key input: strip unwanted chars on paste/type
+el('forgotKeyInput')?.addEventListener('input', function(){
+  const raw   = this.value.replace(/[^A-Fa-f0-9\-]/g,'').toUpperCase();
+  const clean = raw.replace(/\-+/g,'-').slice(0,35);
+  if(this.value !== clean) this.value = clean;
+});
+
+// Enter key support for auth modal
+authUserInput?.addEventListener('keydown', e=>{ if(e.key==='Enter') authPassInput?.focus(); });
+authPassInput?.addEventListener('keydown', e=>{ if(e.key==='Enter') authActionBtn?.click(); });
+
+// Enter key support for forgot password modal
+el('forgotUserInput')?.addEventListener('keydown', e=>{ if(e.key==='Enter') el('forgotKeyInput')?.focus(); });
+el('forgotKeyInput')?.addEventListener('keydown',  e=>{ if(e.key==='Enter') el('forgotNewPassInput')?.focus(); });
+el('forgotNewPassInput')?.addEventListener('keydown', e=>{ if(e.key==='Enter') el('forgotSubmitBtn')?.click(); });
+
+// Profile dropdown — Recovery Key
+el('dropRecoveryKey')?.addEventListener('click', async e=>{
+  e.stopPropagation();
+  profileDropdown?.classList?.remove('open');
+  if(!session?.userId){ showToast('You must be logged in.'); return; }
+  try{
+    showProgressBar('Loading recovery key…');
+    updateProgressBar(30, 'Fetching…');
+    const rec = await ghGetJsonWithSha(`users/${session.userId}/recovery.json`);
+    hideProgressBar();
+    if(!rec.ok || !rec.obj){
+      // No key on file yet (old account) — generate + save one
+      const rawKey = generateRawRecoveryKey();
+      showProgressBar('Creating recovery key…');
+      updateProgressBar(50, 'Saving…');
+      await saveRecoveryKeyToGh(session.userId, rawKey);
+      hideProgressBar();
+      openRecoveryKeyModal(rawKey);
+    } else {
+      showToast('⚠️ For security, your stored key is hashed and cannot be retrieved. You can only rotate it via the Recover Account flow.', 'warning', 6000);
+    }
+  }catch(err){
+    hideProgressBar();
+    showToast('Error: ' + (err?.message||err));
+  }
+});
 
 /* ---- Core join logic (shared by joinBtn and password gate) ---- */
 async function _doJoinRoom(r){
@@ -13836,6 +14749,15 @@ async function _doJoinRoom(r){
     // UI
     chatPanel.style.display = "flex";
     syncBtn.style.display = "inline-block";
+    // Collapse join panel to compact connected bar
+    const _joinSection = document.getElementById('joinSection');
+    const _joinConnBar = document.getElementById('joinConnectedBar');
+    const _joinConnName = document.getElementById('joinConnectedRoomName');
+    const _joinExpandBtn = document.getElementById('joinExpandBtn');
+    if(_joinSection){ _joinSection.classList.add('collapsed'); }
+    if(_joinConnBar){ _joinConnBar.style.display = 'flex'; }
+    if(_joinConnName){ _joinConnName.textContent = `#${r}`; }
+    if(_joinExpandBtn){ _joinExpandBtn.textContent = '\u2304 Settings'; }
     roomTitle.textContent = `#${currentRoom}`;
     roomSubText.textContent = `V3 Storage`;
     updateProgressBar(35, `Configuring room…`);
@@ -13858,16 +14780,11 @@ async function _doJoinRoom(r){
       roomShareBtn.onclick = () => copyShareLinkTracked(currentRoom);
     }
 
-    // Show members button (always) and settings button (admin/owner only)
+    // Show members button and settings button (always visible when in a room)
     const _rmb = document.getElementById('roomMembersBtn');
     const _rsb = document.getElementById('roomSettingsBtn');
     if(_rmb){ _rmb.style.display=''; _rmb.onclick = () => openMembersPanel(currentRoom); }
-    if(_rsb){
-      _rsb.style.display='none';
-      _rsb.onclick = () => openRoomSettingsPanel(currentRoom);
-      // Show settings btn only for room owner/admin (check async)
-      isRoomAdmin(currentRoom).then(admin=>{ if(admin && _rsb) _rsb.style.display=''; }).catch(()=>{});
-    }
+    if(_rsb){ _rsb.style.display=''; _rsb.onclick = () => openRoomSettingsPanel(currentRoom); }
 
     // System join announcement
     const _jname = nameInput.value.trim() || session?.username || localGuest?.name || 'Guest';
@@ -14013,6 +14930,11 @@ leaveBtn.onclick = async ()=>{
 
     chatPanel.style.display = "none";
     syncBtn.style.display = "none";
+    // Restore join panel to full form
+    const _joinSection2 = document.getElementById('joinSection');
+    const _joinConnBar2 = document.getElementById('joinConnectedBar');
+    if(_joinSection2){ _joinSection2.classList.remove('collapsed'); }
+    if(_joinConnBar2){ _joinConnBar2.style.display = 'none'; }
 
     // Clear URL routing
     clearRoomUrl();
@@ -16063,6 +16985,9 @@ window.addEventListener("load", async ()=>{
     setNet("ok","ready");
     log("Ready. Join a room.","INFO");
 
+    // Write changelog files to repo in background (no-op if already exist)
+    ensureChangelogInRepo().catch(()=>{});
+
     // Periodically refresh friend-request badge (every 3 minutes)
     setInterval(()=>{ if(session?.userId) checkPendingFriendRequests().catch(()=>{}); }, 3*60*1000);
 
@@ -16248,6 +17173,43 @@ window.addEventListener("load", async ()=>{
     window.ghPutJsonCompat = function(path,obj,sha,commitMsg){ return ghPutJson(path,obj,sha,commitMsg); };
   }
 
+})();
+</script>
+<!-- UI toggle listeners: join panel expand + log drawer -->
+<script>
+(function(){
+  // Join panel expand/collapse toggle
+  const joinExpandBtn = document.getElementById('joinExpandBtn');
+  if(joinExpandBtn){
+    joinExpandBtn.addEventListener('click', function(){
+      const joinSection = document.getElementById('joinSection');
+      if(!joinSection) return;
+      const isCollapsed = joinSection.classList.contains('collapsed');
+      if(isCollapsed){
+        joinSection.classList.remove('collapsed');
+        joinExpandBtn.textContent = '\u2303 Minimize';
+      } else {
+        joinSection.classList.add('collapsed');
+        joinExpandBtn.textContent = '\u2304 Settings';
+      }
+    });
+  }
+
+  // Log drawer toggle
+  const logToggleBtn = document.getElementById('logToggleBtn');
+  const logDrawer    = document.getElementById('logDrawer');
+  const logChevron   = document.getElementById('logToggleChevron');
+  if(logToggleBtn && logDrawer){
+    logToggleBtn.addEventListener('click', function(){
+      const isOpen = logDrawer.classList.toggle('open');
+      if(logChevron) logChevron.innerHTML = isOpen ? '&#9652;' : '&#9662;';
+      if(isOpen){
+        // auto-scroll log to bottom when opened
+        const logEl = document.getElementById('log');
+        if(logEl) logEl.scrollTop = logEl.scrollHeight;
+      }
+    });
+  }
 })();
 </script>
 <!-- Share toast notification -->
