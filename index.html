@@ -2825,7 +2825,7 @@
     .prf-tabs{ display:flex; gap:0; border-bottom:1px solid var(--border); margin:0; overflow-x:auto; scrollbar-width:none; flex-shrink:0; background:var(--panel); z-index:2; }
     .prf-tabs::-webkit-scrollbar{ display:none; }
     .prf-tab{
-      padding:10px 16px; font-size:12px; font-weight:700; cursor:pointer;
+      padding:9px 10px; font-size:11px; font-weight:700; cursor:pointer;
       border-bottom:2px solid transparent; color:var(--muted); transition:all .15s;
       white-space:nowrap; background:none; border-top:none; border-left:none; border-right:none;
       font-family:inherit;
@@ -5032,7 +5032,55 @@
     }
     @keyframes spin{to{transform:rotate(360deg);}}
 
-    /* ── Custom Modal System (replaces alert / confirm / prompt) ── */
+    /* ── User Search Tab ── */
+    .usr-search-wrap{ display:flex; gap:8px; margin-bottom:16px; }
+    .usr-search-input{
+      flex:1; padding:9px 13px; border-radius:10px;
+      border:1.5px solid var(--border); background:rgba(255,255,255,.06);
+      color:var(--txt); font-size:13px; font-family:inherit; outline:none;
+      transition:border-color .15s;
+    }
+    .usr-search-input:focus{ border-color:var(--accent-primary); }
+    .usr-search-btn{
+      padding:9px 18px; border-radius:10px; border:none; cursor:pointer;
+      background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary,var(--accent-primary)));
+      color:#fff; font-size:13px; font-weight:600; font-family:inherit;
+      transition:opacity .15s;
+    }
+    .usr-search-btn:hover{ opacity:.85; }
+    /* Public profile card */
+    .uprf-card{ border:1px solid var(--border); border-radius:14px; overflow:hidden; background:var(--panel-bg); }
+    .uprf-banner{ height:70px; background:linear-gradient(135deg,rgba(56,189,248,.35) 0%,rgba(168,85,247,.35) 100%); position:relative; }
+    .uprf-avatar-wrap{ position:absolute; left:16px; bottom:-26px; }
+    .uprf-avatar{ width:54px; height:54px; border-radius:50%; border:3px solid var(--panel-bg); object-fit:cover; display:block; }
+    .uprf-body{ padding:34px 16px 14px; }
+    .uprf-name{ font-size:17px; font-weight:800; color:var(--txt); }
+    .uprf-handle{ font-size:11px; color:var(--muted); font-family:monospace; margin-top:1px; }
+    .uprf-bio{ font-size:13px; color:var(--muted); margin-top:8px; line-height:1.55; white-space:pre-wrap; }
+    .uprf-status-row{ display:flex; align-items:center; gap:6px; margin-top:8px; }
+    .uprf-dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .uprf-dot.on{ background:#22c55e; }
+    .uprf-dot.off{ background:#64748b; }
+    .uprf-status-txt{ font-size:12px; color:var(--muted); }
+    .uprf-stats{ display:flex; gap:20px; margin-top:12px; padding-top:12px; border-top:1px solid var(--border); flex-wrap:wrap; }
+    .uprf-stat{ display:flex; flex-direction:column; align-items:center; gap:1px; }
+    .uprf-stat-val{ font-size:16px; font-weight:800; color:var(--txt); }
+    .uprf-stat-lbl{ font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    .uprf-actions{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+    .uprf-btn{ padding:8px 18px; border-radius:10px; font-size:12px; font-weight:600; font-family:inherit; cursor:pointer; border:1px solid var(--border); background:rgba(255,255,255,.07); color:var(--txt); transition:opacity .15s; }
+    .uprf-btn:hover{ opacity:.8; }
+    .uprf-btn.dm{ background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary,var(--accent-primary))); border:none; color:#fff; }
+    .uprf-btn.friend{ background:rgba(34,197,94,.15); color:#4ade80; border-color:rgba(34,197,94,.3); }
+    .uprf-btn.danger{ background:rgba(239,68,68,.12); color:#f87171; border-color:rgba(239,68,68,.3); }
+    .uprf-section-lbl{ font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--muted); margin:14px 0 7px; }
+    .uprf-room-row{ display:flex; align-items:center; gap:10px; padding:8px 10px; border:1px solid var(--border); border-radius:9px; margin-bottom:6px; }
+    .uprf-room-vis{ font-size:14px; flex-shrink:0; }
+    .uprf-room-info{ flex:1; min-width:0; }
+    .uprf-room-name{ font-size:13px; font-weight:600; color:var(--txt); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .uprf-room-meta{ font-size:10px; color:var(--muted); margin-top:1px; }
+    .uprf-room-join{ font-size:11px; padding:4px 10px; border-radius:7px; border:1px solid var(--border); background:transparent; color:var(--accent-primary); cursor:pointer; font-family:inherit; white-space:nowrap; }
+    .uprf-room-join:hover{ background:rgba(99,102,241,.12); }
+    /* ── User Search Tab ── */
     .ui-modal-overlay{
       position:fixed;inset:0;z-index:99999;
       background:rgba(0,0,0,.58);backdrop-filter:blur(5px);
@@ -5512,6 +5560,7 @@
         </div>
         <div class="sub" id="roomSub">
           <span id="roomSubText">—</span>
+          <span id="headerMsgCount" style="display:none;font-size:10px;padding:1px 6px;border-radius:20px;background:var(--panel2);border:1px solid var(--border);color:var(--muted)"></span>
           <span class="cell-indicator" id="cellIndicator" title="Current viewing cell">
             <span id="cellViewingNum">—</span>/<span id="cellTotalNum">—</span>
           </span>
@@ -5662,6 +5711,7 @@
       <button class="prf-tab" data-tab="prf-tab-links">🔗 Links</button>
       <button class="prf-tab" data-tab="prf-tab-closets">💌 Closets</button>
       <button class="prf-tab" data-tab="prf-tab-friends">👥 Friends</button>
+      <button class="prf-tab" data-tab="prf-tab-search">🔍 Search</button>
     </div>
     <div class="prf-scroll-mask">
     <div class="profile-modal-body">
@@ -5774,6 +5824,15 @@
         <div id="friendIncomingList" style="font-size:12px;color:var(--muted);margin-bottom:16px">Loading…</div>
         <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:8px">Friends</div>
         <div id="friendsList" style="font-size:12px;color:var(--muted)">Loading…</div>
+      </div>
+
+      <!-- TAB: USER SEARCH -->
+      <div class="prf-tab-pane" id="prf-tab-search">
+        <div class="usr-search-wrap">
+          <input id="usrSearchInput" class="usr-search-input" type="text" placeholder="Search @username…" autocomplete="off" spellcheck="false"/>
+          <button id="usrSearchBtn" class="usr-search-btn">🔍 Search</button>
+        </div>
+        <div id="usrSearchResult"></div>
       </div>
 
     </div>
@@ -5935,7 +5994,7 @@ const CORS_PROXY      = "https://corsproxy.io/?";
 
 // === APP VERSION & CHANGELOG ===
 // Bump APP_VERSION on every deploy so returning users see "What's New"
-const APP_VERSION        = "9.3.0";
+const APP_VERSION        = "9.4.0";
 const CHANGELOG_SEEN_KEY = "chatP2P_lastVersionSeen";
 const CHANGELOGS_DIR     = "changelogs";
 
@@ -5969,6 +6028,8 @@ const INTERACTION_THROTTLE_MS= 150;     // update timestamps at most every 150ms
 
 // === V3 STORAGE ===
 const MANIFEST_VERSION_V3 = 3;
+// Salt for ownership token generation (tamper-detection, not a secret)
+const APP_OWNERSHIP_SALT = 'p2pOwnerSaltV1';
 
 // micro-segmentation
 const CELL_MAX_MESSAGES = 4;         // 4 messages per cell (you requested)
@@ -6228,6 +6289,30 @@ async function loadChangelogIndex(){
     if(r.ok && r.obj) return r.obj;
   }catch(_){}
   return null;
+}
+
+/** Show the What's New modal, fetching the latest changelog from the repo */
+async function showWhatsNewLatest(){
+  if(!wnOverlay) return;
+  // Show modal with loading spinner immediately
+  const body = el('wnBody');
+  if(body) body.innerHTML = '<div class="wn-loading"><div class="wn-spinner"></div>Loading changelog\u2026</div>';
+  wnOverlay.classList.add('open');
+  try{
+    const idx = await loadChangelogIndex();
+    if(!idx || !idx.latest){ 
+      if(body) body.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;">No changelog found.</div>';
+      return;
+    }
+    const cl = await loadChangelog(idx.latest);
+    if(!cl){
+      if(body) body.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;">Could not load changelog.</div>';
+      return;
+    }
+    renderChangelogEntries(cl);
+  }catch(e){
+    if(body) body.innerHTML = `<div style="padding:20px;color:var(--bad);font-size:12px;">Error: ${e?.message||e}</div>`;
+  }
 }
 
 /** Write current changelog to repo if not already there (runs once per version) */
@@ -8303,6 +8388,15 @@ async function sha256Hex(text){
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
+/**
+ * Generate a deterministic ownership token for a room.
+ * Used for tamper-detection — not a cryptographic secret.
+ * Formula: SHA-256( uid + ':' + roomName + ':' + createdAt + ':' + APP_OWNERSHIP_SALT )
+ */
+async function generateOwnershipToken(roomName, uid, createdAt){
+  return sha256Hex(`${uid}:${roomName}:${createdAt}:${APP_OWNERSHIP_SALT}`);
+}
+
 /** Build a shareable URL for a room (and optionally a specific message) */
 function buildShareUrl(roomName, msgId){
   const base = location.origin + location.pathname;
@@ -8375,8 +8469,10 @@ async function checkRoomAccess(roomName){
     exists: true,
     visibility: m.visibility || 'public',
     passwordHash: m.passwordHash || null,
-    createdBy: m.createdBy || null,
-    createdByName: m.createdByName || null
+    createdBy: m.createdBy || null,     // immutable — original creator
+    createdByName: m.createdByName || null,
+    ownerUid: m.ownerUid || m.createdBy || null,  // current owner (may differ after transfer)
+    ownerToken: m.ownerToken || null    // tamper-detection token
   };
 }
 
@@ -8415,14 +8511,26 @@ async function createRoomWithMeta(roomName, visibility, password){
     passwordHash = await sha256Hex(password);
   }
 
+  // Owner identity — stored in two separate fields for audit integrity
+  const ownerUid      = session?.userId   || null;
+  const ownerUsername = session?.username || null;
+  // Deterministic ownership token (tamper-detection; not a secret)
+  const ownerToken = ownerUid ? await generateOwnershipToken(roomName, ownerUid, now) : null;
+
   const manifest = {
     v: MANIFEST_VERSION_V3,
     room: roomName,
     visibility: visibility || 'public',
     passwordHash,
-    createdBy: session?.userId || null,
-    createdByName: session?.username || null,
+    // --- Authorship fields ---
+    createdBy:     ownerUid,       // IMMUTABLE — original creator (never overwritten)
+    createdByName: ownerUsername,  // IMMUTABLE — original creator display name
     createdAt: now,
+    // --- Ownership fields (may change on transfer) ---
+    ownerUid:      ownerUid,       // current owner UID
+    ownerUsername: ownerUsername,  // current owner display name
+    ownerToken:    ownerToken,     // SHA-256 tamper-detection token
+    // --- Audit ---
     updatedAt: now,
     storage: { cellMaxMessages: CELL_MAX_MESSAGES, cellsPerBox: CELLS_PER_BOX },
     paths: {
@@ -8433,21 +8541,37 @@ async function createRoomWithMeta(roomName, visibility, password){
     }
   };
 
-  const idxObj = { v:3, room:roomName, latestCell:1, totalMessages:0, updatedAt:now };
+  const idxObj      = { v:3, room:roomName, latestCell:1, totalMessages:0, updatedAt:now };
   const boxesIdxObj = { v:3, room:roomName, boxes:[{box:1,startCell:1,endCell:1,updatedAt:now}], updatedAt:now };
-  const boxObj = { v:3, room:roomName, box:1, startCell:1, endCell:1, cellCount:1, updatedAt:now };
+  const boxObj      = { v:3, room:roomName, box:1, startCell:1, endCell:1, cellCount:1, updatedAt:now };
+  // Settings initialised with ownerUid so permission checks work immediately
+  const initSettings = { ...defaultRoomSettings(roomName), ownerUid, createdAt: now };
 
-  await ghPutJson(roomIndexPath(roomName),  idxObj,     null, 'init room index');
-  await ghPutJson(boxesIndexPath(roomName), boxesIdxObj,null, 'init boxes index');
-  await ghPutJson(boxPath(roomName, 1),     boxObj,     null, 'init box');
-  await ghPutJson(cellPath(roomName, 1),    [],         null, 'init cell');
-  await ghPutJson(manifestPath(roomName),   manifest,   null, 'init room manifest');
+  console.log(`%c[CreateRoom] #${roomName} — creator=${ownerUid} token=${ownerToken?.slice(0,12)}…`, 'color:#60a5fa;font-weight:700');
+  console.log(`%c[CreateRoom] #${roomName} — Step 1/9: room index`, 'color:#60a5fa');
+  await ghPutJson(roomIndexPath(roomName),    idxObj,       null, 'init room index');
+  console.log(`%c[CreateRoom] #${roomName} — Step 2/9: boxes index`, 'color:#60a5fa');
+  await ghPutJson(boxesIndexPath(roomName),   boxesIdxObj,  null, 'init boxes index');
+  console.log(`%c[CreateRoom] #${roomName} — Step 3/9: box`, 'color:#60a5fa');
+  await ghPutJson(boxPath(roomName, 1),       boxObj,       null, 'init box');
+  console.log(`%c[CreateRoom] #${roomName} — Step 4/9: cell`, 'color:#60a5fa');
+  await ghPutJson(cellPath(roomName, 1),      [],           null, 'init cell');
+  console.log(`%c[CreateRoom] #${roomName} — Step 5/9: manifest (ownerUid=${ownerUid})`, 'color:#60a5fa');
+  await ghPutJson(manifestPath(roomName),     manifest,     null, 'init room manifest');
+  console.log(`%c[CreateRoom] #${roomName} — Step 6/9: room settings`, 'color:#60a5fa');
+  await ghPutJson(roomSettingsPath(roomName), initSettings, null, 'init room settings');
+  console.log(`%c[CreateRoom] #${roomName} — Step 7/9: admins list (empty)`, 'color:#60a5fa');
+  await ghPutJson(roomAdminsPath(roomName),   [],           null, 'init admins list');
+  console.log(`%c[CreateRoom] #${roomName} — Step 8/9: master`, 'color:#60a5fa');
   await ensureMasterExists(roomName);
+  console.log(`%c[CreateRoom] #${roomName} — Step 9/9: ✅ complete`, 'color:#4ade80;font-weight:700');
 
-  // Invalidate vis cache
-  delete _roomVisCache[roomName];
+  // Seed caches so ownership checks работают without extra fetch
+  _roomVisCache[roomName]   = { exists:true, visibility, passwordHash, createdBy:ownerUid, createdByName:ownerUsername, ownerUid, ownerToken };
+  _roomRolesCache[roomName] = { ownerUid, adminUids: new Set(), ownerVerified: !!ownerToken, integrity: ownerToken ? 'ok' : 'no-token' };
+  _roomSettingsCache[roomName] = initSettings;
 
-  log(`🆕 Room "${roomName}" created (${visibility}).`);
+  log(`🆕 Room "${roomName}" created (${visibility}). owner=${ownerUid}`);
   return { ok:true, manifest };
 }
 
@@ -8632,10 +8756,9 @@ function openCreateRoomModal(){
     submitBtn.disabled = true;
     submitBtn.textContent = 'Creating…';
     showProgressBar(`Creating #${name}…`);
-    updateProgressBar(20, 'Checking for conflicts…');
+    updateProgressBar(10, 'Checking for conflicts…');
     try{
       const result = await createRoomWithMeta(name, vis, pwd);
-      updateProgressBar(75, 'Saving room data…');
       if(!result.ok){
         // Check if it's a "already exists" error — give helpful UX
         if(result.error && result.error.includes('already exists')){
@@ -8660,7 +8783,18 @@ function openCreateRoomModal(){
         errEl.style.display = 'block';
         return;
       }
-      updateProgressBar(95, 'Almost ready…');
+      // ── Post-creation: verify ownership token + admin structure ──
+      updateProgressBar(82, 'Verifying ownership…');
+      const verif = await verifyRoomOwnership(name).catch(e => ({ ok:false, error:e.message, integrity:'error' }));
+      if(!verif.ok){
+        console.warn(`[CreateRoom] post-verification failed for #${name}: ${verif.error}`);
+        // Non-fatal: room was created, verification is informational
+      } else if(verif.integrity === 'token-mismatch'){
+        console.warn(`[CreateRoom] ⚠️ #${name}: ownership token mismatch after creation — unexpected.`);
+      } else {
+        console.log(`%c[CreateRoom] #${name} ✅ ownership verified. integrity=${verif.integrity} admins=${verif.adminCount}`, 'color:#4ade80;font-weight:700');
+      }
+      updateProgressBar(100, 'Room ready!');
       overlay.remove();
       roomInput.value = name;
       showShareToast('✅ Room created! Joining…');
@@ -8712,11 +8846,14 @@ const userDmsPath         = uid => `users/${uid}/dms.json`;
 const roomSettingsPath    = room => `rooms-meta/${room}/settings.json`;
 const roomMemberPath      = (room, uid) => `rooms-meta/${room}/members/${uid}.json`;
 const roomMemberDirPath   = room => `rooms-meta/${room}/members`;
-const roomAdminsPath      = room => `rooms-meta/${room}/admins.json`;
+const roomAdminsPath         = room => `rooms-meta/${room}/admins.json`;
+const roomRatingsPath        = room => `rooms-meta/${room}/ratings.json`;
+const userProfileRatingsPath = uid  => `users/${uid}/profile-ratings.json`;
 
 /* ── In-memory caches ── */
 const _userSettingsCache  = {};  // uid → settings obj
 const _roomSettingsCache  = {};  // roomName → settings obj
+const _roomRolesCache     = {};  // roomName → {ownerUid, adminUids:Set<string>}
 const _roomSettingsShas   = {};  // roomName → sha
 
 /* ── Defaults ── */
@@ -8725,7 +8862,7 @@ function defaultUserSettings(){
 }
 function defaultRoomSettings(roomName){
   return {
-    v:1, room:roomName, admission:'open', showReadBy:true, allowUserAdds:true, rules:'', createdAt:Date.now(),
+    v:1, room:roomName, admission:'open', showReadBy:true, allowUserAdds:true, showDeletedDisclosure:true, rules:'', description:'', showMemberCount:true, showMessageCount:true, createdAt:Date.now(),
     contentRating:'all',          // 'all' | 'plus18' | 'minors'
     bannedWords:[],               // [{word, color, addedBy}]
     banThreshold:3,               // strikes before auto-ban
@@ -8773,6 +8910,153 @@ async function saveRoomSettings(roomName, settings){
   _roomSettingsShas[roomName] = put?.sha || sha;
 }
 
+/**
+ * Load and cache owner UID + set of admin UIDs for role badge rendering.
+ * Always reads manifest (for owner) + admins.json (for admin list).
+ */
+async function loadRoomRoles(roomName, forceRefresh=false){
+  if(!forceRefresh && _roomRolesCache[roomName]) return _roomRolesCache[roomName];
+  console.log(`%c[RoomRoles] Loading roles for #${roomName}`, 'color:#c084fc;font-weight:700');
+  const [manifestRes, adminsRes] = await Promise.allSettled([
+    getRoomManifest(roomName),
+    ghGetJsonWithSha(roomAdminsPath(roomName))
+  ]);
+
+  let ownerUid = null, ownerVerified = false, integrity = 'ok';
+
+  if(manifestRes.status==='fulfilled' && manifestRes.value.ok){
+    const m = manifestRes.value.manifest;
+    // Prefer explicit ownerUid; fall back to createdBy for rooms created before this update
+    ownerUid = m.ownerUid || m.createdBy || null;
+    // Token integrity check (non-blocking; warns but does not block)
+    if(m.ownerToken && ownerUid && m.createdAt){
+      const expected = await generateOwnershipToken(roomName, ownerUid, m.createdAt).catch(()=>null);
+      if(expected && expected === m.ownerToken){
+        ownerVerified = true;
+      } else {
+        integrity = 'token-mismatch';
+        console.warn(`%c[RoomRoles] ⚠️ #${roomName} — ownerToken MISMATCH. Possible tamper or legacy room.`, 'color:#f87171;font-weight:700');
+      }
+    } else {
+      // Legacy room without ownership token
+      integrity = 'no-token';
+    }
+    // Log if ownership was transferred (original creator ≠ current owner)
+    if(m.ownerUid && m.createdBy && m.ownerUid !== m.createdBy){
+      console.log(`%c[RoomRoles] #${roomName} — transferred: creator=${m.createdBy} → owner=${m.ownerUid}`, 'color:#c084fc');
+    }
+  } else {
+    integrity = 'manifest-missing';
+    console.warn(`%c[RoomRoles] ⚠️ #${roomName} — manifest missing or unreadable.`, 'color:#f87171');
+  }
+
+  let adminsRaw = [];
+  if(adminsRes.status==='fulfilled' && adminsRes.value.ok && Array.isArray(adminsRes.value.obj)){
+    adminsRaw = adminsRes.value.obj;
+  } else {
+    console.warn(`%c[RoomRoles] ⚠️ #${roomName} — admins.json missing or empty — defaulting to no admins.`, 'color:#fb923c');
+    if(integrity === 'ok') integrity = 'admins-missing';
+  }
+
+  // Build adminUids, explicitly excluding the owner (owner is always elevated by isRoomOwner)
+  const adminUids = new Set(
+    adminsRaw.map(a => (typeof a === 'string' ? a : a?.userId)).filter(u => Boolean(u) && u !== ownerUid)
+  );
+
+  const roles = { ownerUid, adminUids, ownerVerified, integrity };
+  _roomRolesCache[roomName] = roles;
+  const icon = integrity==='ok' ? '✅' : (integrity==='no-token' ? '🟡' : '⚠️');
+  console.log(`%c[RoomRoles] #${roomName} — owner=${ownerUid} admins=${adminUids.size} verified=${ownerVerified} integrity=${integrity} ${icon}`, 'color:#c084fc');
+  return roles;
+}
+
+/**
+ * Full fresh ownership verification for a room.
+ * Always re-fetches manifest + admins from the repo (no cache reads).
+ * Updates both _roomRolesCache and _roomVisCache with fresh data.
+ *
+ * Returns:
+ *   { ok, ownerUid, createdBy, ownerIsMe, adminUids, adminCount,
+ *     ownerVerified, integrity, error? }
+ *
+ * integrity values:
+ *   'ok'               — ownerToken present and matches
+ *   'no-token'         — legacy room, no token stored
+ *   'token-mismatch'   — stored token doesn't match expected (tamper warning)
+ *   'manifest-missing' — room manifest could not be read
+ *   'admins-missing'   — admins.json missing (owner still identifiable)
+ *   'error'            — unexpected exception
+ */
+async function verifyRoomOwnership(roomName){
+  console.log(`%c[OwnerVerify] #${roomName} — starting fresh verification…`, 'color:#a78bfa;font-weight:700');
+  try {
+    // Parallel fetch: manifest + admins list
+    const [mGot, aGot] = await Promise.all([
+      ghGetJsonWithSha(manifestPath(roomName)),
+      ghGetJsonWithSha(roomAdminsPath(roomName))
+    ]);
+
+    if(!mGot.ok || !mGot.obj){
+      console.warn(`%c[OwnerVerify] #${roomName} — manifest not found or unreadable.`, 'color:#f87171');
+      return { ok: false, error: 'manifest-not-found', integrity: 'manifest-missing' };
+    }
+
+    const m = mGot.obj;
+    const ownerUid  = m.ownerUid  || m.createdBy  || null;
+    const createdBy = m.createdBy || null;  // immutable original creator
+
+    // Reject impossible ownership: owner field must not be empty
+    if(!ownerUid){
+      console.warn(`%c[OwnerVerify] #${roomName} — manifest has no ownerUid or createdBy. Cannot verify.`, 'color:#f87171');
+      return { ok: false, error: 'no-owner-field', integrity: 'manifest-missing' };
+    }
+
+    // Token check
+    let ownerVerified = false, integrity = 'no-token';
+    if(m.ownerToken && m.createdAt){
+      const expected = await generateOwnershipToken(roomName, ownerUid, m.createdAt).catch(()=>null);
+      if(expected && expected === m.ownerToken){
+        ownerVerified = true;
+        integrity = 'ok';
+      } else {
+        integrity = 'token-mismatch';
+        console.warn(`%c[OwnerVerify] #${roomName} — ownerToken MISMATCH!`
+          + ` stored=${m.ownerToken?.slice(0,16)} expected=${expected?.slice(0,16)}`, 'color:#f87171;font-weight:700');
+      }
+    }
+
+    // Admins list
+    const adminsRaw = (aGot.ok && Array.isArray(aGot.obj)) ? aGot.obj : [];
+    if(!aGot.ok){
+      console.warn(`%c[OwnerVerify] #${roomName} — admins.json unreadable, treating as empty.`, 'color:#fb923c');
+      if(integrity === 'ok') integrity = 'admins-missing';
+    }
+    const adminUids = new Set(
+      adminsRaw.map(a => (typeof a === 'string' ? a : a?.userId)).filter(u => Boolean(u) && u !== ownerUid)
+    );
+
+    // Update caches with fresh authoritative data
+    _roomRolesCache[roomName] = { ownerUid, adminUids, ownerVerified, integrity };
+    if(_roomVisCache[roomName]){
+      _roomVisCache[roomName].ownerUid   = ownerUid;
+      _roomVisCache[roomName].createdBy  = createdBy;
+      _roomVisCache[roomName].ownerToken = m.ownerToken || null;
+    }
+
+    const uid       = session?.userId;
+    const ownerIsMe = !!(uid && ownerUid && uid === ownerUid);
+    const adminIsMe = !ownerIsMe && !!(uid && adminUids.has(uid));
+    const icon = integrity==='ok' ? '✅' : (integrity==='no-token' ? '🟡' : '⚠️');
+
+    console.log(`%c[OwnerVerify] #${roomName} — ${icon} owner=${ownerUid} ownerIsMe=${ownerIsMe} adminIsMe=${adminIsMe} admins=${adminUids.size} integrity=${integrity}`, 'color:#4ade80;font-weight:700');
+    return { ok: true, ownerUid, createdBy, ownerIsMe, adminIsMe, adminUids, adminCount: adminUids.size, ownerVerified, integrity };
+
+  } catch(e){
+    console.error(`%c[OwnerVerify] #${roomName} — unexpected error: ${e.message}`, 'color:#f87171');
+    return { ok: false, error: e.message, integrity: 'error' };
+  }
+}
+
 /* ── Room member record ── */
 async function upsertRoomMember(roomName, uid, extra={}){
   const path = roomMemberPath(roomName, uid);
@@ -8811,12 +9095,26 @@ async function getRoomAdmins(roomName){
   return (got.ok && Array.isArray(got.obj)) ? got.obj : [];
 }
 function isRoomOwner(roomName){
-  return _roomVisCache[roomName]?.createdBy === session?.userId;
+  const uid = session?.userId;
+  if(!uid || !roomName) return false;
+  // Primary source: roles cache (populated from manifest ownerUid by loadRoomRoles)
+  const rc = _roomRolesCache[roomName];
+  if(rc && rc.ownerUid) return rc.ownerUid === uid;
+  // Secondary: visibility/access cache (set by checkRoomAccess / getRoomVisibility)
+  const vc = _roomVisCache[roomName];
+  if(vc) return (vc.ownerUid || vc.createdBy) === uid;
+  return false;
 }
 async function isRoomAdmin(roomName){
   if(isRoomOwner(roomName)) return true;
+  const uid = session?.userId;
+  if(!uid) return false;
+  // Use roles cache when available \u2014 avoids redundant network fetch
+  const cached = _roomRolesCache[roomName];
+  if(cached) return cached.adminUids.has(uid);
+  // Fallback: fetch admins.json directly
   const admins = await getRoomAdmins(roomName);
-  return admins.some(a=>a===session?.userId||a?.userId===session?.userId);
+  return admins.some(a => a === uid || a?.userId === uid);
 }
 
 /* ── Add user to room (checks noAddGroups) ── */
@@ -8855,11 +9153,43 @@ async function deleteRoomAsOwner(roomName){
 /** Transfer room ownership to another member */
 async function transferRoomOwnership(roomName, newOwnerUid, newOwnerUsername){
   const mGot = await ghGetJsonWithSha(manifestPath(roomName));
-  if(!mGot.ok) return { ok:false, reason:'Could not load room manifest' };
-  await ghPutJson(manifestPath(roomName), { ...mGot.obj, createdBy:newOwnerUid, createdByUsername:newOwnerUsername, ownerTransferredAt:Date.now() }, mGot.sha||null, `transfer ownership → ${newOwnerUsername}`);
+  if(!mGot.ok || !mGot.obj) return { ok:false, reason:'Could not load room manifest' };
+  const m = mGot.obj;
+
+  // Generate a fresh ownership token for the new owner.
+  // NOTE: We preserve the original createdAt so the token formula stays consistent,
+  // and only change ownerUid — so verifyRoomOwnership() can re-derive the correct token.
+  const createdAt     = m.createdAt || Date.now();
+  const newOwnerToken = await generateOwnershipToken(roomName, newOwnerUid, createdAt).catch(() => null);
+  const prevOwnerUid  = m.ownerUid || m.createdBy || null;
+
+  const updatedManifest = {
+    ...m,
+    // createdBy + createdByName are IMMUTABLE — original creator is never overwritten
+    // ownerUid / ownerUsername / ownerToken reflect the CURRENT owner
+    ownerUid:             newOwnerUid,
+    ownerUsername:        newOwnerUsername,
+    ownerToken:           newOwnerToken,
+    ownerTransferredAt:   Date.now(),
+    previousOwnerUid:     prevOwnerUid,  // one-deep audit trail
+    updatedAt:            Date.now()
+  };
+
+  console.log(`%c[OwnerTransfer] #${roomName} — ${prevOwnerUid} → ${newOwnerUid} (${newOwnerUsername})`, 'color:#a78bfa;font-weight:700');
+  await ghPutJson(manifestPath(roomName), updatedManifest, mGot.sha||null, `transfer ownership → ${newOwnerUsername}`);
+
+  // Keep settings.json ownerUid in sync
   const sGot = await ghGetJsonWithSha(roomSettingsPath(roomName));
-  if(sGot.ok && sGot.obj) await ghPutJson(roomSettingsPath(roomName), { ...sGot.obj, ownerUid:newOwnerUid }, sGot.sha||null, `transfer ownership → ${newOwnerUsername}`);
-  return { ok:true };
+  if(sGot.ok && sGot.obj){
+    await ghPutJson(roomSettingsPath(roomName), { ...sGot.obj, ownerUid: newOwnerUid }, sGot.sha||null, `update settings ownerUid → ${newOwnerUsername}`);
+  }
+
+  // Force roles cache refresh so isRoomOwner() reflects the new owner immediately
+  delete _roomRolesCache[roomName];
+  await loadRoomRoles(roomName, true);
+
+  console.log(`%c[OwnerTransfer] #${roomName} — ✅ transfer complete. token=${newOwnerToken?.slice(0,12)}…`, 'color:#4ade80;font-weight:700');
+  return { ok: true };
 }
 
 /** Leave a room as a non-owner member */
@@ -9023,6 +9353,15 @@ async function openMembersPanel(roomName){
   if(isAdmin){ inviteBtn.style.display=''; settBtn.style.display=''; }
   else{ inviteBtn.style.display='none'; settBtn.style.display='none'; }
 
+  // Load my friends list to highlight friends in the room
+  const myFriendIds = new Set();
+  if(session?.userId){
+    try{
+      const fg = await ghGetJsonWithSha(userFriendsPath(session.userId));
+      if(fg.ok && Array.isArray(fg.obj)) fg.obj.forEach(f=>myFriendIds.add(f.userId));
+    }catch(_){}
+  }
+
   inviteBtn.onclick = () => openAddMemberDialog(roomName);
   settBtn.onclick   = () => { closeMembersPanel(); openRoomSettingsPanel(roomName); };
 
@@ -9067,22 +9406,23 @@ async function openMembersPanel(roomName){
   if(online.length){
     const lbl = document.createElement('div'); lbl.className='member-section-label';
     lbl.textContent=`🟢 ONLINE (${online.length})`; body.appendChild(lbl);
-    online.forEach(m=>body.appendChild(buildMemberRow(m, isAdmin, roomName)));
+    online.forEach(m=>body.appendChild(buildMemberRow(m, isAdmin, roomName, myFriendIds)));
   }
   if(offline.length){
     const lbl = document.createElement('div'); lbl.className='member-section-label';
     lbl.textContent=`⚫ OFFLINE / AWAY (${offline.length})`; body.appendChild(lbl);
-    offline.forEach(m=>body.appendChild(buildMemberRow(m, isAdmin, roomName)));
+    offline.forEach(m=>body.appendChild(buildMemberRow(m, isAdmin, roomName, myFriendIds)));
   }
   hideProgressBar();
 }
 
-function buildMemberRow(m, isAdmin, roomName){
+function buildMemberRow(m, isAdmin, roomName, myFriendIds=new Set()){
   const row = document.createElement('div');
   row.className='member-row';
   const av = getCachedAvatarUrl(m.userId);
   const isMe = session?.userId===m.userId;
   const isOwner = m.role==='owner'||(isRoomOwner(roomName)&&m.userId===session?.userId);
+  const isFriend = !isMe && myFriendIds.has(m.userId);
   const lastSeenStr = m.lastSeenAt ? `Last seen ${formatTimeAgo(m.lastSeenAt)}` : 'Never seen';
 
   row.innerHTML=`
@@ -9094,12 +9434,12 @@ function buildMemberRow(m, isAdmin, roomName){
       <div class="member-name">
         @${m.username||m.userId}
         ${isOwner?'<span class="member-role-badge owner">👑 Owner</span>':m.role==='admin'?'<span class="member-role-badge admin">🛡️ Admin</span>':''}
+        ${isFriend?'<span style="font-size:9px;padding:1px 5px;border-radius:20px;background:rgba(99,179,237,.15);border:1px solid rgba(99,179,237,.35);color:rgba(99,179,237,.9)">🤝 Friend</span>':''}
         ${isMe?'<span style="font-size:9px;color:var(--muted)">(you)</span>':''}
       </div>
       <div class="member-last-seen">${m.online?'🟢 Online now':lastSeenStr}</div>
     </div>
     <div class="member-actions" id="mact-${m.userId}"></div>`;
-
   // Build action buttons
   const acts = row.querySelector(`#mact-${m.userId}`);
   const dmBtn = document.createElement('button');
@@ -9129,7 +9469,54 @@ function buildMemberRow(m, isAdmin, roomName){
       injectSystemMessage(`@${m.username} was removed by @${session.username}`);
     };
     acts.appendChild(kickBtn);
-  }
+
+    // Owner-only: quick role toggle (promote → admin / demote → member)
+    if(isRoomOwner(roomName) && session?.userId !== m.userId){
+      const isCurrentlyAdmin = m.role==='admin';
+      const roleBtn = document.createElement('button');
+      roleBtn.className='member-action-btn';
+      roleBtn.textContent = isCurrentlyAdmin ? '📉 Demote' : '🛡️ Promote';
+      roleBtn.title = isCurrentlyAdmin ? 'Remove admin role from this member' : 'Promote this member to admin';
+      roleBtn.onclick = async e=>{
+        e.stopPropagation();
+        roleBtn.disabled=true;
+        const newRole = isCurrentlyAdmin ? 'member' : 'admin';
+        const label   = isCurrentlyAdmin ? 'demote from admin' : 'promote to admin';
+        try{
+          console.log(`%c[RoleChange] ${label}: @${m.username} (${m.userId}) in #${roomName}`, 'color:#c084fc;font-weight:700');
+          // Update member record
+          const mp = roomMemberPath(roomName, m.userId);
+          const mg = await ghGetJsonWithSha(mp);
+          if(mg.ok && mg.obj) await ghPutJson(mp, {...mg.obj, role:newRole}, mg.sha||null, label);
+          // Update admins.json
+          const ag = await ghGetJsonWithSha(roomAdminsPath(roomName));
+          let admArr = (ag.ok && Array.isArray(ag.obj)) ? ag.obj : [];
+          if(newRole==='admin'){
+            if(!admArr.find(a=>(typeof a==='string'?a:a.userId)===m.userId))
+              admArr.push({userId:m.userId, username:m.username||m.userId});
+          } else {
+            admArr = admArr.filter(a=>(typeof a==='string'?a:a.userId)!==m.userId);
+          }
+          await ghPutJson(roomAdminsPath(roomName), admArr, ag.sha||null, label);
+          // Invalidate roles cache and refresh panel
+          delete _roomRolesCache[roomName];
+          loadRoomRoles(roomName).catch(()=>{});
+          console.log(`%c[RoleChange] SUCCESS ${label} @${m.username}`, 'color:#4ade80;font-weight:bold');
+          showShareToast(`@${m.username} ${newRole==='admin'?'promoted to admin 🛡️':'demoted to member'}`);
+          // Refresh member panel
+          row.remove();
+          const updM = {...m, role:newRole};
+          const newRow = buildMemberRow(updM, isAdmin, roomName, myFriendIds);
+          acts.parentElement?.parentElement?.replaceWith?.(newRow) || acts.closest('.member-row')?.replaceWith(newRow);
+        }catch(err){
+          console.error('[RoleChange] FAILED:', err);
+          showShareToast('Role change failed: '+err.message, 'rgba(239,68,68,.9)');
+        }
+        roleBtn.disabled=false;
+      };
+      acts.appendChild(roleBtn);
+    }
+  }  // end if(isAdmin && !isMe && !isOwner)
 
   row.onclick = (e)=>{
     if(e.target.tagName==='BUTTON') return;
@@ -9157,11 +9544,11 @@ async function openAddMemberDialog(roomName){
    ROOM SETTINGS PANEL
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 
-let _rspRoom = null, _rspSettings = null;
+let _rspRoom = null, _rspSettings = null, _rspIsOwner = false, _rspAdmins = [];
 
 function closeRoomSettings(){
   document.getElementById('roomSettingsOverlay').style.display='none';
-  _rspRoom=null; _rspSettings=null;
+  _rspRoom=null; _rspSettings=null; _rspIsOwner=false; _rspAdmins=[];
 }
 
 async function openRoomSettingsPanel(roomName){
@@ -9177,6 +9564,20 @@ async function openRoomSettingsPanel(roomName){
   updateProgressBar(30, 'Fetching settings…');
 
   _rspSettings = await loadRoomSettings(roomName);
+
+  // Access guard — only admins/owners can open settings
+  const _canAccess = await isRoomAdmin(roomName).catch(()=>false);
+  if(!_canAccess){
+    overlay.style.display='none';
+    hideProgressBar();
+    showToast('⚠️ Only room admins and owners can access settings.', 'warning', 3000);
+    return;
+  }
+  _rspIsOwner = isRoomOwner(roomName);
+  // Fetch current admin list and normalise to [{userId, username}]
+  const _rawAdmins = await getRoomAdmins(roomName).catch(()=>[]);
+  _rspAdmins = _rawAdmins.map(a => typeof a === 'string' ? {userId:a, username:a} : {userId:a.userId||a, username:a.username||a.userId||a});
+
   updateProgressBar(90, 'Rendering…');
   const perms = { canSendImages:'all', canSendVideos:'all', canSendAudio:'all', canReact:'all', canReply:'all', canSendLinks:'all',
                   ...(_rspSettings.permissions||{}) };
@@ -9305,9 +9706,31 @@ async function openRoomSettingsPanel(roomName){
       </div>
       <div class="rsb-toggle-row">
         <div><div class="rsb-toggle-label">Allow Roommate-to-Roommate Adds</div><div class="rsb-toggle-sub">Let regular roommates add friends to this room</div></div>
-        <label class="toggle-sw"><input type="checkbox" id="rsbAllowAdds" ${_rspSettings.allowUserAdds!==false?'checked':''}/>
+        <label class="toggle-sw"><input type="checkbox" id="rsbAllowAdds" ${_rspSettings.allowUserAdds!==false?'checked':''}/>          <span class="toggle-slider"></span></label>
+      </div>
+      <div class="rsb-toggle-row" style="margin-top:8px">
+        <div><div class="rsb-toggle-label">Show "Message Deleted" notice</div><div class="rsb-toggle-sub">When a message is deleted, show a placeholder. Turn off to completely hide deleted messages.</div></div>
+        <label class="toggle-sw"><input type="checkbox" id="rsbShowDeleteDisclosure" ${_rspSettings.showDeletedDisclosure!==false?'checked':''}/>
           <span class="toggle-slider"></span></label>
       </div>
+      <div class="rsb-toggle-row" style="margin-top:8px">
+        <div><div class="rsb-toggle-label">Show Member Count publicly</div><div class="rsb-toggle-sub">Show how many members are in this room on the info card before joining</div></div>
+        <label class="toggle-sw"><input type="checkbox" id="rsbShowMemberCount" ${_rspSettings.showMemberCount!==false?'checked':''}/>
+          <span class="toggle-slider"></span></label>
+      </div>
+      <div class="rsb-toggle-row" style="margin-top:8px">
+        <div><div class="rsb-toggle-label">Show Message Count publicly</div><div class="rsb-toggle-sub">Show total messages and cells in the info card before joining</div></div>
+        <label class="toggle-sw"><input type="checkbox" id="rsbShowMessageCount" ${_rspSettings.showMessageCount!==false?'checked':''}/>
+          <span class="toggle-slider"></span></label>
+      </div>
+    </div>
+
+    <!-- ROOM DESCRIPTION -->
+    <div>
+      <div class="rsb-section-label" style="margin-bottom:8px">📝 Room Description</div>
+      <textarea id="rsbDescription" placeholder="Describe your room to visitors (shown in the info card before joining). Leave empty for no description." maxlength="1000"
+        style="width:100%;padding:10px 12px;background:var(--panel2);border:1.5px solid var(--border);border-radius:10px;color:var(--txt);font-family:inherit;font-size:13px;outline:none;resize:vertical;min-height:80px">${(_rspSettings.description||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</textarea>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px">First 200 characters shown by default with a "Read more" option. Max 1,000 characters.</div>
     </div>
 
     <!-- ROOM RULES TEXT -->
@@ -9318,6 +9741,63 @@ async function openRoomSettingsPanel(roomName){
     </div>`;
 
   hideProgressBar();
+
+  // Admin Management section — owner only
+  if(_rspIsOwner){
+    const adminSec = document.createElement('div');
+    adminSec.style.cssText='margin-top:4px';
+    adminSec.innerHTML=`
+      <div class="rsb-section-label" style="margin-bottom:8px">👑 Admin Management</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Admins can manage members, moderate content, access room settings, and ban words. Only the owner can promote or demote admins.</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;align-items:center">
+        <input id="rsbAdminInput" type="text" placeholder="@username to promote to admin" maxlength="40"
+               style="flex:1;padding:8px 12px;background:var(--panel2);border:1.5px solid var(--border);border-radius:10px;color:var(--txt);font-size:13px;font-family:inherit;outline:none"/>
+        <button id="rsbAdminAdd" style="padding:8px 14px;border-radius:10px;border:none;background:var(--accent-primary);color:#fff;font-family:inherit;font-size:13px;cursor:pointer">+ Add</button>
+      </div>
+      <div id="rsbAdminList" style="display:flex;flex-direction:column;gap:6px;min-height:20px"></div>`;
+    body.appendChild(adminSec);
+
+    const _renderAdminList = ()=>{
+      const listEl = body.querySelector('#rsbAdminList');
+      if(!listEl) return;
+      if(!_rspAdmins.length){ listEl.innerHTML='<span style="font-size:12px;color:var(--muted)">No admins assigned yet.</span>'; return; }
+      listEl.innerHTML='';
+      _rspAdmins.forEach((a,i)=>{
+        const row = document.createElement('div');
+        row.style.cssText='display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--panel2);border-radius:10px;border:1px solid var(--border)';
+        row.innerHTML=`<div style="display:flex;align-items:center;gap:8px">
+          <img src="${getCachedAvatarUrl(a.userId)}" onerror="this.src='${DEFAULT_AVATAR_URL}'" style="width:28px;height:28px;border-radius:50%;object-fit:cover" alt=""/>
+          <span style="font-size:13px;font-weight:600">@${a.username||a.userId}</span>
+          <span style="font-size:10px;color:var(--muted);padding:2px 6px;background:rgba(168,85,247,.15);border-radius:20px;border:1px solid rgba(168,85,247,.3);color:rgba(168,85,247,.9)">🛡️ Admin</span>
+        </div>
+        <button style="border:none;background:transparent;color:#f87171;font-size:12px;cursor:pointer;padding:4px 8px;border-radius:6px" data-idx="${i}">Remove</button>`;
+        row.querySelector('button').onclick=()=>{ _rspAdmins.splice(i,1); _renderAdminList(); };
+        listEl.appendChild(row);
+      });
+    };
+    _renderAdminList();
+
+    body.querySelector('#rsbAdminAdd').onclick = async ()=>{
+      const raw = body.querySelector('#rsbAdminInput').value.trim().replace(/^@/,'');
+      if(!raw){ showShareToast('Enter a username','rgba(251,146,60,.9)'); return; }
+      if(_rspAdmins.find(a=>(a.username||'').toLowerCase()===raw.toLowerCase())){ showShareToast('Already an admin','rgba(251,146,60,.9)'); return; }
+      try{
+        const idx = await ghGetJsonWithSha('users/index.json');
+        if(!idx.ok||!idx.obj){ showShareToast('Could not load user index','rgba(251,146,60,.9)'); return; }
+        const entry = Object.values(idx.obj).find(u=>(u.username||'').toLowerCase()===raw.toLowerCase());
+        if(!entry){ showShareToast(`@${raw} not found`,'rgba(251,146,60,.9)'); return; }
+        if(entry.userId === session?.userId){ showShareToast('You are the owner 👑','rgba(251,146,60,.9)'); return; }
+        _rspAdmins.push({userId:entry.userId, username:entry.username});
+        body.querySelector('#rsbAdminInput').value='';
+        _renderAdminList();
+        // Update member record role
+        const mp = roomMemberPath(roomName, entry.userId);
+        const mg = await ghGetJsonWithSha(mp);
+        if(mg.ok && mg.obj) await ghPutJson(mp, {...mg.obj, role:'admin'}, mg.sha||null, 'promote to admin');
+      }catch(e){ showShareToast('Error: '+e.message,'rgba(251,146,60,.9)'); }
+    };
+    body.querySelector('#rsbAdminInput').addEventListener('keydown', e=>{ if(e.key==='Enter') body.querySelector('#rsbAdminAdd').click(); });
+  }
 
   // Wire all radio toggle highlights
   body.querySelectorAll('.rsb-radio-opt').forEach(opt=>{
@@ -9377,7 +9857,11 @@ async function openRoomSettingsPanel(roomName){
     const rating   = body.querySelector('input[name=rsbRat]:checked')?.value || 'all';
     const showRB   = body.querySelector('#rsbShowReadBy')?.checked !== false;
     const allowAdds= body.querySelector('#rsbAllowAdds')?.checked  !== false;
-    const rules    = body.querySelector('#rsbRules')?.value || '';
+    const showDelDisclosure = body.querySelector('#rsbShowDeleteDisclosure')?.checked !== false;
+    const rules           = body.querySelector('#rsbRules')?.value || '';
+    const description     = body.querySelector('#rsbDescription')?.value || '';
+    const showMemberCount = body.querySelector('#rsbShowMemberCount')?.checked !== false;
+    const showMessageCount= body.querySelector('#rsbShowMessageCount')?.checked !== false;
     const photoUrl = body.querySelector('#rsbPhotoUrl')?.value.trim() || null;
     const newVis   = body.querySelector('#rsbVisibility')?.value || 'public';
     const newPwd   = body.querySelector('#rsbNewPwd')?.value.trim() || '';
@@ -9396,7 +9880,8 @@ async function openRoomSettingsPanel(roomName){
       showShareToast('⚠️ Private rooms need a password.','rgba(251,146,60,.9)'); return;
     }
 
-    _rspSettings = { ..._rspSettings, admission:adm, showReadBy:showRB, allowUserAdds:allowAdds, rules,
+    _rspSettings = { ..._rspSettings, admission:adm, showReadBy:showRB, allowUserAdds:allowAdds, showDeletedDisclosure:showDelDisclosure, rules, description,
+                     showMemberCount, showMessageCount,
                      contentRating:rating, bannedWords:_bwArr, banThreshold:banThresh,
                      permissions:newPerms, photoUrl: photoUrl||null,
                      visibility:newVis, updatedAt:Date.now() };
@@ -9410,6 +9895,25 @@ async function openRoomSettingsPanel(roomName){
       showProgressBar(`Saving #${roomName} settings…`);
       updateProgressBar(20, 'Writing settings…');
       await saveRoomSettings(roomName, _rspSettings);
+
+      // Save admin list (owner only)
+      if(_rspIsOwner){
+        updateProgressBar(40, 'Saving admins…');
+        const adminGot = await ghGetJsonWithSha(roomAdminsPath(roomName));
+        await ghPutJson(roomAdminsPath(roomName), _rspAdmins, adminGot.sha||null, 'update room admins');
+        // Demote removed admins in member records
+        const allAdminIds = _rspAdmins.map(a=>a.userId);
+        const prevAdmins = _rawAdmins || [];
+        for(const pa of prevAdmins){
+          const paId = typeof pa==='string'?pa:pa.userId;
+          if(!allAdminIds.includes(paId)){
+            const mp = roomMemberPath(roomName, paId);
+            const mg = await ghGetJsonWithSha(mp);
+            if(mg.ok && mg.obj && mg.obj.role==='admin') await ghPutJson(mp, {...mg.obj, role:'member'}, mg.sha||null, 'demote from admin').catch(()=>{});
+          }
+        }
+      }
+
       updateProgressBar(60, 'Updating manifest…');
       // Also persist visibility + photoUrl to manifest so browser shows correct data
       const mfGot = await ghGetJsonWithSha(manifestPath(roomName));
@@ -10153,6 +10657,7 @@ async function loadProfileTabContent(tabId){
     case 'prf-tab-links':   await loadSharedLinksTab(uid); break;
     case 'prf-tab-closets': await loadClosetsTab(uid); break;
     case 'prf-tab-friends': await loadFriendsTab(uid); break;
+    case 'prf-tab-search':  loadSearchTab(uid); break;
   }
 }
 
@@ -10626,6 +11131,143 @@ async function loadFriendsTab(uid){
   checkPendingFriendRequests().catch(()=>{});
 }
 
+function loadSearchTab(uid){
+  const inp = document.getElementById('usrSearchInput');
+  const btn = document.getElementById('usrSearchBtn');
+  const res = document.getElementById('usrSearchResult');
+  if(!inp || !btn || !res) return;
+  if(btn.dataset.wired) return;
+  btn.dataset.wired = '1';
+  const doSearch = () => {
+    const val = inp.value.trim().replace(/^@/,'');
+    if(!val){ res.innerHTML='<div style="color:var(--muted);font-size:12px">Enter a username to search.</div>'; return; }
+    searchUserByUsername(val, res);
+  };
+  btn.onclick = doSearch;
+  inp.addEventListener('keydown', e => { if(e.key==='Enter') doSearch(); });
+  setTimeout(() => inp.focus(), 80);
+}
+
+async function searchUserByUsername(username, resultEl){
+  resultEl.innerHTML = '<div style="color:var(--muted);font-size:12px">Searching\u2026</div>';
+  try{
+    const idx = await ghGetJsonWithSha('users/index.json');
+    if(!idx.ok || !idx.obj){ resultEl.innerHTML='<div style="color:var(--muted)">Could not load user index.</div>'; return; }
+    const entry = Object.values(idx.obj).find(u => (u.username||'').toLowerCase() === username.toLowerCase());
+    if(!entry){ resultEl.innerHTML=`<div style="color:var(--muted);font-size:13px">No user found for @${username}.</div>`; return; }
+    await renderUserPublicProfile(entry.userId, entry.username, resultEl);
+  } catch(e){
+    resultEl.innerHTML=`<div style="color:#f87171;font-size:12px">Error: ${e.message}</div>`;
+  }
+}
+
+async function renderUserPublicProfile(userId, username, container){
+  container.innerHTML='<div style="color:var(--muted);font-size:12px">Loading profile\u2026</div>';
+  const [profGot, settingsGot, friendsGot, roomsGot] = await Promise.allSettled([
+    ghGetJsonWithSha(`users/${userId}/profile.json`),
+    ghGetJsonWithSha(userSettingsPath(userId)),
+    ghGetJsonWithSha(userFriendsPath(userId)),
+    ghGetJsonWithSha(userRoomsPath(userId))
+  ]);
+  const prof     = profGot.status==='fulfilled'     && profGot.value.ok     ? profGot.value.obj     : {};
+  const settings = settingsGot.status==='fulfilled' && settingsGot.value.ok ? settingsGot.value.obj : {};
+  const friends  = friendsGot.status==='fulfilled'  && friendsGot.value.ok  && Array.isArray(friendsGot.value.obj)  ? friendsGot.value.obj  : [];
+  const roomList = roomsGot.status==='fulfilled'    && roomsGot.value.ok    && Array.isArray(roomsGot.value.obj)    ? roomsGot.value.obj    : [];
+
+  const pres = presenceCache.get(userId);
+  const isOnline   = pres?.online === true;
+  const lastSeenAt = pres?.lastSeenAt || null;
+
+  const publicRooms = [];
+  for(const r of roomList){
+    if(isDmRoom(r)) continue;
+    try{
+      const m = await ghGetJsonWithSha(manifestPath(r));
+      if(!m.ok || !m.obj || m.obj.deleted) continue;
+      if(m.obj.visibility === 'private') continue;
+      let memberCount = 0;
+      const ml = await ghListDir(roomMemberDirPath(r));
+      if(ml.ok) memberCount = ml.items.filter(i => i.type==='file' && i.name.endsWith('.json')).length;
+      publicRooms.push({ name:r, vis:m.obj.visibility||'public', memberCount, createdBy:m.obj.createdBy });
+    }catch(_){}
+  }
+
+  const av    = getCachedAvatarUrl(userId);
+  const since = prof.createdAt ? new Date(prof.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'short'}) : '\u2014';
+  const bio   = prof.bio || '';
+  const isMe  = session?.userId === userId;
+
+  const card = document.createElement('div');
+  card.className = 'uprf-card';
+  card.innerHTML = `
+    <div class="uprf-banner"><div class="uprf-avatar-wrap"><img class="uprf-avatar" src="${av}" onerror="this.src='${DEFAULT_AVATAR_URL}'"/></div></div>
+    <div class="uprf-body">
+      <div class="uprf-name">@${username}</div>
+      <div class="uprf-handle">${userId}</div>
+      ${bio ? `<div class="uprf-bio">${bio.replace(/</g,'&lt;')}</div>` : ''}
+      <div class="uprf-status-row">
+        <span class="uprf-dot ${isOnline?'on':'off'}"></span>
+        <span class="uprf-status-txt">${isOnline ? 'Active now' : (lastSeenAt ? 'Last seen '+formatTimeAgo(lastSeenAt) : 'Offline')}</span>
+      </div>
+      <div class="uprf-stats">
+        <div class="uprf-stat"><span class="uprf-stat-val">${friends.length}</span><span class="uprf-stat-lbl">Friends</span></div>
+        <div class="uprf-stat"><span class="uprf-stat-val">${publicRooms.length}</span><span class="uprf-stat-lbl">Rooms</span></div>
+        <div class="uprf-stat"><span class="uprf-stat-val">${since}</span><span class="uprf-stat-lbl">Member since</span></div>
+      </div>
+      <div class="uprf-actions" id="_uprf_actions"></div>
+      ${publicRooms.length ? '<div class="uprf-section-lbl">Public Rooms</div><div id="_uprf_rooms"></div>' : ''}
+    </div>`;
+
+  container.innerHTML = '';
+  container.appendChild(card);
+
+  if(!isMe){
+    const acts = card.querySelector('#_uprf_actions');
+    const dmB = document.createElement('button');
+    dmB.className='uprf-btn dm'; dmB.textContent='\uD83D\uDC8C DM';
+    dmB.onclick=()=>{ document.getElementById('profileModalBack')?.classList.remove('open'); openDMWithUser(userId, username); };
+    acts.appendChild(dmB);
+
+    const frB = document.createElement('button');
+    frB.className='uprf-btn'; frB.textContent='\u23F3'; frB.disabled=true;
+    acts.appendChild(frB);
+    isFriend(userId).then(async yes => {
+      frB.disabled=false;
+      if(yes){
+        frB.className='uprf-btn friend'; frB.textContent='\u2705 Friends';
+        frB.onclick=async()=>{ if(!await uiConfirm(`Remove @${username} from friends?`,{title:'Remove Friend',icon:'\uD83D\uDC94',confirmLabel:'Remove',danger:true})) return; await removeFriend(userId,username); frB.className='uprf-btn'; frB.textContent='\uD83E\uDD1D Add Friend'; };
+      } else {
+        frB.textContent='\uD83E\uDD1D Add Friend';
+        frB.onclick=()=>{ sendFriendRequest(userId,username); frB.textContent='\u23F3 Pending'; frB.disabled=true; };
+      }
+    }).catch(()=>{ frB.remove(); });
+
+    if(settings.allowDMs !== false){
+      const blkB = document.createElement('button');
+      blkB.className='uprf-btn danger'; blkB.textContent='\uD83D\uDEAB Block';
+      blkB.onclick=async()=>{ if(!await uiConfirm(`Block @${username}?`,{title:'Block User',icon:'\uD83D\uDEAB',confirmLabel:'Block',danger:true})) return; await blockUser(userId,username); blkB.textContent='Blocked'; blkB.disabled=true; };
+      acts.appendChild(blkB);
+    }
+  }
+
+  if(publicRooms.length){
+    const roomsEl = card.querySelector('#_uprf_rooms');
+    publicRooms.forEach(r => {
+      const vis = r.vis==='private'?'\uD83D\uDD12':r.vis==='unlisted'?'\uD83D\uDD17':'\uD83C\uDF10';
+      const row = document.createElement('div');
+      row.className='uprf-room-row';
+      row.innerHTML=`<span class="uprf-room-vis">${vis}</span><div class="uprf-room-info"><div class="uprf-room-name">#${r.name}</div><div class="uprf-room-meta">${r.memberCount} member${r.memberCount!==1?'s':''} \u00B7 ${r.vis}</div></div>`;
+      if(r.vis !== 'private'){
+        const joinB = document.createElement('button');
+        joinB.className='uprf-room-join'; joinB.textContent='Join';
+        joinB.onclick=()=>{ document.getElementById('profileModalBack')?.classList.remove('open'); document.getElementById('roomInput').value=r.name; setTimeout(()=>document.getElementById('joinBtn')?.click(),100); };
+        row.appendChild(joinB);
+      }
+      roomsEl.appendChild(row);
+    });
+  }
+}
+
 function saveLastJoinedRoom(roomName){
   try{
     const data = { room: roomName, userId: session?.userId, timestamp: Date.now() };
@@ -10684,6 +11326,7 @@ async function discoverRooms(){
             name: roomName,
             visibility: vis,
             passwordHash,
+            createdBy,
             createdByName,
             totalMessages: indexData.obj.totalMessages || 0,
             updatedAt: indexData.obj.updatedAt || 0,
@@ -10698,6 +11341,7 @@ async function discoverRooms(){
             name: roomName,
             visibility: vis,
             passwordHash,
+            createdBy,
             createdByName,
             totalMessages: manifestData.obj.totalMessages || 0,
             updatedAt: manifestData.obj.updatedAt || 0,
@@ -10980,18 +11624,27 @@ async function openRoomBrowser(){
         }else{ ucEl.textContent='👥 0'; }
       }
 
-      // Click: join with access check
+      // Click: show info card, then join
       item.onclick = () => {
         closeModal(false);
-        if(vis === 'private'){
-          showPasswordGate(room.name, room, () => {
-            roomInput.value = room.name;
-            setTimeout(() => joinBtn.click(), 100);
-          });
-        }else{
-          roomInput.value = room.name;
-          setTimeout(() => joinBtn.click(), 100);
-        }
+        showRoomInfoCard(room.name, room,
+          // onJoin: handle password gate (if private) then disclaimer then join
+          async () => {
+            if(vis === 'private'){
+              showPasswordGate(room.name, room, async () => {
+                if(!isDmRoom(room.name) && !localStorage.getItem(`room_accepted_${room.name}`)){
+                  await showRoomDisclaimer(room.name, room, ()=>_doJoinRoom(room.name), ()=>{});
+                } else { _doJoinRoom(room.name); }
+              }, ()=>{});
+            } else if(!isDmRoom(room.name) && !localStorage.getItem(`room_accepted_${room.name}`)){
+              showRoomDisclaimer(room.name, room, ()=>_doJoinRoom(room.name), ()=>setNet("ok","ready"));
+            } else {
+              _doJoinRoom(room.name);
+            }
+          },
+          // onBack: reopen browser
+          () => openRoomBrowser()
+        );
       };
 
       // Share button (right-click or long press)
@@ -12328,7 +12981,8 @@ async function saveRoomIndex(roomName){
 }
 
 async function ensureCellExists(roomName, cellNum){
-  const got = await ghGetJsonWithSha(cellPath(roomName, cellNum));
+  // Always fetch fresh from API — CDN may be stale for up to 5 min
+  const got = await ghGetJsonWithSha(cellPath(roomName, cellNum), true);
   if(got.status === 404){
     const put = await ghPutJson(cellPath(roomName, cellNum), [], null, `init cell ${cellNum}`);
     return { ok:true, arr:[], sha: put.sha || null };
@@ -12337,20 +12991,20 @@ async function ensureCellExists(roomName, cellNum){
   return { ok:true, arr:got.obj, sha: got.sha };
 }
 
-async function loadCellsRange(roomName, startCell, endCell){
+async function loadCellsRange(roomName, startCell, endCell, forceApi = false){
   const out = [];
   const failedCells = [];
   
-  console.log(`📦 [loadCellsRange] Loading cells ${startCell} to ${endCell} (latest known: ${roomIndex?.latestCell || 'unknown'})`);
+  console.log(`📦 [loadCellsRange] Loading cells ${startCell} to ${endCell} (latest known: ${roomIndex?.latestCell || 'unknown'})${forceApi?' [API]':''}`);
   
   for(let c=startCell;c<=endCell;c++){
     try{
-      // LÓGICA HÍBRIDA INTELIGENTE:
-      // - Última celda (endCell): API (true) = Datos frescos instantáneos (1-2s latencia)
-      // - Celdas antiguas: Raw (false) = Caché 5min pero ahorra rate limit
-      const isLatestCell = (c === endCell);
-      console.log(`  Cell ${c}: ${isLatestCell ? '⚡ Forcing API (latest cell)' : '📦 Using Raw CDN (historical)'}`);
-      const got = await ghGetJsonWithSha(cellPath(roomName,c), isLatestCell);
+      // forceApi=true (initial join / verification) → always use GitHub API so stale CDN
+      // cache (raw.githubusercontent.com caches for up to 5 min) never hides fresh messages.
+      // forceApi=false (normal incremental poll) → raw CDN for older cells, API for latest.
+      const useApi = forceApi || (c === endCell);
+      console.log(`  Cell ${c}: ${useApi ? '⚡ API (fresh)' : '📦 Raw CDN (historical)'}`);
+      const got = await ghGetJsonWithSha(cellPath(roomName,c), useApi);
       if(got.ok && Array.isArray(got.obj)){
         for(const raw of got.obj){
           const msg = normalizeMessage(raw);
@@ -12397,12 +13051,12 @@ async function loadCellsRange(roomName, startCell, endCell){
   return out;
 }
 
-async function loadLatestMessages(roomName, wantCount=50){
+async function loadLatestMessages(roomName, wantCount=50, forceApi=false){
   await loadRoomIndex(roomName);
   const latestCell = roomIndex.latestCell || 1;
   const needCells = Math.max(1, Math.ceil(wantCount / CELL_MAX_MESSAGES));
   const startCell = Math.max(1, latestCell - needCells + 1);
-  const msgs = await loadCellsRange(roomName, startCell, latestCell);
+  const msgs = await loadCellsRange(roomName, startCell, latestCell, forceApi);
   loadedCellsMin = startCell;
   loadedCellsMax = latestCell;
   return msgs;
@@ -12420,67 +13074,250 @@ async function loadOlderByMessages(roomName, count){
   return msgs;
 }
 
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   MESSAGE WRITE QUEUE
+   Serializes all appendMessageV3 calls so concurrent sends
+   never race on the same cell SHA. Each enqueue returns a
+   real Promise so the caller gets errors / return values.
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+let _msgWriteQueue = Promise.resolve();
+let _msgWriteQueueDepth = 0;
+
+function enqueueMessageWrite(roomName, msgObj){
+  _msgWriteQueueDepth++;
+  const queuePos = _msgWriteQueueDepth;
+  console.log(`%c[MsgQueue] ENQUEUED msg id=${msgObj.id} queuePos=${queuePos} room=${roomName}`, 'color:#6abf69;font-weight:bold');
+
+  let resolveFn, rejectFn;
+  const p = new Promise((res, rej) => { resolveFn = res; rejectFn = rej; });
+
+  // .catch(() => {}) on the previous chain ensures queue ALWAYS continues
+  // even if a previous message write threw an error
+  _msgWriteQueue = _msgWriteQueue
+    .catch(() => {})
+    .then(() => {
+      console.log(`%c[MsgQueue] DEQUEUED starting write id=${msgObj.id} queuePos=${queuePos}`, 'color:#6abf69;font-weight:bold');
+      return appendMessageV3(roomName, msgObj);
+    })
+    .then(result => {
+      console.log(`%c[MsgQueue] SUCCESS id=${msgObj.id} queuePos=${queuePos} result=`, 'color:#6abf69;font-weight:bold', result);
+      resolveFn(result);
+    })
+    .catch(err => {
+      console.error(`[MsgQueue] FAILED id=${msgObj.id} queuePos=${queuePos} error=`, err);
+      rejectFn(err);
+    });
+  return p;
+}
+
+/* ── Delete message queue (serialises concurrent deletes to prevent SHA conflicts) ── */
+let _deleteQueue      = Promise.resolve();
+let _deleteQueueDepth = 0;
+
+function enqueueMessageDelete(roomName, msgId){
+  _deleteQueueDepth++;
+  const queuePos = _deleteQueueDepth;
+  console.log(`%c[DeleteQueue] ENQUEUED msgId=${msgId} queuePos=${queuePos} room=${roomName}`, 'color:#f87171;font-weight:bold');
+
+  let resolveFn, rejectFn;
+  const p = new Promise((res, rej) => { resolveFn = res; rejectFn = rej; });
+
+  _deleteQueue = _deleteQueue
+    .catch(() => {})
+    .then(() => {
+      console.log(`%c[DeleteQueue] DEQUEUED starting delete msgId=${msgId} queuePos=${queuePos}`, 'color:#f87171;font-weight:bold');
+      return _performMessageDelete(roomName, msgId);
+    })
+    .then(result => {
+      console.log(`%c[DeleteQueue] SUCCESS msgId=${msgId} queuePos=${queuePos}`, 'color:#4ade80;font-weight:bold', result);
+      resolveFn(result);
+    })
+    .catch(err => {
+      console.error(`[DeleteQueue] FAILED msgId=${msgId} queuePos=${queuePos}`, err);
+      rejectFn(err);
+    });
+  return p;
+}
+
+async function _performMessageDelete(roomName, msgId){
+  const tag = `[DeleteMsg id=${msgId}]`;
+  const userId = session?.userId || localGuest?.userId;
+  console.log(`${tag} START room=${roomName} userId=${userId}`);
+
+  // ── STEP 1: Find message location ──
+  const loc = await findMessageLocation(msgId);
+  if(!loc){ console.warn(`${tag} Message not found in loaded messages`); throw new Error('Message not found'); }
+
+  let cellArr = loc.cellArr;
+  let cellSha = loc.cellSha;
+
+  // ── STEP 2: Read cell fresh from API if not already loaded ──
+  if(!cellArr){
+    const cellP = cellPath(roomName, loc.cell);
+    console.log(`${tag} Reading cell ${loc.cell} from API: ${cellP}`);
+    const got = await ghGetJsonWithSha(cellP, true);
+    console.log(`${tag} Cell read: ok=${got.ok} status=${got.status} msgs=${Array.isArray(got.obj)?got.obj.length:'n/a'} sha=${got.sha?.slice(0,8)||'null'}`);
+    if(!got.ok || !Array.isArray(got.obj)) throw new Error(`Failed to read cell ${loc.cell} (status=${got.status})`);
+    cellArr = got.obj;
+    cellSha = got.sha;
+  }else{
+    console.log(`${tag} Using cached cell array len=${cellArr.length} sha=${cellSha?.slice(0,8)||'null'}`);
+  }
+
+  // ── STEP 3: Apply delete flag ──
+  const idx = cellArr.findIndex(x => x && x.id === msgId);
+  if(idx === -1) throw new Error('Message not found in cell array');
+  const patchedCell = [...cellArr];
+  patchedCell[idx] = { ...patchedCell[idx], deleted:true, deletedAt:Date.now(), deletedBy:userId };
+  console.log(`${tag} Patched idx=${idx} in cell=${loc.cell}`);
+
+  // ── STEP 4: Atomic PUT with retry + SHA refresh ──
+  for(let attempt = 1; attempt <= 4; attempt++){
+    console.log(`${tag} PUT attempt ${attempt}/4 sha=${cellSha?.slice(0,8)||'null'}`);
+    try{
+      await ghPutJson(cellPath(roomName, loc.cell), patchedCell, cellSha, `delete msg ${msgId}`);
+      console.log(`%c${tag} PUT SUCCESS attempt ${attempt}`, 'color:#4ade80;font-weight:bold');
+      return { ok:true, msgId, cell:loc.cell, attempt };
+    }catch(putErr){
+      console.warn(`${tag} PUT failed attempt ${attempt}: ${putErr.message}`);
+      if(attempt < 4){
+        // Re-read cell to get fresh SHA for conflict recovery
+        const refetch = await ghGetJsonWithSha(cellPath(roomName, loc.cell), true);
+        if(refetch.ok && Array.isArray(refetch.obj)){
+          cellSha = refetch.sha;
+          const ri = refetch.obj.findIndex(x=>x&&x.id===msgId);
+          if(ri !== -1){
+            const freshCell = [...refetch.obj];
+            freshCell[ri] = { ...freshCell[ri], deleted:true, deletedAt:Date.now(), deletedBy:userId };
+            Object.assign(patchedCell, freshCell);
+          }
+          console.log(`${tag} Re-fetched cell: sha=${cellSha?.slice(0,8)||'null'}`);
+        }
+        await new Promise(r=>setTimeout(r, 700*attempt));
+        continue;
+      }
+      throw putErr;
+    }
+  }
+  // Never reaches here
+  throw new Error('Delete failed: max attempts exhausted');
+}
+
 async function appendMessageV3(roomName, msgObj){
+  const tag = `[appendMsgV3 id=${msgObj.id}]`;
+  console.log(`${tag} START room=${roomName}`);
+
+  // Reload room index fresh from API so we always know the real latestCell
   await loadRoomIndex(roomName);
   let cellNum = roomIndex.latestCell || 1;
+  console.log(`${tag} Room index loaded: latestCell=${cellNum}, totalMessages=${roomIndex.totalMessages}`);
 
-  const cell = await ensureCellExists(roomName, cellNum);
-  let arr = cell.arr || [];
-  let sha = cell.sha;
+  const MAX_ATTEMPTS = 5;
 
-  // If cell full -> next cell
-  if(arr.length >= CELL_MAX_MESSAGES){
-    cellNum += 1;
-    arr = [];
-    sha = null;
-    roomIndex.latestCell = cellNum;
-    
-    // Clear box-related caches to prevent SHA conflicts
-    const boxNum = Math.ceil(cellNum / CELLS_PER_BOX);
-    clearCachedSha(boxesIndexPath(roomName));
-    clearCachedSha(boxPath(roomName, boxNum));
+  for(let attempt = 0; attempt < MAX_ATTEMPTS; attempt++){
+    console.log(`${tag} Attempt ${attempt + 1}/${MAX_ATTEMPTS} — cell=${cellNum}`);
 
-    // ensure new cell file exists
-    const initResult = await ghPutJson(cellPath(roomName, cellNum), [], null, `init cell ${cellNum}`);
-    if(!initResult || !initResult.ok){
-      throw new Error(`Failed to initialize new cell ${cellNum}`);
+    if(attempt > 0){
+      // Exponential backoff + reload index (another writer may have advanced latestCell)
+      const delay = 80 * attempt;
+      console.log(`${tag} Backoff ${delay}ms then re-read index...`);
+      await sleep(delay);
+      await loadRoomIndex(roomName);
+      const newCell = roomIndex.latestCell || cellNum;
+      if(newCell !== cellNum) console.log(`${tag} latestCell advanced to ${newCell}`);
+      cellNum = newCell;
     }
 
-    // update boxes structures when crossing box boundary
-    await ensureBoxForCell(roomName, cellNum);
+    // ── STEP 1: Read current cell FRESH from GitHub API (never CDN) ──
+    const cellP = cellPath(roomName, cellNum);
+    console.log(`${tag} Reading cell from API: ${cellP}`);
+    let freshCell = await ghGetJsonWithSha(cellP, true);
+    console.log(`${tag} Cell read result: ok=${freshCell.ok} status=${freshCell.status} sha=${freshCell.sha} existingMsgs=${Array.isArray(freshCell.obj) ? freshCell.obj.length : 'n/a'}`);
+
+    // If missing, initialise it
+    if(freshCell.status === 404 || !freshCell.ok){
+      console.log(`${tag} Cell not found (${freshCell.status}), initialising...`);
+      const init = await ghPutJson(cellP, [], null, `init cell ${cellNum}`);
+      console.log(`${tag} Init cell result: ok=${init?.ok} sha=${init?.sha} status=${init?.status}`);
+      if(!init || !init.ok){
+        console.warn(`${tag} Init cell ${cellNum} FAILED (ok=${init?.ok}), retrying...`);
+        continue;
+      }
+      freshCell = { ok:true, obj:[], sha: init.sha };
+    }
+
+    let arr = Array.isArray(freshCell.obj) ? [...freshCell.obj] : [];
+    let sha = freshCell.sha;
+    console.log(`${tag} Working array length=${arr.length}, sha=${sha}`);
+
+    // ── STEP 2: If cell full, advance to next cell ────────────────────
+    if(arr.length >= CELL_MAX_MESSAGES){
+      console.log(`${tag} Cell ${cellNum} is full (${arr.length}/${CELL_MAX_MESSAGES}), advancing to cell ${cellNum + 1}`);
+      cellNum += 1;
+      roomIndex.latestCell = cellNum;
+
+      const boxNum = Math.ceil(cellNum / CELLS_PER_BOX);
+      clearCachedSha(boxesIndexPath(roomName));
+      clearCachedSha(boxPath(roomName, boxNum));
+
+      const nextCellP = cellPath(roomName, cellNum);
+      console.log(`${tag} Reading next cell from API: ${nextCellP}`);
+      const nextFresh = await ghGetJsonWithSha(nextCellP, true);
+      console.log(`${tag} Next cell read: ok=${nextFresh.ok} status=${nextFresh.status} sha=${nextFresh.sha}`);
+
+      if(nextFresh.status === 404 || !nextFresh.ok){
+        console.log(`${tag} Next cell not found, initialising...`);
+        const init = await ghPutJson(nextCellP, [], null, `init cell ${cellNum}`);
+        console.log(`${tag} Init next cell result: ok=${init?.ok} sha=${init?.sha}`);
+        if(!init || !init.ok){
+          console.warn(`${tag} Init next cell ${cellNum} FAILED, retrying...`);
+          continue;
+        }
+        arr = [];
+        sha = init.sha;
+      }else{
+        arr = Array.isArray(nextFresh.obj) ? [...nextFresh.obj] : [];
+        sha = nextFresh.sha;
+      }
+
+      await ensureBoxForCell(roomName, cellNum);
+    }
+
+    // ── STEP 3: Merge (dedup by id then append) ───────────────────────
+    msgObj.cell = cellNum;
+    const existingIdx = arr.findIndex(m => m.id === msgObj.id);
+    const isNew = existingIdx < 0;
+    if(existingIdx >= 0) arr[existingIdx] = msgObj;
+    else arr.push(msgObj);
+    console.log(`${tag} After merge: isNew=${isNew} cell length=${arr.length} ids=[${arr.map(m=>m.id).join(', ')}]`);
+
+    // ── STEP 4: Write — if SHA conflicts, next loop iteration re-reads ─
+    const writePath = cellPath(roomName, cellNum);
+    console.log(`${tag} Writing to ${writePath} with SHA=${sha} (${arr.length} messages)`);
+
+    let put = null;
+    try {
+      put = await ghPutJson(writePath, arr, sha, `append msg cell ${cellNum}`);
+      console.log(`${tag} PUT result: ok=${put?.ok} status=${put?.status} newSHA=${put?.sha}`);
+    } catch(putErr) {
+      console.error(`${tag} PUT threw on attempt ${attempt + 1}:`, putErr.message);
+      // Continue loop to retry with re-read
+      continue;
+    }
+
+    if(put && put.ok && put.sha){
+      if(isNew) roomIndex.totalMessages = (roomIndex.totalMessages || 0) + 1;
+      await saveRoomIndex(roomName);
+      await saveMasterValue(roomName, true);
+      console.log(`%c${tag} ✅ SUCCESS cell=${cellNum} attempt=${attempt + 1} totalMessages=${roomIndex.totalMessages}`, 'color:#6abf69;font-weight:bold');
+      return { cellNum, cellSha: put.sha };
+    }
+
+    console.warn(`${tag} Write attempt ${attempt + 1} FAILED (put.ok=${put?.ok} put.sha=${put?.sha}) — re-reading on next attempt`);
+    // Loop back: next iteration re-reads fresh cell from API and merges again
   }
 
-  // write the cell index into the message for later edits
-  msgObj.cell = cellNum;
-  
-  // Check for duplicates before appending
-  const existingIdx = arr.findIndex(m => m.id === msgObj.id);
-  if(existingIdx >= 0){
-    // Message already exists, update it instead of appending
-    console.log(`[appendMessageV3] Message ${msgObj.id} already exists in cell ${cellNum}, updating...`);
-    arr[existingIdx] = msgObj;
-  }else{
-    // New message, append it
-    arr.push(msgObj);
-  }
-  
-  // Critical: Write message to GitHub and verify success
-  const put = await ghPutJson(cellPath(roomName, cellNum), arr, sha, `append msg cell ${cellNum}`);
-  if(!put || !put.ok || !put.sha){
-    throw new Error(`Failed to write message to cell ${cellNum} - no SHA returned`);
-  }
-  
-  // Update room index (only increment if this was a new message, not an update)
-  if(existingIdx < 0){
-    roomIndex.totalMessages = (roomIndex.totalMessages || 0) + 1;
-  }
-  await saveRoomIndex(roomName);
-
-  // notify master (with retry logic)
-  await saveMasterValue(roomName, true);
-
-  log(`✓ Message appended to cell ${cellNum}, total messages: ${roomIndex.totalMessages}`, "INFO");
-  return { cellNum, cellSha: put.sha };
+  throw new Error(`appendMessageV3: exhausted ${MAX_ATTEMPTS} attempts on room ${roomName} for msg ${msgObj.id}`);
 }
 
 async function ensureBoxForCell(roomName, cellNum){
@@ -12726,6 +13563,7 @@ function renderAll(messages){
   for(const m of messages){
     loadedMessages.push(m);
     const msgElement = createMessageElement(m);
+    if(!msgElement) continue; // hidden because deleted + disclosure off
     fragment.appendChild(msgElement);
   }
   
@@ -12740,6 +13578,9 @@ function renderAll(messages){
 
   setupReadObserver(); // attach read receipts to current DOM nodes
   
+  // Update message count pill in header
+  updateHeaderMsgCount();
+
   // Check for unread messages and mentions
   checkNewMessages(messages);
 }
@@ -12768,6 +13609,7 @@ function addMessageToDom(m, silent=false, prepend=false){
       // existing = inner .msg bubble; its parent is .msg-row
       const newEl = createMessageElement(m);
       const existingRow = existing.closest('.msg-row') || existing;
+      if(!newEl){ existingRow.remove(); return; } // disclosure hidden — remove from DOM
       existingRow.replaceWith(newEl);
       const innerBubble = newEl.querySelector('.msg') || newEl;
       if(readObserver) readObserver.observe(innerBubble);
@@ -12781,12 +13623,15 @@ function addMessageToDom(m, silent=false, prepend=false){
     return;
   }
   
-  // Skip if already in loadedMessages (evitar duplicados en memoria)
+  // Skip if already in loadedMessages AND in DOM (guard against memory/DOM desync)
   const existingInMemory = loadedMessages.findIndex(msg => msg.id === m.id);
   if(existingInMemory !== -1){
-    // Actualizar el mensaje existente en lugar de agregar duplicado
+    // Update in-memory record
     loadedMessages[existingInMemory] = m;
-    return;
+    // Only skip DOM add if the element is actually in the DOM
+    // (if DOM was cleared externally, we must re-add it)
+    if(messagesEl.querySelector(`[data-msg-id="${m.id}"]`)) return;
+    // Fall through to DOM insertion below (DOM and memory out of sync)
   }
   
   // Store to loaded list
@@ -12795,7 +13640,8 @@ function addMessageToDom(m, silent=false, prepend=false){
   
   // Create message element
   const wrap = createMessageElement(m);
-  
+  if(!wrap) return; // deleted + disclosure hidden — don't add to DOM
+
   // Add to DOM
   if(prepend){
     messagesEl.insertBefore(wrap, messagesEl.firstChild);
@@ -12812,6 +13658,11 @@ function addMessageToDom(m, silent=false, prepend=false){
 }
 
 function createMessageElement(m){
+  // If deleted and room says to hide disclosures → return null (caller must guard)
+  if(m.deleted && _roomSettingsCache[currentRoom]?.showDeletedDisclosure === false){
+    return null;
+  }
+
   const isMine = !!(session && m.userId === session.userId);
 
   // ── Outer flex row: [avatar] [bubble]  (or reverse for own msgs)
@@ -13549,7 +14400,27 @@ function createMessageElement(m){
   }
   meta.appendChild(timeText);
 
-  // Message status indicator (for own messages only)
+  // Role badge: show 👑 Owner or 🛡️ Admin on messages authored by owner/admin
+  if(!m.deleted && m.userId && currentRoom){
+    const _roles = _roomRolesCache[currentRoom];
+    if(_roles){
+      const _isOwnerMsg = _roles.ownerUid && m.userId === _roles.ownerUid;
+      const _isAdminMsg = !_isOwnerMsg && _roles.adminUids.has(m.userId);
+      if(_isOwnerMsg || _isAdminMsg){
+        const roleBadge = document.createElement('span');
+        roleBadge.className = 'msg-role-badge';
+        roleBadge.textContent = _isOwnerMsg ? '👑 Owner' : '🛡️ Admin';
+        roleBadge.style.cssText = _isOwnerMsg
+          ? 'margin-left:5px;font-size:9px;padding:1px 6px;border-radius:20px;background:rgba(251,191,36,.18);border:1px solid rgba(251,191,36,.45);color:#fbbf24;font-weight:700;vertical-align:middle;white-space:nowrap'
+          : 'margin-left:5px;font-size:9px;padding:1px 6px;border-radius:20px;background:rgba(168,85,247,.18);border:1px solid rgba(168,85,247,.45);color:#c084fc;font-weight:700;vertical-align:middle;white-space:nowrap';
+        // Load roles async if not yet cached (fire-and-forget)
+        meta.appendChild(roleBadge);
+      }
+    } else {
+      // Roles not loaded yet — trigger async load and it will be reflected on next render
+      loadRoomRoles(currentRoom).catch(()=>{});
+    }
+  }
   if(session && m.userId === session.userId){
     const status = document.createElement("span");
     status.className = `msg-status status-${m.status || 'sending'}`;
@@ -13898,72 +14769,118 @@ async function editMessageById(msgId){
   }catch(e){ console.error('[editMessage ERROR]', e); showToast('Edit failed: '+String(e), 'error'); }
 }
 
+/* ---- Delete countdown UI ---- */
+function showDeleteCountdown(seconds=5){
+  return new Promise(resolve=>{
+    let remaining = seconds;
+    const overlay = document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:9500;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+    const render=()=>`
+      <div style="background:var(--panel);border-radius:18px;padding:26px 28px;max-width:330px;width:100%;border:1px solid var(--border);box-shadow:0 22px 52px rgba(0,0,0,.55)">
+        <div style="text-align:center;margin-bottom:14px">
+          <div style="font-size:30px;line-height:1">🗑️</div>
+          <div style="font-size:16px;font-weight:700;margin-top:8px;color:var(--txt)">Delete this message?</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:3px">Deleted for everyone. Cannot be undone.</div>
+        </div>
+        <div style="text-align:center;margin:14px 0">
+          <div id="delCRing" style="display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;border-radius:50%;border:3px solid #ef4444;font-size:22px;font-weight:800;color:#ef4444">${remaining}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:5px">Auto-deleting in <span id="delCSec">${remaining}</span>s — or tap below</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button id="delCCancel" style="flex:1;padding:11px;border-radius:10px;border:1.5px solid var(--border);background:var(--panel2);color:var(--txt);font-family:inherit;font-size:13px;cursor:pointer;font-weight:700">✕ Cancel</button>
+          <button id="delCNow"    style="flex:1;padding:11px;border-radius:10px;border:none;background:#ef4444;color:#fff;font-family:inherit;font-size:13px;cursor:pointer;font-weight:700">🗑️ Now</button>
+        </div>
+      </div>`;
+    overlay.innerHTML = render();
+    document.body.appendChild(overlay);
+    const ringEl=()=>document.getElementById('delCRing');
+    const secEl =()=>document.getElementById('delCSec');
+    const ticker = setInterval(()=>{
+      remaining--;
+      if(ringEl()) ringEl().textContent = remaining;
+      if(secEl())  secEl().textContent  = remaining;
+      if(remaining <= 0){ clearInterval(ticker); overlay.remove(); resolve(true); }
+    }, 1000);
+    document.getElementById('delCCancel').onclick = ()=>{ clearInterval(ticker); overlay.remove(); resolve(false); };
+    document.getElementById('delCNow').onclick    = ()=>{ clearInterval(ticker); overlay.remove(); resolve(true); };
+  });
+}
+
 async function deleteMessageById(msgId){
   if(!currentRoom) return;
+  console.log(`%c[deleteMessageById] START msgId=${msgId} room=${currentRoom}`, 'color:#f87171;font-weight:bold');
+
+  // Permission check: own message OR room admin
   const loc = await findMessageLocation(msgId);
-  if(!loc) { log('Message not found','WARN'); return; }
+  if(!loc){ log('Message not found','WARN'); console.warn('[deleteMessageById] loc not found'); return; }
   const orig = loc.msg;
-  const userId = session?.userId || localGuest.userId;
-  if(orig.userId !== userId){ log('You can only delete your own messages','WARN'); return; }
-
-  const ok = await showConfirmModal('Delete this message for everyone? This will mark it deleted.');
-  if(!ok) return;
-
-  let cellArr = loc.cellArr;
-  let cellSha = loc.cellSha;
-  if(!cellArr){
-    const got = await ghGetJsonWithSha(cellPath(currentRoom, loc.cell));
-    if(!got.ok || !Array.isArray(got.obj)){ showToast('Failed to read cell for delete', 'error'); return; }
-    cellArr = got.obj;
-    cellSha = got.sha;
+  const userId = session?.userId || localGuest?.userId;
+  const canAdmin = await isRoomAdmin(currentRoom).catch(()=>false);
+  if(orig.userId !== userId && !canAdmin){
+    log('You can only delete your own messages','WARN');
+    showToast('Only the message author or an admin can delete this message.','warning');
+    return;
   }
 
-  const idx = cellArr.findIndex(x => x && x.id === msgId);
-  if(idx === -1){ showToast('Message not found in storage', 'error'); return; }
+  // Show countdown — user can cancel or accelerate
+  const confirmed = await showDeleteCountdown(5);
+  if(!confirmed){
+    console.log('[deleteMessageById] Cancelled by user');
+    return;
+  }
 
-  cellArr[idx].deleted = true;
-  cellArr[idx].deletedAt = Date.now();
-  cellArr[idx].deletedBy = userId;
+  // Optimistic DOM update immediately (before cloud write)
+  const _roomSettings = _roomSettingsCache[currentRoom];
+  for(const m of loadedMessages){
+    if(m.id === msgId){ m.deleted=true; m.deletedAt=Date.now(); m.deletedBy=userId; }
+  }
+  const domEl = messagesEl.querySelector(`[data-msg-id="${msgId}"]`);
+  if(domEl){
+    const updatedMsg = loadedMessages.find(m=>m.id===msgId);
+    if(updatedMsg){
+      const newEl = createMessageElement(updatedMsg);
+      const existingRow = domEl.closest('.msg-row')||domEl;
+      if(!newEl){ existingRow.remove(); }  // showDeletedDisclosure===false → remove completely
+      else{ existingRow.replaceWith(newEl); if(readObserver){ const b=newEl.querySelector('.msg')||newEl; readObserver.observe(b); } }
+    }
+  }
 
+  // Queue the cloud write
   try{
-    const put = await ghPutJson(cellPath(currentRoom, loc.cell), cellArr, cellSha, `delete msg ${msgId}`);
-    
-    // ⚡ NOTIFICAR A OTROS DISPOSITIVOS: Activar master flag
-    await saveMasterValue(currentRoom, true);
-    log('🔔 Master flag activated - other devices will sync deleted message', 'INFO');
-    
-    // Decrement totalMessages in room index so room list shows accurate count
-    if(roomIndex && (roomIndex.totalMessages || 0) > 0){
-      roomIndex.totalMessages = roomIndex.totalMessages - 1;
-      await saveRoomIndex(currentRoom);
+    console.log(`%c[deleteMessageById] Queuing cloud write...`, 'color:#f87171');
+    const result = await enqueueMessageDelete(currentRoom, msgId);
+    console.log(`%c[deleteMessageById] Cloud write done:`, 'color:#4ade80;font-weight:bold', result);
+
+    // Notify other devices via master flag
+    await saveMasterValue(currentRoom, true).catch(e=>console.warn('[deleteMessageById] master flag failed:', e));
+    console.log('[deleteMessageById] 🔔 Master flag set — other devices will sync');
+
+    // Decrement totalMessages
+    if(roomIndex && (roomIndex.totalMessages||0) > 0){
+      roomIndex.totalMessages--;
+      await saveRoomIndex(currentRoom).catch(e=>console.warn('[deleteMessageById] saveRoomIndex failed:', e));
+      console.log(`[deleteMessageById] totalMessages decremented to ${roomIndex.totalMessages}`);
     }
-    
-    // Update in-memory and DOM
-    for(const m of loadedMessages){ 
-      if(m.id === msgId){ 
-        m.deleted = true; 
-        m.deletedAt = Date.now();
-        m.deletedBy = userId;
-      } 
+
+    log('Message deleted and synced','INFO');
+    showToast('Message deleted', 'success');
+  }catch(e){
+    console.error('[deleteMessageById] Cloud write FAILED — rolling back DOM', e);
+    // Roll back in-memory
+    for(const m of loadedMessages){ if(m.id===msgId){ m.deleted=false; delete m.deletedAt; delete m.deletedBy; } }
+    // Re-render the original message
+    const rb = messagesEl.querySelector(`[data-msg-id="${msgId}"]`);
+    if(!rb){
+      // Try to re-add it by re-rendering all
+      const origMsg = loadedMessages.find(m=>m.id===msgId);
+      if(origMsg){ const newEl=createMessageElement(origMsg); if(newEl) messagesEl.appendChild(newEl); }
+    } else {
+      const origMsg = loadedMessages.find(m=>m.id===msgId);
+      if(origMsg){ const newEl=createMessageElement(origMsg); if(newEl){ const rr=rb.closest('.msg-row')||rb; rr.replaceWith(newEl); } }
     }
-    
-    // 🗑️ Actualizar DOM con renderizado mejorado
-    const el = messagesEl.querySelector(`[data-msg-id="${msgId}"]`);
-    if(el){
-      // Reemplazar completamente el elemento con versión borrada
-      const updatedMsg = loadedMessages.find(m => m.id === msgId);
-      if(updatedMsg){
-        const newEl = createMessageElement(updatedMsg);
-        const existingRow = el.closest('.msg-row') || el;
-        existingRow.replaceWith(newEl);
-        const innerBubble = newEl.querySelector('.msg') || newEl;
-        if(readObserver) readObserver.observe(innerBubble);
-      }
-    }
-    
-    log('Message deleted and synced to all devices','INFO');
-    showToast('Message deleted successfully', 'success');
-  }catch(e){ console.error('[deleteMessage ERROR]', e); log('Delete failed: '+String(e),'ERROR'); showToast('Delete failed: '+String(e), 'error'); }
+    log('Delete failed (rolled back): '+String(e),'ERROR');
+    showToast('Delete failed — connection issue. Please try again.','error');
+  }
 }
 
 /* ============================================================
@@ -14086,8 +15003,18 @@ async function refreshPresence(){
 
   presenceCache = next;
   lastPresenceRefreshAt = now;
+  console.groupCollapsed(`%c[Presence] Refreshed ${next.size} user(s) in #${currentRoom}`, 'color:#6abf69;font-weight:bold');
+  const _nowDbg = Date.now();
+  for(const [uid, p] of next.entries()){
+    const activeAgo = Math.round((_nowDbg - (p.lastActiveAt||0))/1000);
+    const seenAgo   = Math.round((_nowDbg - (p.lastSeenAt||0))/1000);
+    const tag = activeAgo < 35 ? '🟢 ACTIVE' : seenAgo < 300 ? '🟡 RECENT' : '⚫ AWAY';
+    console.log(`  ${tag} @${p.username||uid} | online=${p.online} | lastActiveAt=${activeAgo}s ago | lastSeenAt=${seenAgo}s ago`);
+  }
+  console.groupEnd();
   renderPresenceSummary();
   updateReadBadges();
+  updateHeaderMsgCount();
 }
 
 async function maybeRefreshPresence(){
@@ -14100,13 +15027,36 @@ function renderPresenceSummary(){
   if(!currentRoom) return;
   const now = Date.now();
   let active=0, recent=0;
+  const activeNames=[], recentNames=[];
   for(const p of presenceCache.values()){
     const lastActiveAt = p.lastActiveAt||0;
-    const lastSeenAt = p.lastSeenAt||0;
-    if(now - lastActiveAt < 10_000) active++;
-    else if(now - lastSeenAt < PRESENCE_RECENT_MS) recent++;
+    const lastSeenAt   = p.lastSeenAt||0;
+    // 35s window = 3× heartbeat interval (accounts for API fetch latency)
+    if(now - lastActiveAt < 35_000){
+      active++; activeNames.push('@'+(p.username||p.userId));
+    } else if(now - lastSeenAt < PRESENCE_RECENT_MS){
+      recent++; recentNames.push('@'+(p.username||p.userId));
+    }
   }
-  presenceText.textContent = `presence: ${active} active · ${recent} recent`;
+  const label = active > 0
+    ? `🟢 ${active} online${recent>0?' · '+recent+' away':''}`
+    : recent > 0 ? `⚫ ${recent} away` : `⚫ no one online`;
+  if(presenceText) presenceText.textContent = label;
+  console.log(
+    `%c[Presence] ${active} online: [${activeNames.join(', ')||'–'}] | ${recent} away: [${recentNames.join(', ')||'–'}]  (cache=${presenceCache.size})`,
+    'color:#6abf69;font-weight:bold'
+  );
+}
+
+function updateHeaderMsgCount(){
+  const el = document.getElementById('headerMsgCount');
+  if(!el || !currentRoom) return;
+  const nonDeleted = loadedMessages.filter(m=>!m.deleted).length;
+  const total = loadedMessages.length;
+  if(total === 0){ el.style.display='none'; return; }
+  el.style.display='';
+  el.title=`${total} total messages (${total - nonDeleted} deleted)`;
+  el.textContent=`${nonDeleted} msg${nonDeleted!==1?'s':''}`;
 }
 
 /* ============================================================
@@ -14445,7 +15395,7 @@ async function sendMessage(){
     log(`📤 Sending message to GitHub...`, "INFO");
     
     // This will throw an error if the write fails
-    const result = await appendMessageV3(currentRoom, msg);
+    const result = await enqueueMessageWrite(currentRoom, msg);
     
     // Only mark as sent if GitHub confirmed the write
     if(result && result.cellSha){
@@ -14579,7 +15529,7 @@ async function retryMessage(msg){
       }
     }else{
       // No cell assigned yet, use normal append
-      await appendMessageV3(currentRoom, msg);
+      await enqueueMessageWrite(currentRoom, msg);
     }
     
     updateMessageStatus(msg.id, 'sent');
@@ -14807,9 +15757,9 @@ async function sendMediaMessage(files, captions = []){
       clearCachedSha(cellPathStr);
     }
     
-    console.log('[sendMediaMessage] Calling appendMessageV3...');
-    const result = await appendMessageV3(currentRoom, msg);
-    console.log('[sendMediaMessage] appendMessageV3 returned:', result);
+    console.log('[sendMediaMessage] Calling enqueueMessageWrite...');
+    const result = await enqueueMessageWrite(currentRoom, msg);
+    console.log('[sendMediaMessage] enqueueMessageWrite returned:', result);
     
     if(result && result.cellSha){
       console.log(`✅ [sendMediaMessage] SUCCESS! Message saved to cell ${result.cellNum}`);
@@ -14874,8 +15824,9 @@ async function syncLatestFromStorage(){
   const latestCellNum = roomIndex.latestCell || 1;
 
   // If nothing loaded yet -> load latest
+  // forceApi=true: bypass raw CDN cache so freshly-written cells are never skipped
   if(loadedCellsMax === null){
-    const msgs = await loadLatestMessages(currentRoom, 50);
+    const msgs = await loadLatestMessages(currentRoom, 50, true);
     renderAll(msgs);
     
     // Scroll usando requestAnimationFrame para mejor performance
@@ -14895,9 +15846,9 @@ async function syncLatestFromStorage(){
   const needToCheck = loadedCellsMax < safeCheckFrom;
   
   if(needToCheck){
-    // User is significantly behind - load ALL missing cells
+    // User is significantly behind - load ALL missing cells via API (bypass CDN cache)
     log(`📦 Loading missing cells ${loadedCellsMax+1} to ${latestCellNum}`, "INFO");
-    const newMsgs = await loadCellsRange(currentRoom, loadedCellsMax+1, latestCellNum);
+    const newMsgs = await loadCellsRange(currentRoom, loadedCellsMax+1, latestCellNum, true);
     loadedCellsMax = latestCellNum;
     
     // Filter out duplicates and add to DOM
@@ -14943,7 +15894,8 @@ async function syncLatestFromStorage(){
     const reloadFrom = Math.max(1, latestCellNum - 2);
     if(reloadFrom <= loadedCellsMax){
       log(`🔄 Verifying last 3 cells (${reloadFrom} to ${latestCellNum})`, "INFO");
-      const msgs = await loadCellsRange(currentRoom, reloadFrom, latestCellNum);
+      // forceApi=true: these are recent cells that may have CDN-stale data
+      const msgs = await loadCellsRange(currentRoom, reloadFrom, latestCellNum, true);
       
       // Add any messages we don't have yet
       let addedCount = 0;
@@ -14970,7 +15922,8 @@ async function syncLatestFromStorage(){
 
   // Load new cells from user's position to latest
   log(`📥 Loading new cells ${loadedCellsMax+1} to ${latestCellNum}`, "INFO");
-  const newMsgs = await loadCellsRange(currentRoom, loadedCellsMax+1, latestCellNum);
+  // forceApi=true: new cells are freshly written and CDN cache may lag by up to 5 min
+  const newMsgs = await loadCellsRange(currentRoom, loadedCellsMax+1, latestCellNum, true);
   loadedCellsMax = latestCellNum;
 
   // Filter out duplicates and add to DOM
@@ -15278,6 +16231,9 @@ async function _doJoinRoom(r){
         loadRoomSettings(currentRoom).then(rs=>{
           if(rs.photoUrl){ _rhp.src = rs.photoUrl; }
         }).catch(()=>{});
+        // Pre-load role data for owner/admin badges on messages (fire-and-forget)
+        const _rlRoom = currentRoom;
+        loadRoomRoles(_rlRoom).catch(e=>console.warn('[_doJoinRoom] loadRoomRoles:', e));
       }
     }
 
@@ -15292,7 +16248,18 @@ async function _doJoinRoom(r){
     const _rmb = document.getElementById('roomMembersBtn');
     const _rsb = document.getElementById('roomSettingsBtn');
     if(_rmb){ if(_isDm){ _rmb.style.display='none'; } else { _rmb.style.display=''; _rmb.onclick=()=>openMembersPanel(currentRoom); } }
-    if(_rsb){ if(_isDm){ _rsb.style.display='none'; } else { _rsb.style.display=''; _rsb.onclick=()=>openRoomSettingsPanel(currentRoom); } }
+    if(_rsb){
+      if(_isDm){
+        _rsb.style.display='none';
+      } else {
+        _rsb.style.display='none'; // hidden until role check passes
+        _rsb.onclick=()=>openRoomSettingsPanel(currentRoom);
+        const _roomAtJoin = r;
+        isRoomAdmin(_roomAtJoin)
+          .then(ok=>{ if(ok){ const b=document.getElementById('roomSettingsBtn'); if(b && currentRoom===_roomAtJoin) b.style.display=''; } })
+          .catch(()=>{});
+      }
+    }
 
     // System join announcement — skip for DMs (no "X joined" noise in private chats)
     const _jname = nameInput.value.trim() || session?.username || localGuest?.name || 'Guest';
@@ -15316,9 +16283,9 @@ async function _doJoinRoom(r){
     updateProgressBar(55, `Announcing presence…`);
     await presenceSetOnline(true, "join");
 
-    // Load latest
+    // Load latest — forceApi=true so CDN cache never hides freshly-written messages
     updateProgressBar(68, `Loading messages…`);
-    const msgs = await loadLatestMessages(currentRoom, 50);
+    const msgs = await loadLatestMessages(currentRoom, 50, true);
     updateProgressBar(88, `Rendering…`);
     renderAll(msgs);
 
@@ -15387,12 +16354,28 @@ joinBtn.onclick = async ()=>{
       return;
     }
 
-    if(access.visibility === 'private'){
+    // Show info card for group rooms not yet accepted (info card handles password + disclaimer)
+    if(!isDmRoom(r) && !localStorage.getItem(`room_accepted_${r}`)){
       hideProgressBar();
-      showPasswordGate(r, access,
-        () => _doJoinRoom(r),
+      showRoomInfoCard(r, access,
+        async () => {
+          if(access.visibility === 'private'){
+            showPasswordGate(r, access, async () => {
+              await showRoomDisclaimer(r, access, ()=>_doJoinRoom(r), ()=>setNet("ok","ready"));
+            }, () => setNet("ok","ready"));
+          } else {
+            await showRoomDisclaimer(r, access, ()=>_doJoinRoom(r), ()=>setNet("ok","ready"));
+          }
+        },
         () => setNet("ok","ready")
       );
+      return;
+    }
+
+    // Already accepted — password gate if private, then join directly
+    if(access.visibility === 'private'){
+      hideProgressBar();
+      showPasswordGate(r, access, () => _doJoinRoom(r), () => setNet("ok","ready"));
       return;
     }
   }catch(e){
@@ -15410,6 +16393,365 @@ joinBtn.onclick = async ()=>{
   const crBtn = document.getElementById('createRoomBtn');
   if(crBtn) crBtn.onclick = openCreateRoomModal;
 })();
+
+/* ---- Room join disclaimer modal ---- */
+async function showRoomDisclaimer(roomName, access, onAccept, onCancel){
+  // Fetch room rules (if any)
+  let rules = '';
+  try { const s = await loadRoomSettings(roomName); rules = s.rules||''; } catch(_){}
+  const ownerName = access.createdByName || access.createdBy || 'the room owner';
+
+  const overlay = document.createElement('div');
+  overlay.id = 'roomDisclaimerOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:9100;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)';
+  overlay.innerHTML = `
+    <div style="background:var(--panel);border-radius:18px;padding:28px;max-width:420px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.6);border:1px solid var(--border)">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="font-size:36px;line-height:1">🏠</div>
+        <div style="font-size:18px;font-weight:700;margin-top:8px">Joining #${roomName}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">Managed by <strong style="color:var(--txt)">@${ownerName}</strong></div>
+      </div>
+      <div style="background:var(--panel2);border-radius:12px;padding:16px;font-size:12px;color:var(--muted);line-height:1.65;margin-bottom:16px;border:1px solid var(--border)">
+        <strong style="color:var(--txt);font-size:13px;display:block;margin-bottom:8px">⚠️ Before You Join</strong>
+        This room is <strong style="color:var(--txt)">owned and managed by @${ownerName}</strong>. The owner and any admins have full authority to:
+        <ul style="margin:8px 0 0 16px;padding:0;color:var(--txt)">
+          <li>Moderate and delete messages</li>
+          <li>Remove members at any time</li>
+          <li>Change room settings &amp; rules</li>
+          <li>Show or hide deleted message notices</li>
+        </ul>
+        ${rules ? `<div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--border)"><strong style="color:var(--txt)">📋 Room Rules:</strong><div style="margin-top:4px;color:var(--txt)">${rules.replace(/\n/g,'<br/>')}</div></div>` : ''}
+      </div>
+      <div style="display:flex;gap:10px">
+        <button id="disclaimCancel" style="flex:1;padding:11px;border-radius:10px;border:1px solid var(--border);background:var(--panel2);color:var(--txt);font-family:inherit;font-size:13px;cursor:pointer;font-weight:600">✕ Don't Join</button>
+        <button id="disclaimAccept" style="flex:2;padding:11px;border-radius:10px;border:none;background:var(--accent-primary);color:#fff;font-family:inherit;font-size:13px;cursor:pointer;font-weight:700">✓ I Understand, Join</button>
+      </div>
+      <div style="text-align:center;margin-top:10px;font-size:10px;color:var(--muted)">By joining you accept the room owner's authority over this room.</div>
+    </div>`;
+  document.body.appendChild(overlay);
+
+  return new Promise(resolve=>{
+    overlay.querySelector('#disclaimAccept').onclick = ()=>{
+      localStorage.setItem(`room_accepted_${roomName}`, '1');
+      overlay.remove(); onAccept(); resolve(true);
+    };
+    overlay.querySelector('#disclaimCancel').onclick = ()=>{
+      overlay.remove(); onCancel(); resolve(false);
+    };
+  });
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   ROOM INFO CARD + RATING SYSTEM
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+/** Build a human-readable summary of room settings for the info card (no ban-word lists) */
+function buildSettingsSummary(s){
+  const items = [];
+  items.push(s.admission === 'registered-only' ? '👤 Registered users only' : '🔓 Open admission');
+  if(s.contentRating === 'plus18')      items.push('🔞 18+ content');
+  else if(s.contentRating === 'minors') items.push('👶 Family-friendly');
+  else                                   items.push('🌐 All ages');
+  const p = s.permissions || {};
+  if(p.canSendImages === 'none')       items.push('🚫 No images');
+  else if(p.canSendImages === 'admin') items.push('🖼️ Images: Admins only');
+  if(p.canSendVideos === 'none')       items.push('🚫 No videos');
+  else if(p.canSendVideos === 'admin') items.push('🎥 Videos: Admins only');
+  if(p.canSendLinks === 'none')        items.push('🚫 No links');
+  else if(p.canSendLinks === 'admin')  items.push('🔗 Links: Admins only');
+  if(p.canReact === 'none')            items.push('🚫 No reactions');
+  if(p.canReply === 'none')            items.push('🚫 No replies');
+  items.push(`⚡ Auto-ban: ${s.banThreshold||3} strikes`);
+  if(s.showReadBy !== false)           items.push('👁️ Read receipts on');
+  return items;
+}
+
+/** Atomic write for a room rating. Returns {ok, ratings} or {ok:false, error} */
+async function saveRoomRating(roomName, rating, comment){
+  const uid = session?.userId, username = session?.username || uid;
+  if(!uid) return { ok:false, error:'Not logged in' };
+  console.log(`%c[RoomRating] Saving "${rating}" for #${roomName} by @${username}`, 'color:#a78bfa;font-weight:700');
+  const path = roomRatingsPath(roomName);
+  for(let attempt = 1; attempt <= 4; attempt++){
+    try{
+      const got = await ghGetJsonWithSha(path, true);
+      const existing = (got.ok && Array.isArray(got.obj)) ? got.obj : [];
+      const sha = got.sha || null;
+      const filtered = existing.filter(r => r.userId !== uid);
+      if(rating) filtered.push({ userId:uid, username, rating, comment:comment||'', ts:Date.now() });
+      console.log(`%c[RoomRating] attempt ${attempt}: PUT ${filtered.length} entries (sha=${sha?.slice(0,8)||'null'})`, 'color:#818cf8');
+      try{
+        await ghPutJson(path, filtered, sha, `room rating by @${username}`);
+        console.log(`%c[RoomRating] ✅ SUCCESS attempt ${attempt}`, 'color:#4ade80;font-weight:700');
+        return { ok:true, ratings:filtered };
+      }catch(putErr){ console.warn(`[RoomRating] PUT failed attempt ${attempt}:`, putErr.message); if(attempt < 4) continue; }
+    }catch(e){ console.warn(`[RoomRating] attempt ${attempt} error:`, e); }
+    if(attempt < 4) await new Promise(r=>setTimeout(r, 700*attempt));
+  }
+  return { ok:false, error:'Failed after max attempts' };
+}
+
+/** Atomic write for an owner profile rating. Returns {ok, ratings} or {ok:false, error} */
+async function saveOwnerProfileRating(ownerUid, ownerUsername, rating, comment){
+  const uid = session?.userId, username = session?.username || uid;
+  if(!uid) return { ok:false, error:'Not logged in' };
+  console.log(`%c[ProfileRating] Saving "${rating}" for @${ownerUsername} by @${username}`, 'color:#f472b6;font-weight:700');
+  const path = userProfileRatingsPath(ownerUid);
+  for(let attempt = 1; attempt <= 4; attempt++){
+    try{
+      const got = await ghGetJsonWithSha(path, true);
+      const existing = (got.ok && Array.isArray(got.obj)) ? got.obj : [];
+      const sha = got.sha || null;
+      const filtered = existing.filter(r => r.fromUserId !== uid);
+      if(rating) filtered.push({ fromUserId:uid, fromUsername:username, rating, comment:comment||'', ts:Date.now() });
+      console.log(`%c[ProfileRating] attempt ${attempt}: PUT ${filtered.length} entries`, 'color:#c084fc');
+      try{
+        await ghPutJson(path, filtered, sha, `profile rating for @${ownerUsername} by @${username}`);
+        console.log(`%c[ProfileRating] ✅ SUCCESS`, 'color:#4ade80;font-weight:700');
+        return { ok:true, ratings:filtered };
+      }catch(putErr){ console.warn(`[ProfileRating] PUT failed attempt ${attempt}:`, putErr.message); if(attempt < 4) continue; }
+    }catch(e){ console.warn(`[ProfileRating] attempt ${attempt} error:`, e); }
+    if(attempt < 4) await new Promise(r=>setTimeout(r, 700*attempt));
+  }
+  return { ok:false, error:'Failed after max attempts' };
+}
+
+/**
+ * Show a full-screen room info card with description, owner info, settings summary,
+ * and rating system. onJoin → called when user clicks Join; onBack → back button.
+ */
+async function showRoomInfoCard(roomName, roomData={}, onJoin, onBack){
+  const overlay = document.createElement('div');
+  overlay.id = 'roomInfoCardOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.83);z-index:9200;display:flex;align-items:flex-start;justify-content:center;padding:16px 12px 48px;backdrop-filter:blur(8px);overflow-y:auto';
+  overlay.innerHTML = `<div id="ricCard" style="background:var(--panel);border-radius:22px;max-width:480px;width:100%;margin-top:16px;overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,.7);border:1px solid var(--border)"><div style="padding:44px 24px;text-align:center"><div style="font-size:32px">⏳</div><div style="font-size:13px;color:var(--muted);margin-top:8px">Loading room info…</div></div></div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e=>{ if(e.target===overlay){ overlay.remove(); if(onBack) onBack(); } });
+
+  console.groupCollapsed(`%c[RoomInfoCard] Loading #${roomName}`, 'color:#a78bfa;font-weight:700');
+  try{
+    const [sRes, ratingsRes, memberDirRes, manifestRes] = await Promise.allSettled([
+      loadRoomSettings(roomName),
+      ghGetJsonWithSha(roomRatingsPath(roomName)),
+      ghListDir(roomMemberDirPath(roomName)),
+      getRoomManifest(roomName)
+    ]);
+
+    const s         = sRes.status==='fulfilled' ? sRes.value : defaultRoomSettings(roomName);
+    const ratings   = (ratingsRes.status==='fulfilled' && ratingsRes.value.ok && Array.isArray(ratingsRes.value.obj)) ? ratingsRes.value.obj : [];
+    const manifest  = manifestRes.status==='fulfilled' && manifestRes.value.ok ? manifestRes.value.manifest : {};
+    let memberCount = null;
+    if(memberDirRes.status==='fulfilled' && memberDirRes.value.ok)
+      memberCount = memberDirRes.value.items.filter(i=>i.type==='file'&&i.name.endsWith('.json')).length;
+
+    const ownerUid  = roomData?.createdBy  || manifest.createdBy  || null;
+    const ownerName = roomData?.createdByName || manifest.createdByName || 'the room owner';
+    console.log(`[RoomInfoCard] owner=@${ownerName}(${ownerUid}) members=${memberCount} ratings=${ratings.length}`);
+
+    let ownerPRatings = [];
+    if(ownerUid){ try{ const prg = await ghGetJsonWithSha(userProfileRatingsPath(ownerUid)); if(prg.ok && Array.isArray(prg.obj)) ownerPRatings = prg.obj; }catch(_){} }
+    console.log(`[RoomInfoCard] ownerPRatings=${ownerPRatings.length}`);
+    console.groupEnd();
+
+    const roomLikes    = ratings.filter(r=>r.rating==='like').length;
+    const roomDislikes = ratings.filter(r=>r.rating==='dislike').length;
+    const roomTotal    = roomLikes + roomDislikes;
+    const roomScore    = roomTotal > 0 ? Math.round(roomLikes/roomTotal*100) : null;
+    const myRating     = session?.userId ? ratings.find(r=>r.userId===session.userId) : null;
+
+    const ownerLikes    = ownerPRatings.filter(r=>r.rating==='like').length;
+    const ownerDislikes = ownerPRatings.filter(r=>r.rating==='dislike').length;
+    const ownerTotal    = ownerLikes + ownerDislikes;
+    const ownerScore    = ownerTotal > 0 ? Math.round(ownerLikes/ownerTotal*100) : null;
+    const myOwnerRating = session?.userId ? ownerPRatings.find(r=>r.fromUserId===session.userId) : null;
+
+    const desc        = (s.description||'').trim();
+    const MAX_PREV    = 200;
+    const descShort   = desc.length > MAX_PREV;
+    const descPreview = descShort ? desc.slice(0, MAX_PREV) : desc;
+    const vis              = roomData?.visibility || s.visibility || manifest.visibility || 'public';
+    const photoUrl         = s.photoUrl || roomData?.photoUrl || DEFAULT_ROOM_IMG;
+    const showMemberCount  = s.showMemberCount  !== false;
+    const showMessageCount = s.showMessageCount !== false;
+    const totalMessages    = roomData?.totalMessages != null ? roomData.totalMessages : null;
+    const latestCell       = roomData?.latestCell    != null ? roomData.latestCell    : null;
+    const summaryItems     = buildSettingsSummary(s);
+    const ratingComments   = ratings.filter(r=>r.comment&&r.comment.trim()).slice(-15).reverse();
+
+    const visBadgeCss = vis==='private'  ? 'background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.4);color:#f87171'
+                      : vis==='unlisted' ? 'background:rgba(251,146,60,.15);border-color:rgba(251,146,60,.4);color:#fb923c'
+                      :                    'background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.4);color:#4ade80';
+    const visText = vis==='private'?'🔒 Private':vis==='unlisted'?'🔗 Unlisted':'🌐 Public';
+
+    function _sb(score, total){
+      if(score===null) return '<span style="font-size:11px;color:var(--muted)">No ratings yet</span>';
+      const c = score>=70?'#4ade80':score>=40?'#fb923c':'#f87171';
+      return `<span style="font-size:12px;font-weight:700;color:${c}">${score}% liked</span><span style="font-size:10px;color:var(--muted);margin-left:4px">(${total})</span>`;
+    }
+    function _rbStyle(active, type){
+      if(active && type==='like')    return 'border:1.5px solid #4ade80;background:rgba(74,222,128,.15);color:#4ade80';
+      if(active && type==='dislike') return 'border:1.5px solid #f87171;background:rgba(248,113,113,.15);color:#f87171';
+      return 'border:1.5px solid var(--border);background:var(--panel);color:var(--txt)';
+    }
+
+    overlay.querySelector('#ricCard').outerHTML = `
+    <div id="ricCard" style="background:var(--panel);border-radius:22px;max-width:480px;width:100%;margin-top:16px;overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,.7);border:1px solid var(--border)">
+      <!-- Banner -->
+      <div style="position:relative;height:148px;overflow:hidden;background:var(--panel2)">
+        <img src="${photoUrl}" onerror="this.src='${DEFAULT_ROOM_IMG}'" style="width:100%;height:100%;object-fit:cover;opacity:.65"/>
+        <div style="position:absolute;inset:0;background:linear-gradient(to bottom,transparent 30%,rgba(0,0,0,.88))"></div>
+        <div style="position:absolute;bottom:14px;left:16px;right:16px;display:flex;align-items:flex-end;justify-content:space-between">
+          <div>
+            <div style="font-size:22px;font-weight:800;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.7)">#${roomName}</div>
+            <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">
+              <span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;border:1px solid;${visBadgeCss}">${visText}</span>
+              ${s.contentRating==='plus18'?'<span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.15);color:#f87171">🔞 18+</span>':''}
+              ${s.contentRating==='minors'?'<span style="font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;border:1px solid rgba(34,197,94,.4);background:rgba(34,197,94,.15);color:#4ade80">👶 Family</span>':''}
+            </div>
+          </div>
+          <button id="ricBackBtn" style="padding:6px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.3);background:rgba(0,0,0,.55);color:#fff;font-size:12px;cursor:pointer;font-family:inherit;font-weight:600">← Back</button>
+        </div>
+      </div>
+      <!-- Content -->
+      <div style="padding:18px;display:flex;flex-direction:column;gap:12px">
+        <!-- Owner -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--panel2);border-radius:14px;border:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <img src="${getCachedAvatarUrl(ownerUid||'')}" onerror="this.src='${DEFAULT_AVATAR_URL}'" style="width:38px;height:38px;border-radius:50%;border:2px solid var(--border);object-fit:cover"/>
+            <div>
+              <div style="font-size:10px;color:var(--muted);text-transform:uppercase;font-weight:700;letter-spacing:.05em">Room Owner</div>
+              <div style="font-size:14px;font-weight:800">@${escapeHtml(ownerName)}</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:10px;color:var(--muted);margin-bottom:3px">Reputation</div>
+            <div id="ricOwnerScore">${_sb(ownerScore,ownerTotal)}</div>
+            ${session?.userId && ownerUid && session.userId!==ownerUid ? `
+            <div style="display:flex;gap:4px;margin-top:6px;justify-content:flex-end">
+              <button id="ricOwnerLike" style="padding:3px 10px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;${_rbStyle(myOwnerRating?.rating==='like','like')}" title="Like this owner">👍</button>
+              <button id="ricOwnerDislike" style="padding:3px 10px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;${_rbStyle(myOwnerRating?.rating==='dislike','dislike')}" title="Dislike this owner">👎</button>
+            </div>` : ''}
+          </div>
+        </div>
+        ${desc ? `
+        <!-- Description -->
+        <div style="padding:14px;background:var(--panel2);border-radius:14px;border:1px solid var(--border)">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📝 About this room</div>
+          <div id="ricDescText" style="font-size:13px;color:var(--txt);line-height:1.65;white-space:pre-wrap">${escapeHtml(descPreview)}${descShort?'…':''}</div>
+          ${descShort?`<button id="ricReadMore" style="margin-top:6px;border:none;background:none;color:var(--accent-primary);font-size:12px;cursor:pointer;padding:0;font-family:inherit;font-weight:600">Read more ▾</button>`:''}
+        </div>` : ''}
+        <!-- Stats -->
+        ${(showMemberCount&&memberCount!=null)||(showMessageCount&&totalMessages!=null) ? `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(75px,1fr));gap:8px">
+          ${showMemberCount&&memberCount!=null?`<div style="padding:10px;background:var(--panel2);border-radius:12px;border:1px solid var(--border);text-align:center"><div style="font-size:18px;font-weight:800">${memberCount}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Members</div></div>`:''}
+          ${showMessageCount&&totalMessages!=null?`<div style="padding:10px;background:var(--panel2);border-radius:12px;border:1px solid var(--border);text-align:center"><div style="font-size:18px;font-weight:800">${totalMessages}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Messages</div></div>`:''}
+          ${showMessageCount&&latestCell!=null?`<div style="padding:10px;background:var(--panel2);border-radius:12px;border:1px solid var(--border);text-align:center"><div style="font-size:18px;font-weight:800">${latestCell}</div><div style="font-size:10px;color:var(--muted);margin-top:2px">Cells</div></div>`:''}
+        </div>` : ''}
+        <!-- Settings summary -->
+        <div style="padding:14px;background:var(--panel2);border-radius:14px;border:1px solid var(--border)">
+          <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">⚙️ Room settings</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px">${summaryItems.map(si=>`<span style="font-size:11px;padding:3px 10px;border-radius:20px;background:var(--panel);border:1px solid var(--border);color:var(--txt)">${si}</span>`).join('')}</div>
+          ${(s.rules||'').trim()?`<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)"><div style="font-size:10px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em">📋 Rules</div><div style="font-size:12px;color:var(--txt);line-height:1.6;white-space:pre-wrap">${escapeHtml(s.rules)}</div></div>`:''}
+        </div>
+        <!-- Room rating -->
+        <div style="padding:14px;background:var(--panel2);border-radius:14px;border:1px solid var(--border)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+            <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">⭐ Room rating</div>
+            <div id="ricRoomScore">${_sb(roomScore,roomTotal)}</div>
+          </div>
+          ${session?.userId ? `
+          <div style="display:flex;gap:8px;margin-bottom:10px">
+            <button id="ricLikeBtn" style="flex:1;padding:9px;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:700;transition:all .15s;${_rbStyle(myRating?.rating==='like','like')}">👍 Like <span id="ricLikeCount">${roomLikes}</span></button>
+            <button id="ricDislikeBtn" style="flex:1;padding:9px;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:700;transition:all .15s;${_rbStyle(myRating?.rating==='dislike','dislike')}">👎 Dislike <span id="ricDislikeCount">${roomDislikes}</span></button>
+          </div>
+          <div style="display:flex;gap:8px">
+            <input id="ricCommentInput" type="text" maxlength="160" placeholder="Optional comment with your rating…" value="${escapeHtml(myRating?.comment||'')}"
+              style="flex:1;padding:8px 12px;background:var(--panel);border:1.5px solid var(--border);border-radius:10px;color:var(--txt);font-size:12px;font-family:inherit;outline:none"/>
+            <button id="ricSubmitRating" style="padding:8px 14px;border-radius:10px;border:none;background:var(--accent-primary);color:#fff;font-family:inherit;font-size:12px;cursor:pointer;font-weight:700">Submit</button>
+          </div>` : '<div style="font-size:12px;color:var(--muted)">Log in to rate this room.</div>'}
+          ${ratingComments.length>0?`
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)">
+            <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Recent reviews</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              ${ratingComments.map(r=>`
+              <div style="display:flex;align-items:flex-start;gap:8px;padding:8px 10px;background:var(--panel);border-radius:10px;border:1px solid var(--border)">
+                <img src="${getCachedAvatarUrl(r.userId||'')}" onerror="this.src='${DEFAULT_AVATAR_URL}'" style="width:22px;height:22px;border-radius:50%;object-fit:cover;flex-shrink:0"/>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:11px;font-weight:600">@${escapeHtml(r.username||r.userId||'user')} <span style="color:${r.rating==='like'?'#4ade80':'#f87171'}">${r.rating==='like'?'👍':'👎'}</span> <span style="color:var(--muted);font-weight:400">${formatTimeAgo(r.ts||0)}</span></div>
+                  <div style="font-size:12px;color:var(--txt);margin-top:2px;word-break:break-word">${escapeHtml(r.comment)}</div>
+                </div>
+              </div>`).join('')}
+            </div>
+          </div>` : ''}
+        </div>
+        <!-- Join -->
+        <button id="ricJoinBtn" style="width:100%;padding:14px;border-radius:14px;border:none;background:var(--accent-primary);color:#fff;font-family:inherit;font-size:15px;cursor:pointer;font-weight:800;letter-spacing:.02em">✓ Join #${roomName}</button>
+        <div style="text-align:center;font-size:10px;color:var(--muted);margin-top:-6px">Your messages will be managed by @${escapeHtml(ownerName)} and their admins. You'll confirm before entering.</div>
+      </div>
+    </div>`;
+
+    const card = document.getElementById('ricCard');
+
+    // Back button
+    card.querySelector('#ricBackBtn').onclick = () => { overlay.remove(); if(onBack) onBack(); };
+
+    // Read more
+    const rmBtn = card.querySelector('#ricReadMore');
+    if(rmBtn) rmBtn.onclick = () => { document.getElementById('ricDescText').textContent = desc; rmBtn.remove(); };
+
+    // Owner rating
+    const oLike = card.querySelector('#ricOwnerLike'), oDis = card.querySelector('#ricOwnerDislike');
+    if(oLike && ownerUid) oLike.onclick = async () => {
+      if(!session?.userId){ showToast('Log in to rate','warning'); return; }
+      oLike.disabled=true; if(oDis) oDis.disabled=true;
+      const res = await saveOwnerProfileRating(ownerUid, ownerName, oLike.style.borderColor.includes('74,222')?null:'like', '');
+      if(res.ok){ const ul=res.ratings.filter(r=>r.rating==='like').length, dl=res.ratings.filter(r=>r.rating==='dislike').length, tot=ul+dl, sc=tot>0?Math.round(ul/tot*100):null; const scEl=card.querySelector('#ricOwnerScore'); if(scEl) scEl.innerHTML=_sb(sc,tot); const isLiked=res.ratings.some(r=>r.fromUserId===session.userId&&r.rating==='like'); oLike.setAttribute('style',`padding:3px 10px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;${_rbStyle(isLiked,'like')}`); if(oDis) oDis.setAttribute('style',`padding:3px 10px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;${_rbStyle(false,'dislike')}`); showToast(isLiked?'👍 Owner liked':'Rating removed','success'); } else showToast('Error: '+(res.error||'unknown'),'error');
+      oLike.disabled=false; if(oDis) oDis.disabled=false;
+    };
+    if(oDis && ownerUid) oDis.onclick = async () => {
+      if(!session?.userId){ showToast('Log in to rate','warning'); return; }
+      oDis.disabled=true; if(oLike) oLike.disabled=true;
+      const res = await saveOwnerProfileRating(ownerUid, ownerName, oDis.style.borderColor.includes('248,113')?null:'dislike', '');
+      if(res.ok){ const ul=res.ratings.filter(r=>r.rating==='like').length, dl=res.ratings.filter(r=>r.rating==='dislike').length, tot=ul+dl, sc=tot>0?Math.round(ul/tot*100):null; const scEl=card.querySelector('#ricOwnerScore'); if(scEl) scEl.innerHTML=_sb(sc,tot); const isDis=res.ratings.some(r=>r.fromUserId===session.userId&&r.rating==='dislike'); oDis.setAttribute('style',`padding:3px 10px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;${_rbStyle(isDis,'dislike')}`); if(oLike) oLike.setAttribute('style',`padding:3px 10px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;${_rbStyle(false,'like')}`); showToast(isDis?'👎 Noted':'Rating removed','info'); } else showToast('Error: '+(res.error||'unknown'),'error');
+      oDis.disabled=false; if(oLike) oLike.disabled=false;
+    };
+
+    // Room rating
+    let _myR = myRating?.rating || null;
+    const likeBtn = card.querySelector('#ricLikeBtn'), disBtn = card.querySelector('#ricDislikeBtn'), subBtn = card.querySelector('#ricSubmitRating');
+    function _applyR(){
+      if(likeBtn) likeBtn.setAttribute('style',`flex:1;padding:9px;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:700;transition:all .15s;${_rbStyle(_myR==='like','like')}`);
+      if(disBtn)  disBtn.setAttribute('style', `flex:1;padding:9px;border-radius:10px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:700;transition:all .15s;${_rbStyle(_myR==='dislike','dislike')}`);
+    }
+    if(likeBtn) likeBtn.onclick    = () => { if(!session?.userId){showToast('Log in to rate','warning');return;} _myR=(_myR==='like'?null:'like'); _applyR(); };
+    if(disBtn)  disBtn.onclick     = () => { if(!session?.userId){showToast('Log in to rate','warning');return;} _myR=(_myR==='dislike'?null:'dislike'); _applyR(); };
+    if(subBtn)  subBtn.onclick     = async () => {
+      if(!session?.userId){ showToast('Log in to rate','warning'); return; }
+      if(!_myR){ showToast('Pick 👍 or 👎 first','warning'); return; }
+      const comment = card.querySelector('#ricCommentInput')?.value.trim()||'';
+      subBtn.disabled=true; subBtn.textContent='Saving…';
+      const res = await saveRoomRating(roomName, _myR, comment);
+      if(res.ok){
+        const ul=res.ratings.filter(r=>r.rating==='like').length, dl=res.ratings.filter(r=>r.rating==='dislike').length, sc=(ul+dl)>0?Math.round(ul/(ul+dl)*100):null;
+        const lcEl=card.querySelector('#ricLikeCount'); if(lcEl) lcEl.textContent=ul;
+        const dcEl=card.querySelector('#ricDislikeCount'); if(dcEl) dcEl.textContent=dl;
+        const scEl=card.querySelector('#ricRoomScore'); if(scEl) scEl.innerHTML=_sb(sc,ul+dl);
+        showToast('✅ Rating saved!','success');
+      }else showToast('Error: '+(res.error||'unknown'),'error');
+      subBtn.disabled=false; subBtn.textContent='Submit';
+    };
+
+    // Join button
+    card.querySelector('#ricJoinBtn').onclick = () => { overlay.remove(); if(onJoin) onJoin(); };
+
+  }catch(e){
+    console.groupEnd();
+    console.error('[showRoomInfoCard ERROR]', e);
+    overlay.remove();
+    showToast('Could not load room info: '+e.message,'error');
+    if(onBack) onBack();
+  }
+}
 
 
 
@@ -16932,7 +18274,7 @@ async function sendAudioMessage(){
     // Send message metadata to GitHub
     try{
       log(`📤 Sending audio message metadata to GitHub...`, "INFO");
-      const result = await appendMessageV3(currentRoom, msg);
+      const result = await enqueueMessageWrite(currentRoom, msg);
       
       if(result && result.cellSha){
         msg.status = 'sent';
@@ -17655,10 +18997,10 @@ window.addEventListener("load", async ()=>{
     };
   }
 
-  // appendMessageToCells compatibility -> appendMessageV3
-  if(typeof appendMessageToCells === 'undefined' && typeof appendMessageV3 === 'function'){
+  // appendMessageToCells compatibility -> enqueueMessageWrite
+  if(typeof appendMessageToCells === 'undefined' && typeof enqueueMessageWrite === 'function'){
     window.appendMessageToCells = async function(roomName, msg){
-      return await appendMessageV3(roomName, msg);
+      return await enqueueMessageWrite(roomName, msg);
     };
   }
 
