@@ -6218,39 +6218,84 @@ function hideWelcomeScreen(){
    CHANGELOG / WHAT'S NEW
    ============================================================ */
 
-/** Render a changelog object into the wn-body element */
+/** Render a changelog object into the wn-body element.
+ *  Supports two schemas:
+ *  - Legacy  (≤9.2): cl.entries[{type,text}]  +  cl.date (string)
+ *  - Modern  (≥9.3): cl.changes[{type,emoji,title,description}]  +  cl.releasedAt (ms)
+ */
 function renderChangelogEntries(cl){
   const body = el('wnBody');
   if(!body) return;
-  if(cl.title) { const t=el('wnTitle'); if(t) t.textContent=cl.title; }
-  if(cl.version){ const b=el('wnVersionBadge'); if(b) b.textContent=`v${cl.version}`; }
-  if(cl.date){ const d=el('wnDate'); if(d){ const dt=new Date(cl.date); d.textContent=dt.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}); } }
 
-  const byType = {};
-  const order = ['new','improved','fixed','removed'];
-  for(const e of (cl.entries||[])){
-    const t = (e.type||'new').toLowerCase();
-    (byType[t]||(byType[t]=[])).push(e.text);
+  // ── Header ──
+  if(cl.title)  { const t=el('wnTitle');        if(t) t.textContent = cl.title; }
+  if(cl.version){ const b=el('wnVersionBadge'); if(b) b.textContent = `v${cl.version}`; }
+  // Date: supports both "YYYY-MM-DD" string and Unix-ms timestamp
+  const rawDate = cl.date || cl.releasedAt;
+  if(rawDate){
+    const d = el('wnDate');
+    if(d){
+      try{
+        const dt = typeof rawDate === 'number' ? new Date(rawDate) : new Date(rawDate);
+        d.textContent = dt.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+      }catch(_){ d.textContent = String(rawDate); }
+    }
   }
+
+  const order      = ['new','feature','improved','improvement','fixed','fix','removed','dev'];
+  const labelMap   = { new:'New', feature:'New', improved:'Improved', improvement:'Improved', fixed:'Fixed', fix:'Fixed', removed:'Removed', dev:'Dev' };
+  const chipClass  = { new:'new', feature:'new', improved:'improved', improvement:'improved', fixed:'fixed', fix:'fixed', removed:'removed', dev:'improved' };
+
+  // ── Normalise both schemas into a unified list of {type, chip, label, text} ──
+  const items = [];
+
+  if(Array.isArray(cl.changes) && cl.changes.length){
+    // Modern schema: changes[{type,emoji,title,description}]
+    for(const c of cl.changes){
+      const type  = (c.type||'feature').toLowerCase();
+      const emoji = c.emoji ? c.emoji + ' ' : '';
+      const title = c.title || '';
+      const desc  = c.description || '';
+      const text  = desc ? `${emoji}${title} — ${desc}` : `${emoji}${title}`;
+      items.push({ type, chip: chipClass[type]||'new', label: labelMap[type]||'New', text });
+    }
+  } else {
+    // Legacy schema: entries[{type,text}]
+    for(const e of (cl.entries||[])){
+      const type = (e.type||'new').toLowerCase();
+      items.push({ type, chip: chipClass[type]||'new', label: labelMap[type]||'New', text: e.text||'' });
+    }
+  }
+
+  // ── Group by display type keeping order ──
+  const seen   = [];
+  const byType = {};
+  for(const item of items){
+    const key = chipClass[item.type] || 'new';
+    if(!byType[key]){ byType[key]=[]; seen.push(key); }
+    byType[key].push(item);
+  }
+  const sectionLabels = { new:'New', improved:'Improved', fixed:'Fixed', removed:'Removed', dev:'Dev' };
+
   let html = '';
-  for(const type of order){
-    if(!byType[type]?.length) continue;
-    const labels = { new:'New', improved:'Improved', fixed:'Fixed', removed:'Removed' };
-    html += `<div class="wn-section-label">${labels[type]||type}</div>`;
-    for(const text of byType[type]){
-      html += `<div class="cl-entry"><span class="cl-chip ${type}"></span><span class="cl-text"></span></div>`;
+  for(const key of seen){
+    if(!byType[key]?.length) continue;
+    html += `<div class="wn-section-label">${sectionLabels[key]||key}</div>`;
+    for(let i=0; i<byType[key].length; i++){
+      html += `<div class="cl-entry"><span class="cl-chip ${key}"></span><span class="cl-text"></span></div>`;
     }
   }
   body.innerHTML = html;
-  // Safely set text (avoid XSS)
-  let i=0;
-  for(const type of order){
-    for(const text of (byType[type]||[])){
-      const chips = body.querySelectorAll('.cl-chip');
-      const texts  = body.querySelectorAll('.cl-text');
-      if(chips[i]) chips[i].textContent = ({new:'New',improved:'Improved',fixed:'Fixed',removed:'Removed'}[type]||type);
-      if(texts[i]) texts[i].textContent = text;
-      i++;
+
+  // Safely populate text (avoid XSS via innerHTML)
+  let idx = 0;
+  const chips = body.querySelectorAll('.cl-chip');
+  const texts = body.querySelectorAll('.cl-text');
+  for(const key of seen){
+    for(const item of (byType[key]||[])){
+      if(chips[idx]) chips[idx].textContent = sectionLabels[key] || key;
+      if(texts[idx]) texts[idx].textContent = item.text;
+      idx++;
     }
   }
 }
