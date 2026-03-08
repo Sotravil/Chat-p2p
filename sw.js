@@ -185,9 +185,36 @@ async function _bgPoll() {
   }
 
   try {
-    // â”€â”€ 1. Cheap master-flag read â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // master-rooms/<room>.json is set to `true` by the sender and
-    // `false` by the receiver â€” lets us skip full cell reads when idle.
+    // ── 0. DM inbox check — always runs first (before any early returns) ──
+    // Reads users/${myUid}/dm-notifs.json for unread entries written by senders.
+    if (state.myUid) {
+      try {
+        const lastDmTs = state.lastDmNotifTs || 0;
+        const dmR = await ghJson(`users/${state.myUid}/dm-notifs.json`);
+        if (dmR.ok && Array.isArray(dmR.obj)) {
+          const newDms = dmR.obj.filter(n => !n.read && (n.ts || 0) > lastDmTs);
+          if (newDms.length) {
+            const newDmTs = Math.max(...newDms.map(n => n.ts || 0));
+            await _dbSet('pollState', { ...state, token, lastDmNotifTs: newDmTs });
+            const senders = [...new Set(newDms.map(n => n.from || n.fromUid || 'Someone'))];
+            const dmTitle = newDms.length === 1
+              ? `\uD83D\uDC8C DM from ${senders[0]}`
+              : `\uD83D\uDC8C ${newDms.length} new DMs`;
+            const latestDm = newDms[newDms.length - 1];
+            await self.registration.showNotification(dmTitle, {
+              body     : (latestDm.text || 'New direct message').slice(0, 120),
+              tag      : 'cp2p-dm-inbox',
+              data     : { room: latestDm.room || '' },
+              renotify : newDms.length > 1,
+            });
+          }
+        }
+      } catch (_dmErr) { /* DM inbox errors are non-fatal */ }
+    }
+
+    // ── 1. Cheap master-flag read ─────────────────────────────────────
+    // master-rooms/<room>.json is true when sender writes, false when read.
+    // Skip full cell reads when idle to conserve GitHub API quota.
     const masterR = await ghJson(`${masterRoomsDir}/${room}.json`);
     if (masterR.ok && masterR.obj === false) return; // nothing new
 
