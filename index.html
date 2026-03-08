@@ -22802,7 +22802,11 @@ function initVisualizer(){
 
 // Update visualizer with real audio data
 function updateVisualizer(){
-  if(!analyser || audioPaused) return;
+  if(!analyser || audioPaused){
+    // Clear the stale frame ID so the resume path can correctly detect the loop is dead
+    animationFrameId = null;
+    return;
+  }
 
   analyser.getByteFrequencyData(dataArray);
 
