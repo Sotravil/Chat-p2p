@@ -5208,6 +5208,65 @@
     .ups-persona-opt.selected{border-color:var(--accent-primary);background:rgba(99,102,241,.1);color:var(--txt);}
     .ups-persona-preview{font-size:20px;margin-bottom:4px;}
 
+    /* ═══════════════════════════════════════════════════════════
+       🎨 STYLE / PERSONALIZATION TAB
+       ═══════════════════════════════════════════════════════════ */
+    .style-section{margin-bottom:22px;}
+    .style-section-hdr{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;}
+    .style-color-grid{display:flex;flex-wrap:wrap;gap:9px;align-items:center;}
+    .style-color-swatch{width:30px;height:30px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all .15s;flex-shrink:0;}
+    .style-color-swatch:hover{transform:scale(1.18);box-shadow:0 2px 8px rgba(0,0,0,.5);}
+    .style-color-swatch.active{border-color:#fff !important;box-shadow:0 0 0 3px rgba(255,255,255,.28);}
+    .style-name-preview{margin-top:10px;padding:7px 13px;background:rgba(255,255,255,.05);border-radius:9px;font-size:13px;color:var(--txt);}
+    .style-preset-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px;}
+    .style-preset-btn{border-radius:10px;padding:9px 6px;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;text-align:center;border:2px solid transparent;transition:all .18s;line-height:1.4;}
+    .style-preset-btn:hover{opacity:.85;transform:scale(1.03);}
+    .style-preset-btn.active{border-color:rgba(255,255,255,.8) !important;box-shadow:0 0 0 2px rgba(255,255,255,.15);}
+    .style-ring-grid{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:4px;}
+    .style-ring-opt{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;opacity:.75;transition:all .18s;}
+    .style-ring-opt:hover{opacity:1;transform:scale(1.07);}
+    .style-ring-opt.active{opacity:1;}
+    .style-ring-opt.active .ring-demo-wrap::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:2px solid #fff;}
+    .style-ring-opt span{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+    .ring-demo-wrap{position:relative;width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+    .ring-demo-img{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.15);background:var(--panel2);position:relative;z-index:1;font-size:16px;display:flex;align-items:center;justify-content:center;}
+    .ring-demo-before{content:'';position:absolute;inset:-3px;border-radius:50%;z-index:0;}
+    .style-emoji-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
+    .style-emoji-opt{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;border:2px solid transparent;background:rgba(255,255,255,.05);transition:all .15s;}
+    .style-emoji-opt:hover{background:rgba(255,255,255,.1);transform:scale(1.1);}
+    .style-emoji-opt.active{border-color:#fff !important;background:rgba(255,255,255,.15);box-shadow:0 0 0 3px rgba(255,255,255,.15);}
+    .style-room-sel{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:6px;}
+    .style-room-sel-btn{border-radius:9px;padding:8px 5px;font-size:10px;font-weight:600;font-family:inherit;cursor:pointer;border:2px solid transparent;text-align:center;transition:all .18s;}
+    .style-room-sel-btn.active{border-color:rgba(255,255,255,.75);box-shadow:0 0 0 2px rgba(255,255,255,.12);}
+    /* --- Avatar ring CSS ---*/
+    @keyframes av-ring-rotate{to{transform:rotate(360deg)}}
+    @keyframes av-pulse-ring{0%,100%{box-shadow:0 0 0 2px #818cf8,0 0 8px #818cf8}50%{box-shadow:0 0 0 3px #818cf8,0 0 22px #818cf8}}
+    @keyframes av-fire-ring{0%,100%{box-shadow:0 0 5px #f97316,0 0 12px #ef4444}50%{box-shadow:0 0 12px #ffb347,0 0 24px #f97316}}
+    @keyframes av-aura-ring{0%,100%{box-shadow:0 0 0 2px #c084fc,0 0 12px #818cf8}50%{box-shadow:0 0 0 3px #818cf8,0 0 22px #c084fc}}
+    @keyframes av-spark-orbit{0%{transform:rotate(0deg) translateX(20px)}100%{transform:rotate(360deg) translateX(20px)}}
+    .av-ring-wrap{position:relative;flex-shrink:0;align-self:flex-end;border-radius:50%;}
+    .av-ring-wrap>img.msg-avatar-circle{position:relative;z-index:1;display:block;}
+    .av-ring-wrap::before{content:'';position:absolute;inset:-4px;border-radius:50%;z-index:0;opacity:0;transition:opacity .3s;}
+    .av-ring-wrap.ring-spin::before{opacity:1;background:conic-gradient(#38bdf8 0%,#818cf8 33%,#f472b6 66%,#38bdf8 100%);animation:av-ring-rotate 2s linear infinite;}
+    .av-ring-wrap.ring-rainbow::before{opacity:1;background:conic-gradient(red,#f97316,#facc15,#4ade80,#38bdf8,#818cf8,#f472b6,red);animation:av-ring-rotate 2.5s linear infinite;}
+    .av-ring-wrap.ring-fire::before{opacity:1;background:conic-gradient(#ff4500,#ff8c00,#ff6200,#ff3100,#ff4500);animation:av-ring-rotate 1.5s linear infinite;}
+    .av-ring-wrap.ring-particles::before{opacity:1;background:conic-gradient(#facc15,#fb923c,#f472b6,#facc15);animation:av-ring-rotate 1s linear infinite;filter:blur(2px);}
+    .av-ring-wrap.ring-glow>img.msg-avatar-circle{border-color:#38bdf8!important;box-shadow:0 0 0 2px rgba(56,189,248,.45),0 0 12px rgba(56,189,248,.55);}
+    .av-ring-wrap.ring-pulse>img.msg-avatar-circle{border-color:#818cf8!important;animation:av-pulse-ring 2s ease-in-out infinite;}
+    .av-ring-wrap.ring-neon>img.msg-avatar-circle{border-color:#4ade80!important;box-shadow:0 0 0 2px rgba(74,222,128,.55),0 0 16px rgba(74,222,128,.7),0 0 0 4px rgba(74,222,128,.12);}
+    .av-ring-wrap.ring-aura>img.msg-avatar-circle{border-color:#c084fc!important;animation:av-aura-ring 2.2s ease-in-out infinite;}
+    /* Apply rings directly to profile/header avatars */
+    .ring-glow.profile-header-img{border-color:#38bdf8!important;box-shadow:0 0 0 2px rgba(56,189,248,.45),0 0 12px rgba(56,189,248,.55)!important;}
+    .ring-pulse.profile-header-img{border-color:#818cf8!important;animation:av-pulse-ring 2s ease-in-out infinite;}
+    .ring-neon.profile-header-img{border-color:#4ade80!important;box-shadow:0 0 0 2px rgba(74,222,128,.55),0 0 16px rgba(74,222,128,.7)!important;}
+    .ring-fire.profile-header-img{border-color:#f97316!important;animation:av-fire-ring 1.4s ease-in-out infinite;}
+    .ring-aura.profile-header-img{border-color:#c084fc!important;animation:av-aura-ring 2.2s ease-in-out infinite;}
+    .ring-spin.profile-header-img,.ring-rainbow.profile-header-img,.ring-particles.profile-header-img{border-color:#38bdf8!important;outline:3px solid transparent;outline-offset:2px;animation:av-pulse-ring 1.6s ease-in-out infinite;}
+    /* status emoji beside sender name */
+    .msg-status-emoji{font-size:11px;margin-left:3px;line-height:1;vertical-align:middle;display:inline-block;animation:float 3s ease-in-out infinite;}
+    /* closet / room tint overlay */
+    .room-tint{transition:background .4s;}
+
     /* ══════════════════════════════════════════════════════════
        ADMIN CONFIG MODAL
        ══════════════════════════════════════════════════════════ */
@@ -5884,6 +5943,7 @@
       <button class="prf-tab" data-tab="prf-tab-rooms">🏠 Rooms</button>
       <button class="prf-tab" data-tab="prf-tab-links">🔗 Links</button>
       <button class="prf-tab" data-tab="prf-tab-closets">💌 Closets</button>
+      <button class="prf-tab" data-tab="prf-tab-style">🎨 Style</button>
       <button class="prf-tab" data-tab="prf-tab-friends">👥 Friends</button>
       <button class="prf-tab" data-tab="prf-tab-search">🔍 Search</button>
     </div>
@@ -5990,6 +6050,44 @@
       <div class="prf-tab-pane" id="prf-tab-closets">
         <div style="font-size:12px;color:var(--muted);margin-bottom:12px">Your private DM conversations (Closets).</div>
         <div id="closetsList" style="font-size:12px;color:var(--muted)">Loading…</div>
+      </div>
+
+      <!-- TAB: STYLE / PERSONALIZATION -->
+      <div class="prf-tab-pane" id="prf-tab-style">
+        <div class="style-section">
+          <div class="style-section-hdr">👤 Name color in chat</div>
+          <div class="style-color-grid" id="nameColorGrid"></div>
+          <div class="style-name-preview">Preview: <span id="nameColorPreview" style="font-weight:600">Your Name</span></div>
+        </div>
+        <div class="style-section">
+          <div class="style-section-hdr">❤️ Status emoji (shown next to your name)</div>
+          <div class="style-emoji-grid" id="statusEmojiGrid"></div>
+        </div>
+        <div class="style-section">
+          <div class="style-section-hdr">💜 Avatar ring style</div>
+          <div class="style-ring-grid" id="avatarRingGrid"></div>
+        </div>
+        <div class="style-section">
+          <div class="style-section-hdr">🎨 Profile accent color</div>
+          <div class="style-color-grid" id="profileAccentGrid"></div>
+        </div>
+        <div class="style-section">
+          <div class="style-section-hdr">💬 My message bubble <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(only you see this)</span></div>
+          <div class="style-preset-grid" id="bubblePresetGrid"></div>
+        </div>
+        <div class="style-section">
+          <div class="style-section-hdr">🌌 Global chat background <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(only you see this)</span></div>
+          <div class="style-preset-grid" id="chatBgPresetGrid"></div>
+        </div>
+        <div class="style-section" id="styleRoomBgSection">
+          <div class="style-section-hdr">🏠 This room’s background <span id="styleRoomBgLabel" style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--accent-primary)"></span></div>
+          <div class="style-room-sel" id="roomBgGrid"></div>
+          <div style="font-size:10px;color:var(--muted);margin-top:6px">Room-specific backgrounds override the global one.</div>
+        </div>
+        <div class="style-section" id="styleClosetBgSection" style="display:none">
+          <div class="style-section-hdr">💌 This Closet’s color tint <span id="styleClosetBgLabel" style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--accent-primary)"></span></div>
+          <div class="style-color-grid" id="closetTintGrid"></div>
+        </div>
       </div>
 
       <!-- TAB: FRIENDS & REQUESTS -->
@@ -6168,7 +6266,7 @@ const CORS_PROXY      = "https://corsproxy.io/?";
 
 // === APP VERSION & CHANGELOG ===
 // Bump APP_VERSION on every deploy so returning users see "What's New"
-const APP_VERSION        = "9.7.0";
+const APP_VERSION        = "9.8.0";
 const CHANGELOG_SEEN_KEY = "chatP2P_lastVersionSeen";
 const CHANGELOGS_DIR     = "changelogs";
 
@@ -7981,6 +8079,10 @@ function applySessionToUi(){
     initUserAvatar().catch(()=>{});
     // Check for pending friend requests (badge)
     setTimeout(()=>checkPendingFriendRequests().catch(()=>{}), 800);
+    // Start polling our own DM notification inbox
+    if (typeof _startDmNotifPoller === 'function') _startDmNotifPoller();
+    // Load own avatar ring (visual preference)
+    if (typeof _maybeLoadAvatarRing === 'function') _maybeLoadAvatarRing(session.userId);
   }else{
     // Guest: show login/register buttons, hide logged-in row
     if(headerGuestSection) headerGuestSection.style.display = "";
@@ -10569,6 +10671,79 @@ async function _recordDm(uid, dmRoom, peerUid, peerUsername){
   await ghPutJson(path, list, got.sha||null, 'update DMs');
 }
 
+/* ── DM Notification Inbox ────────────────────────────────────────────
+   When user A sends a DM to user B, a small record is written to
+   users/{B}/dm-notifs.json so B gets a browser notification even when
+   they are currently in a different room or the tab is closed.
+   The entry is cleared (read=true) when B's tab calls _checkMyDmNotifs().
+   ───────────────────────────────────────────────────────────────────── */
+
+async function _postDmNotif(targetUid, fromUsername, room, textPreview) {
+  if (!targetUid) return;
+  const path = `users/${targetUid}/dm-notifs.json`;
+  const got  = await ghGetJsonWithSha(path).catch(() => ({ ok: false, obj: null, sha: null }));
+  const list = (got.ok && Array.isArray(got.obj)) ? got.obj : [];
+  list.push({
+    id      : `dn-${Date.now()}-${Math.random().toString(36).slice(2, 5)}`,
+    fromUid : session?.userId || '',
+    from    : fromUsername,
+    room,
+    text    : textPreview,
+    ts      : Date.now(),
+    read    : false,
+  });
+  // Keep the last 100 entries (FIFO)
+  await ghPutJson(path, list.slice(-100), got.sha || null, 'dm notif').catch(() => {});
+}
+
+let _lastDmNotifCheck = parseInt(localStorage.getItem('cp2p_dm_notif_ts') || '0', 10);
+
+async function _checkMyDmNotifs() {
+  const uid = session?.userId;
+  if (!uid) return;
+  try {
+    const path = `users/${uid}/dm-notifs.json`;
+    const got  = await ghGetJsonWithSha(path).catch(() => ({ ok: false }));
+    if (!got.ok || !Array.isArray(got.obj) || !got.obj.length) return;
+
+    const unread = got.obj.filter(n => !n.read && (n.ts || 0) > _lastDmNotifCheck);
+    if (!unread.length) return;
+
+    // Mark all as read (fire-and-forget)
+    const updated = got.obj.map(n => ({ ...n, read: true }));
+    ghPutJson(path, updated, got.sha || null, 'mark dm notifs read').catch(() => {});
+
+    const newTs = Math.max(...unread.map(n => n.ts || 0));
+    _lastDmNotifCheck = newTs;
+    localStorage.setItem('cp2p_dm_notif_ts', String(newTs));
+
+    // One notification per sender/room to avoid spam
+    const seen = new Set();
+    for (const n of unread.sort((a, b) => (a.ts || 0) - (b.ts || 0))) {
+      const key = n.room || n.fromUid;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      addNotif('message', {
+        title  : `\ud83d\udc8c DM from @${n.from || n.fromUid}`,
+        preview: n.text || '',
+        sender : n.from || n.fromUid,
+        room   : n.room || '',
+        sound  : true,
+        browser: true,
+      });
+    }
+  } catch (_) { /* non-fatal */ }
+}
+
+let _dmNotifPollTimer = null;
+function _startDmNotifPoller() {
+  clearInterval(_dmNotifPollTimer);
+  _dmNotifPollTimer = setInterval(() => {
+    if (session?.userId) _checkMyDmNotifs();
+  }, 90_000);
+  if (session?.userId) setTimeout(_checkMyDmNotifs, 5000);
+}
+
 function closeDmList(){ document.getElementById('dmListOverlay').style.display='none'; }
 
 async function openDmListPanel(){
@@ -11047,6 +11222,7 @@ async function loadProfileTabContent(tabId){
     case 'prf-tab-rooms':   await loadMyRoomsTab(uid); break;
     case 'prf-tab-links':   await loadSharedLinksTab(uid); break;
     case 'prf-tab-closets': await loadClosetsTab(uid); break;
+    case 'prf-tab-style':   await loadStyleTab(uid);   break;
     case 'prf-tab-friends': await loadFriendsTab(uid); break;
     case 'prf-tab-search':  loadSearchTab(uid); break;
   }
@@ -11483,6 +11659,286 @@ function _openClosetRowMenu(btn, dm, uid, row, container, fullList, sha){
     }}
   ]);
 }
+
+// ── Style / Personalization Tab ──────────────────────────────────────
+const STYLE_NAME_COLORS = [
+  { id:'default', label:'Default', color: null },
+  { id:'sky',     label:'Sky',     color:'#38bdf8' },
+  { id:'pink',    label:'Pink',    color:'#f472b6' },
+  { id:'violet',  label:'Violet',  color:'#a78bfa' },
+  { id:'lime',    label:'Lime',    color:'#4ade80' },
+  { id:'orange',  label:'Orange',  color:'#fb923c' },
+  { id:'red',     label:'Red',     color:'#f87171' },
+  { id:'gold',    label:'Gold',    color:'#facc15' },
+];
+const STYLE_BUBBLE_PRESETS = [
+  { id:'default',  label:'\ud83d\udd35 Default',  gradient:'linear-gradient(135deg,#38bdf8,#818cf8)' },
+  { id:'sunset',   label:'\ud83c\udf05 Sunset',   gradient:'linear-gradient(135deg,#fb923c,#f43f5e)' },
+  { id:'forest',   label:'\ud83c\udf3f Forest',   gradient:'linear-gradient(135deg,#4ade80,#06b6d4)' },
+  { id:'midnight', label:'\ud83c\udf19 Midnight', gradient:'linear-gradient(135deg,#818cf8,#7c3aed)' },
+  { id:'rose',     label:'\ud83c\udf38 Rose',     gradient:'linear-gradient(135deg,#f472b6,#fb7185)' },
+  { id:'gold',     label:'\u2728 Gold',           gradient:'linear-gradient(135deg,#facc15,#f97316)' },
+];
+const STYLE_CHAT_BG_PRESETS = [
+  { id:'default', label:'\ud83c\udf11 Dark',   bg:'' },
+  { id:'navy',    label:'\ud83c\udf0a Navy',   bg:'linear-gradient(160deg,#0f1729 0%,#0c1a2e 100%)' },
+  { id:'forest',  label:'\ud83c\udf32 Forest', bg:'linear-gradient(160deg,#0a1a0f 0%,#0f2518 100%)' },
+  { id:'slate',   label:'\ud83e\udea8 Slate',  bg:'linear-gradient(160deg,#1e2130 0%,#2d3148 100%)' },
+  { id:'dusk',    label:'\ud83c\udf06 Dusk',   bg:'linear-gradient(160deg,#1a0f2a 0%,#2d1530 100%)' },
+  { id:'warm',    label:'\ud83d\udd06 Warm',   bg:'linear-gradient(160deg,#1a120a 0%,#251a0e 100%)' },
+];
+
+async function loadStyleTab(uid) {
+  // Load current profile for server-side appearance settings
+  const got  = await ghGetJsonWithSha(`users/${uid}/profile.json`).catch(() => ({ ok:false }));
+  const prof = (got.ok && got.obj) ? { ...got.obj } : {};
+  const curNameColor     = prof.nameColor     || null;
+  const curProfileAccent = prof.profileAccent || null;
+  // Local prefs (only you see these)
+  const curBubble = localStorage.getItem('cp2p_bubble_style') || 'default';
+  const curChatBg = localStorage.getItem('cp2p_chat_bg')     || 'default';
+
+  // Helper: re-fetch latest SHA before each profile write to avoid conflicts
+  async function _saveProfField(fields) {
+    const fresh = await ghGetJsonWithSha(`users/${uid}/profile.json`).catch(() => ({ ok:false }));
+    const updated = fresh.ok ? { ...fresh.obj, ...fields } : { ...fields };
+    await ghPutJson(`users/${uid}/profile.json`, updated, fresh.sha || null, 'update style');
+  }
+
+  // ── Name color swatches ──────────────────────────────────────────
+  const ncGrid = document.getElementById('nameColorGrid');
+  const ncPrev = document.getElementById('nameColorPreview');
+  if (ncGrid) {
+    ncGrid.innerHTML = '';
+    STYLE_NAME_COLORS.forEach(sw => {
+      const div = document.createElement('div');
+      div.className  = 'style-color-swatch' + (curNameColor === sw.color ? ' active' : '');
+      div.style.background = sw.color || 'rgba(255,255,255,.18)';
+      div.title = sw.label;
+      if (!sw.color) { div.style.border = '2px dashed rgba(255,255,255,.3)'; div.style.background = 'transparent'; }
+      div.onclick = async () => {
+        ncGrid.querySelectorAll('.style-color-swatch').forEach(s => s.classList.remove('active'));
+        div.classList.add('active');
+        if (ncPrev) ncPrev.style.color = sw.color || 'var(--txt)';
+        _nameColorCache[uid] = sw.color;
+        // Update all existing message sender spans immediately
+        if (sw.color) {
+          document.querySelectorAll(`.msg-sender-name[data-uid="${uid}"]`).forEach(sp => { sp.style.color = sw.color; });
+        } else {
+          document.querySelectorAll(`.msg-sender-name[data-uid="${uid}"]`).forEach(sp => { sp.style.color = ''; });
+        }
+        await _saveProfField({ nameColor: sw.color }).catch(() => showToast('Could not save', 'error'));
+        showToast('\u2728 Name color saved!', 'success', 2000);
+      };
+      ncGrid.appendChild(div);
+    });
+    if (ncPrev) ncPrev.style.color = curNameColor || 'var(--txt)';
+  }
+
+  // ── Profile accent swatches ──────────────────────────────────────
+  const paGrid = document.getElementById('profileAccentGrid');
+  if (paGrid) {
+    paGrid.innerHTML = '';
+    STYLE_NAME_COLORS.forEach(sw => {
+      const div = document.createElement('div');
+      div.className  = 'style-color-swatch' + (curProfileAccent === sw.color ? ' active' : '');
+      div.style.background = sw.color || 'rgba(255,255,255,.18)';
+      div.title = sw.label;
+      if (!sw.color) { div.style.border = '2px dashed rgba(255,255,255,.3)'; div.style.background = 'transparent'; }
+      div.onclick = async () => {
+        paGrid.querySelectorAll('.style-color-swatch').forEach(s => s.classList.remove('active'));
+        div.classList.add('active');
+        await _saveProfField({ profileAccent: sw.color }).catch(() => showToast('Could not save', 'error'));
+        showToast('\u2728 Accent saved!', 'success', 2000);
+      };
+      paGrid.appendChild(div);
+    });
+  }
+
+  // ── Bubble presets ───────────────────────────────────────────────
+  const bpGrid = document.getElementById('bubblePresetGrid');
+  if (bpGrid) {
+    bpGrid.innerHTML = '';
+    STYLE_BUBBLE_PRESETS.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'style-preset-btn' + (curBubble === p.id ? ' active' : '');
+      btn.style.cssText = `background:${p.gradient};color:#fff;border-color:${curBubble===p.id?'rgba(255,255,255,.8)':'transparent'}`;
+      btn.textContent = p.label;
+      btn.onclick = () => {
+        bpGrid.querySelectorAll('.style-preset-btn').forEach(b => { b.classList.remove('active'); b.style.borderColor = 'transparent'; });
+        btn.classList.add('active'); btn.style.borderColor = 'rgba(255,255,255,.8)';
+        localStorage.setItem('cp2p_bubble_style', p.id);
+        _applyBubbleStyle(p.id);
+        showToast('Bubble style updated!', 'success', 2000);
+      };
+      bpGrid.appendChild(btn);
+    });
+  }
+
+  // ── Chat background presets ──────────────────────────────────────
+  const cbGrid = document.getElementById('chatBgPresetGrid');
+  if (cbGrid) {
+    cbGrid.innerHTML = '';
+    STYLE_CHAT_BG_PRESETS.forEach(p => {
+      const btn = document.createElement('button');
+      btn.className = 'style-preset-btn' + (curChatBg === p.id ? ' active' : '');
+      btn.style.cssText = `background:${p.bg||'rgba(255,255,255,.06)'};color:#ccc;border-color:${curChatBg===p.id?'rgba(255,255,255,.8)':'transparent'}`;
+      btn.textContent = p.label;
+      btn.onclick = () => {
+        cbGrid.querySelectorAll('.style-preset-btn').forEach(b => { b.classList.remove('active'); b.style.borderColor = 'transparent'; });
+        btn.classList.add('active'); btn.style.borderColor = 'rgba(255,255,255,.8)';
+        localStorage.setItem('cp2p_chat_bg', p.id);
+        _applyChatBg(p.id);
+        showToast('Chat background updated!', 'success', 2000);
+      };
+      cbGrid.appendChild(btn);
+    });
+  }
+
+  // ── Avatar ring style ────────────────────────────────────────────
+  const ringGrid = document.getElementById('avatarRingGrid');
+  if (ringGrid) {
+    ringGrid.innerHTML = '';
+    const curRing = prof?.avatarRing || 'none';
+    STYLE_RING_PRESETS.forEach(p => {
+      const cell = document.createElement('div');
+      cell.className = 'style-ring-opt' + (curRing === p.id ? ' active' : '');
+      cell.title = p.label;
+      // Demo circle
+      const demo = document.createElement('div');
+      demo.className = 'ring-demo-wrap';
+      if (p.gradient) {
+        demo.innerHTML = `<div class="ring-demo-before" style="position:absolute;inset:-3px;border-radius:50%;background:${p.gradient};animation:av-ring-rotate 2s linear infinite;z-index:0"></div>`;
+      }
+      const icon = document.createElement('div');
+      icon.className = 'ring-demo-img';
+      icon.style.cssText = p.color ? `border-color:${p.color};box-shadow:0 0 8px ${p.color}` : '';
+      if (p.id === 'ring-particles') icon.textContent = '✨';
+      else icon.textContent = p.id === 'none' ? '—' : '👤';
+      demo.appendChild(icon);
+      const lbl = document.createElement('span');
+      lbl.textContent = p.label;
+      cell.appendChild(demo);
+      cell.appendChild(lbl);
+      // Click
+      cell.onclick = async () => {
+        ringGrid.querySelectorAll('.style-ring-opt').forEach(c => c.classList.remove('active'));
+        cell.classList.add('active');
+        await _saveProfField({ avatarRing: p.id });
+        _avatarRingCache[uid] = p.id;
+        _applyAvatarRingToAll(uid, p.id);
+        showToast(`Ring: ${p.label}`, 'success', 2000);
+      };
+      ringGrid.appendChild(cell);
+    });
+  }
+
+  // ── Status emoji ────────────────────────────────────────────────
+  const emojiGrid = document.getElementById('statusEmojiGrid');
+  if (emojiGrid) {
+    emojiGrid.innerHTML = '';
+    const curEmoji = prof?.statusEmoji ? STYLE_STATUS_EMOJIS.find(e=>e.emoji===prof.statusEmoji)?.id || 'none' : 'none';
+    STYLE_STATUS_EMOJIS.forEach(e => {
+      const btn = document.createElement('div');
+      btn.className = 'style-emoji-opt' + (curEmoji === e.id ? ' active' : '');
+      btn.title = e.label;
+      btn.textContent = e.emoji || '✕';
+      btn.onclick = async () => {
+        emojiGrid.querySelectorAll('.style-emoji-opt').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        await _saveProfField({ statusEmoji: e.id === 'none' ? '' : e.emoji });
+        _statusEmojiCache[uid] = e.id === 'none' ? null : e.emoji;
+        showToast(`Status emoji set!`, 'success', 2000);
+      };
+      emojiGrid.appendChild(btn);
+    });
+  }
+
+  // ── Per-room background ─────────────────────────────────────────
+  const roomBgSec = document.getElementById('styleRoomBgSection');
+  const roomBgGrid = document.getElementById('roomBgGrid');
+  const roomBgLabel = document.getElementById('styleRoomBgLabel');
+  if (roomBgGrid) {
+    roomBgGrid.innerHTML = '';
+    const inRoom = typeof currentRoom !== 'undefined' && currentRoom && !isDmRoom(currentRoom);
+    if (inRoom) {
+      const roomBgKey = `cp2p_room_bg_${currentRoom}`;
+      const curRoomBg = localStorage.getItem(roomBgKey) || 'default';
+      if (roomBgLabel) roomBgLabel.textContent = `(#${currentRoom})`;
+      STYLE_ROOM_BG_PRESETS.forEach(p => {
+        const btn = document.createElement('button');
+        btn.className = 'style-room-sel-btn' + (curRoomBg === p.id ? ' active' : '');
+        btn.style.cssText = `background:${p.bg||'rgba(255,255,255,.05)'};color:#ccc;font-family:inherit`;
+        btn.textContent = p.label;
+        btn.onclick = () => {
+          roomBgGrid.querySelectorAll('.style-room-sel-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          localStorage.setItem(roomBgKey, p.id);
+          _applyRoomBg(currentRoom);
+          showToast(`Room background: ${p.label}`, 'success', 2000);
+        };
+        roomBgGrid.appendChild(btn);
+      });
+    } else {
+      if (roomBgSec) roomBgSec.style.opacity = '0.45';
+      if (roomBgLabel) roomBgLabel.textContent = '(join a room first)';
+    }
+  }
+
+  // ── Per-closet tint ──────────────────────────────────────────────
+  const closetSec = document.getElementById('styleClosetBgSection');
+  const closetGrid = document.getElementById('closetTintGrid');
+  const closetLabel = document.getElementById('styleClosetBgLabel');
+  if (closetSec && closetGrid) {
+    const inDm = typeof currentRoom !== 'undefined' && currentRoom && isDmRoom(currentRoom);
+    closetSec.style.display = inDm ? '' : 'none';
+    if (inDm) {
+      closetGrid.innerHTML = '';
+      const closetKey = `cp2p_closet_tint_${currentRoom}`;
+      const curTint = localStorage.getItem(closetKey) || 'none';
+      if (closetLabel) closetLabel.textContent = `(${getDmDisplayTitle(currentRoom)||currentRoom})`;
+      STYLE_CLOSET_TINTS.forEach(t => {
+        const sw = document.createElement('div');
+        sw.className = 'style-color-swatch' + (curTint === t.id ? ' active' : '');
+        sw.style.cssText = t.bg ? `background:${t.bg};border:2px solid ${t.border||'transparent'}` : 'background:rgba(255,255,255,.1);border:2px dashed rgba(255,255,255,.25)';
+        sw.title = t.label;
+        sw.onclick = () => {
+          closetGrid.querySelectorAll('.style-color-swatch').forEach(s => s.classList.remove('active'));
+          sw.classList.add('active');
+          localStorage.setItem(closetKey, t.id);
+          _applyClosetTint(currentRoom);
+          showToast(`Closet tint: ${t.label}`, 'success', 2000);
+        };
+        closetGrid.appendChild(sw);
+      });
+    }
+  }
+}
+
+function _applyBubbleStyle(presetId) {
+  const p = STYLE_BUBBLE_PRESETS.find(x => x.id === presetId) || STYLE_BUBBLE_PRESETS[0];
+  let s = document.getElementById('__bubbleStyleOverride');
+  if (!s) { s = document.createElement('style'); s.id = '__bubbleStyleOverride'; document.head.appendChild(s); }
+  if (presetId === 'default') { s.textContent = ''; return; }
+  s.textContent = `.msg.me { background: ${p.gradient} !important; border-color: transparent !important; }`;
+}
+
+function _applyChatBg(presetId) {
+  const p = STYLE_CHAT_BG_PRESETS.find(x => x.id === presetId) || STYLE_CHAT_BG_PRESETS[0];
+  const msgs = document.getElementById('messages');
+  if (msgs) msgs.style.background = p.bg || '';
+}
+
+function _applyStoredAppearance() {
+  const bubbleId = localStorage.getItem('cp2p_bubble_style') || 'default';
+  const chatBgId = localStorage.getItem('cp2p_chat_bg')     || 'default';
+  if (bubbleId !== 'default') _applyBubbleStyle(bubbleId);
+  if (chatBgId  !== 'default') _applyChatBg(chatBgId);
+  // Load own avatar ring (session may not be set yet — retried on login)
+  if (typeof session !== 'undefined' && session?.userId) _maybeLoadAvatarRing(session.userId);
+}
+// Apply on page load so saved prefs persist across sessions
+_applyStoredAppearance();
 
 async function loadFriendsTab(uid){
   const inEl=document.getElementById('friendIncomingList');
@@ -12690,6 +13146,214 @@ let running = false;
 // DM peer cache: dmRoom → { peerUid, peerUsername, nickname }
 const dmPeerCache = {};
 
+// User name-color cache: userId → hex string | null (null = tried, no color set)
+const _nameColorCache = {};
+const _nameColorFetchPending = new Set();
+
+function _maybeLoadNameColor(userId) {
+  if (!userId || userId in _nameColorCache || _nameColorFetchPending.has(userId)) return;
+  _nameColorFetchPending.add(userId);
+  ghGetJsonWithSha(`users/${userId}/profile.json`)
+    .then(r => {
+      const nc = (r.ok && r.obj && r.obj.nameColor) ? r.obj.nameColor : null;
+      _nameColorCache[userId] = nc;
+      if (nc) {
+        // Retroactively colour all existing sender-name spans for this user
+        document.querySelectorAll(`.msg-sender-name[data-uid="${userId}"]`).forEach(sp => { sp.style.color = nc; });
+      }
+    })
+    .catch(() => { _nameColorCache[userId] = null; })
+    .finally(() => _nameColorFetchPending.delete(userId));
+}
+
+// ─── Avatar ring cache & loaders ───────────────────────────────────────────
+const _avatarRingCache = {};   // userId → ring-class string | 'none' | null
+const _avatarRingFetchPending = new Set();
+
+const STYLE_RING_PRESETS = [
+  { id:'none',          label:'None',     cls:null },
+  { id:'ring-glow',     label:'Glow',     cls:'ring-glow',     color:'#38bdf8' },
+  { id:'ring-pulse',    label:'Pulse',    cls:'ring-pulse',    color:'#818cf8' },
+  { id:'ring-fire',     label:'Fire',     cls:'ring-fire',     color:null,  gradient:'conic-gradient(#ff4500,#ff8c00,#ff6200,#ff3100,#ff4500)' },
+  { id:'ring-neon',     label:'Neon',     cls:'ring-neon',     color:'#4ade80' },
+  { id:'ring-aura',     label:'Aura',     cls:'ring-aura',     color:'#c084fc' },
+  { id:'ring-spin',     label:'Spin',     cls:'ring-spin',     color:null,  gradient:'conic-gradient(#38bdf8 0%,#818cf8 33%,#f472b6 66%,#38bdf8 100%)' },
+  { id:'ring-rainbow',  label:'Rainbow',  cls:'ring-rainbow',  color:null,  gradient:'conic-gradient(red,#f97316,#facc15,#4ade80,#38bdf8,#818cf8,#f472b6,red)' },
+  { id:'ring-particles',label:'✨ Sparks',cls:'ring-particles',color:null,  gradient:'conic-gradient(#facc15,#fb923c,#f472b6,#facc15)' },
+];
+const _ALL_RING_CLASSES = STYLE_RING_PRESETS.filter(p=>p.cls).map(p=>p.cls);
+
+function _applyAvatarRingToAll(userId, ringId) {
+  const preset = STYLE_RING_PRESETS.find(p=>p.id===ringId) || STYLE_RING_PRESETS[0];
+  // Ring-wraps in chat (av-ring-wrap elements whose img has data-userId)
+  document.querySelectorAll(`.av-ring-wrap`).forEach(wrap => {
+    const img = wrap.querySelector(`img.msg-avatar-circle[data-userId="${userId}"]`);
+    if (!img) return;
+    wrap.classList.remove(..._ALL_RING_CLASSES);
+    if (preset.cls) wrap.classList.add(preset.cls);
+  });
+  // Header/profile screen images
+  ['profile-header-img', 'ups-pfp-img', 'ups-avatar'].forEach(cls => {
+    document.querySelectorAll(`.${cls}[data-uid="${userId}"]`).forEach(el => {
+      el.classList.remove(..._ALL_RING_CLASSES);
+      if (preset.cls) el.classList.add(preset.cls);
+    });
+  });
+  // Own profile header img doesn't have data-uid, handled separately
+  if (userId === session?.userId) {
+    const hImg = document.querySelector('.profile-header-img');
+    if (hImg) { hImg.classList.remove(..._ALL_RING_CLASSES); if (preset.cls) hImg.classList.add(preset.cls); }
+    _handleOwnRingParticles(ringId);
+  }
+}
+
+function _maybeLoadAvatarRing(userId) {
+  if (!userId || userId in _avatarRingCache || _avatarRingFetchPending.has(userId)) return;
+  _avatarRingFetchPending.add(userId);
+  ghGetJsonWithSha(`users/${userId}/profile.json`)
+    .then(r => {
+      const ring = (r.ok && r.obj?.avatarRing) ? r.obj.avatarRing : 'none';
+      _avatarRingCache[userId] = ring;
+      if (ring && ring !== 'none') _applyAvatarRingToAll(userId, ring);
+    })
+    .catch(() => { _avatarRingCache[userId] = 'none'; })
+    .finally(() => _avatarRingFetchPending.delete(userId));
+}
+
+// ─── Particle canvas on own header avatar ──────────────────────────────────
+let _particleRAF = null;
+function _handleOwnRingParticles(ringId) {
+  const existing = document.getElementById('avParticleCanvas');
+  if (ringId !== 'ring-particles') { if (existing) { cancelAnimationFrame(_particleRAF); existing.remove(); } return; }
+  if (existing) return; // already running
+  const btn = document.querySelector('.profile-avatar-btn');
+  if (!btn) return;
+  const size = btn.offsetWidth || 44;
+  const cvs = document.createElement('canvas');
+  cvs.id = 'avParticleCanvas';
+  cvs.width = size + 40; cvs.height = size + 40;
+  Object.assign(cvs.style, { position:'absolute', top:'-20px', left:'-20px', pointerEvents:'none', zIndex:'10', borderRadius:'50%' });
+  btn.style.position = 'relative';
+  btn.appendChild(cvs);
+  const ctx = cvs.getContext('2d');
+  const cx = cvs.width/2, cy = cvs.height/2, r = size/2 + 6;
+  const particles = Array.from({length:18}, (_,i) => ({
+    angle: (i/18)*Math.PI*2, speed:(Math.random()*.008+.005), radius:r+(Math.random()*8-4),
+    size:Math.random()*2.5+1, alpha:Math.random(), fade:.015+Math.random()*.01,
+    color:['#facc15','#fb923c','#f472b6','#38bdf8','#a78bfa'][Math.floor(Math.random()*5)]
+  }));
+  function frame() {
+    ctx.clearRect(0,0,cvs.width,cvs.height);
+    particles.forEach(p => {
+      p.angle += p.speed; p.alpha += p.fade;
+      if (p.alpha > 1 || p.alpha < 0) p.fade *= -1;
+      const px = cx + Math.cos(p.angle)*p.radius;
+      const py = cy + Math.sin(p.angle)*p.radius;
+      ctx.beginPath(); ctx.arc(px, py, p.size, 0, Math.PI*2);
+      ctx.fillStyle = p.color + Math.round(p.alpha*255).toString(16).padStart(2,'0');
+      ctx.fill();
+    });
+    _particleRAF = requestAnimationFrame(frame);
+  }
+  frame();
+}
+
+// ─── Status emoji cache & loader ───────────────────────────────────────────
+const _statusEmojiCache = {};   // userId → emoji string | null (null = none)
+const _statusEmojiFetchPending = new Set();
+
+// Reuse the same profile.json fetch — piggyback on ring fetch where possible
+function _maybeLoadStatusEmoji(userId) {
+  if (!userId || userId in _statusEmojiCache || _statusEmojiFetchPending.has(userId)) return;
+  _statusEmojiFetchPending.add(userId);
+  ghGetJsonWithSha(`users/${userId}/profile.json`)
+    .then(r => {
+      const em = (r.ok && r.obj?.statusEmoji) ? r.obj.statusEmoji : null;
+      _statusEmojiCache[userId] = em;
+      if (em) {
+        // Retroactively add emoji after existing sender-name spans
+        document.querySelectorAll(`.msg-sender-name[data-uid="${userId}"]`).forEach(sp => {
+          if (!sp.nextElementSibling?.classList.contains('msg-status-emoji')) {
+            const span = document.createElement('span');
+            span.className = 'msg-status-emoji'; span.textContent = em;
+            sp.after(span);
+          }
+        });
+      }
+    })
+    .catch(() => { _statusEmojiCache[userId] = null; })
+    .finally(() => _statusEmojiFetchPending.delete(userId));
+}
+
+const STYLE_STATUS_EMOJIS = [
+  {id:'none',emoji:'',label:'None'}, {id:'fire',emoji:'🔥',label:'Lit'}, {id:'star',emoji:'⭐',label:'Star'},
+  {id:'crown',emoji:'👑',label:'Crown'}, {id:'zap',emoji:'⚡',label:'Zap'}, {id:'gem',emoji:'💎',label:'Gem'},
+  {id:'rose',emoji:'🌹',label:'Rose'}, {id:'moon',emoji:'🌙',label:'Moon'}, {id:'music',emoji:'🎵',label:'Music'},
+  {id:'ghost',emoji:'👻',label:'Boo'}, {id:'alien',emoji:'👽',label:'Alien'}, {id:'robot',emoji:'🤖',label:'Bot'},
+  {id:'dragon',emoji:'🐲',label:'Dragon'},{id:'cat',emoji:'😺',label:'Cat'}, {id:'heart',emoji:'🩵',label:'Heart'},
+];
+
+// ─── Per-room background ────────────────────────────────────────────────────
+const STYLE_ROOM_BG_PRESETS = [
+  { id:'default', label:'Default', bg:'', gradient:'' },
+  { id:'night',   label:'Night',   bg:'linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%)' },
+  { id:'forest',  label:'Forest',  bg:'linear-gradient(135deg,#0a2e1a 0%,#1a4731 50%,#0d3320 100%)' },
+  { id:'ocean',   label:'Ocean',   bg:'linear-gradient(135deg,#0a2540 0%,#0e4b6e 50%,#052733 100%)' },
+  { id:'rose',    label:'Rose',    bg:'linear-gradient(135deg,#2d0a1e 0%,#4a1535 50%,#1e0515 100%)' },
+  { id:'ember',   label:'Ember',   bg:'linear-gradient(135deg,#2d0d00 0%,#4a1a00 50%,#1e0700 100%)' },
+  { id:'cyber',   label:'Cyber',   bg:'linear-gradient(135deg,#00040f 0%,#001025 50%,#00071a 100%)',
+    noise:'rgba(0,240,255,.035)' },
+  { id:'soft',    label:'Soft',    bg:'linear-gradient(135deg,#1a1a2e 0%,#16213e 50%,#0f3460 100%)' },
+  { id:'ash',     label:'Ash',     bg:'linear-gradient(135deg,#1a1a1a 0%,#2d2d2d 50%,#111 100%)' },
+];
+
+function _applyRoomBg(roomName) {
+  const key = roomName ? `cp2p_room_bg_${roomName}` : null;
+  const id = key ? (localStorage.getItem(key) || 'default') : 'default';
+  const preset = STYLE_ROOM_BG_PRESETS.find(p=>p.id===id) || STYLE_ROOM_BG_PRESETS[0];
+  const msgEl = document.getElementById('messages');
+  if (!msgEl) return;
+  if (preset.bg) {
+    msgEl.style.background = preset.bg;
+    msgEl.style.backgroundAttachment = 'fixed';
+  } else {
+    msgEl.style.background = '';
+    msgEl.style.backgroundAttachment = '';
+    // Restore global bg if set
+    const globalId = localStorage.getItem('cp2p_chat_bg') || 'default';
+    if (globalId !== 'default') _applyChatBg(globalId);
+  }
+}
+
+// ─── Per-closet tint presets ────────────────────────────────────────────────
+const STYLE_CLOSET_TINTS = [
+  { id:'none',     label:'None',     bg:'' },
+  { id:'violet',   label:'Violet',   bg:'rgba(139,92,246,.13)', border:'#7c3aed' },
+  { id:'rose',     label:'Rose',     bg:'rgba(244,63,94,.12)',  border:'#e11d48' },
+  { id:'sky',      label:'Sky',      bg:'rgba(56,189,248,.12)', border:'#0ea5e9' },
+  { id:'amber',    label:'Amber',    bg:'rgba(251,191,36,.11)', border:'#d97706' },
+  { id:'emerald',  label:'Emerald',  bg:'rgba(52,211,153,.12)', border:'#059669' },
+  { id:'pink',     label:'Pink',     bg:'rgba(236,72,153,.12)', border:'#db2777' },
+  { id:'slate',    label:'Slate',    bg:'rgba(148,163,184,.09)',border:'#64748b' },
+];
+
+function _applyClosetTint(dmRoom) {
+  const key = `cp2p_closet_tint_${dmRoom}`;
+  const id = localStorage.getItem(key) || 'none';
+  const preset = STYLE_CLOSET_TINTS.find(p=>p.id===id) || STYLE_CLOSET_TINTS[0];
+  const msgEl = document.getElementById('messages');
+  if (!msgEl) return;
+  if (preset.bg) {
+    msgEl.style.background = preset.bg;
+    if (preset.border) msgEl.style.borderLeft = `3px solid ${preset.border}`;
+  } else {
+    msgEl.style.background = '';
+    msgEl.style.borderLeft = '';
+    const globalId = localStorage.getItem('cp2p_chat_bg') || 'default';
+    if (globalId !== 'default') _applyChatBg(globalId);
+  }
+}
+
 // Last known master state
 let masterLastValue = false;
 
@@ -12836,18 +13500,21 @@ function checkNewMessages(messages){
           });
         }catch(_){}
       } else {
-        // One generic message notification per room per sync batch (avoids flooding the center)
+        // One notification per room per sync batch to avoid flooding
         const msgRoom = msg.room || currentRoom || '';
         if(!notifiedRooms.has(msgRoom)){
           notifiedRooms.add(msgRoom);
+          const _isDm = isDmRoom(msgRoom);
           try{
             addNotif('message', {
-              title  : `New message in ${msgRoom ? '#'+msgRoom : 'chat'}`,
+              title  : _isDm
+                ? `💌 DM from ${msg.sender}`
+                : `New message in ${msgRoom ? '#'+msgRoom : 'chat'}`,
               preview: (msg.text || '').slice(0, 80),
               sender : msg.sender,
               room   : msgRoom,
-              sound  : false,   // sound only for mentions; avoid noise on every poll
-              browser: false
+              sound  : _isDm,    // audible alert for direct messages
+              browser: _isDm,    // OS notification for direct messages
             });
           }catch(_){}
         }
@@ -14834,18 +15501,51 @@ function createMessageElement(m){
   const hh = String(d.getHours()).padStart(2,"0");
   const mm = String(d.getMinutes()).padStart(2,"0");
   const timeText = document.createElement("span");
-  
+  const senderSpan = document.createElement("span");
+  senderSpan.className = 'msg-sender-name';
+  senderSpan.dataset.uid = m.userId || '';
+  senderSpan.textContent = m.sender;
+  // Apply cached name color (or kick off async fetch)
+  if (!isMine && m.userId) {
+    const _nc = _nameColorCache[m.userId];
+    if (_nc) senderSpan.style.color = _nc;
+    else     _maybeLoadNameColor(m.userId);
+    // Status emoji
+    const _se = _statusEmojiCache[m.userId];
+    if (_se) {
+      const seSpan = document.createElement('span');
+      seSpan.className = 'msg-status-emoji'; seSpan.textContent = _se;
+      senderSpan.after(seSpan);
+    } else if (!(_se === null)) {
+      _maybeLoadStatusEmoji(m.userId);
+    }
+  }
+
   // 🗑️ Mostrar info de borrado si aplica
   if(m.deleted && m.deletedAt){
     const deletedDate = new Date(m.deletedAt);
     const delHH = String(deletedDate.getHours()).padStart(2,"0");
     const delMM = String(deletedDate.getMinutes()).padStart(2,"0");
-    timeText.textContent = `${hh}:${mm} · ${m.sender} · deleted at ${delHH}:${delMM}`;
+    timeText.textContent = `${hh}:${mm} · `;
     timeText.style.color = 'var(--muted)';
+    senderSpan.style.color = 'var(--muted)';
+    const delSpan = document.createElement('span');
+    delSpan.textContent = ` · deleted at ${delHH}:${delMM}`;
+    delSpan.style.opacity = '0.55';
+    meta.appendChild(timeText);
+    meta.appendChild(senderSpan);
+    meta.appendChild(delSpan);
   }else{
-    timeText.textContent = `${hh}:${mm} · ${m.sender}${m.edited ? " · edited":""}`;
+    timeText.textContent = `${hh}:${mm} · `;
+    meta.appendChild(timeText);
+    meta.appendChild(senderSpan);
+    if (m.edited) {
+      const editSpan = document.createElement('span');
+      editSpan.textContent = ' · edited';
+      editSpan.style.opacity = '0.5';
+      meta.appendChild(editSpan);
+    }
   }
-  meta.appendChild(timeText);
 
   // Role badge: show 👑 Owner or 🛡️ Admin on messages authored by owner/admin
   if(!m.deleted && m.userId && currentRoom){
@@ -14910,9 +15610,16 @@ function createMessageElement(m){
   kebabBtn.addEventListener('click', e=>{ e.stopPropagation(); openMsgCtxMenu(kebabBtn, m); });
   kebabWrap.appendChild(kebabBtn);
 
-  // Assemble row: [avatar][bubble][quick-react][kebab]
-  // (me-row uses flex-direction:row-reverse so they appear on the left of own messages)
-  row.appendChild(avatarEl);
+  // Assemble row: [av-ring-wrap > avatar][bubble][quick-react][kebab]
+  const _ringWrap = document.createElement('div');
+  _ringWrap.className = 'av-ring-wrap';
+  if (m.userId) {
+    const _cachedRing = _avatarRingCache[m.userId];
+    if (_cachedRing && _cachedRing !== 'none') _ringWrap.classList.add(_cachedRing);
+    else if (!_cachedRing) _maybeLoadAvatarRing(m.userId);
+  }
+  _ringWrap.appendChild(avatarEl);
+  row.appendChild(_ringWrap);
   row.appendChild(wrap);
   row.appendChild(kebabWrap);
 
@@ -15876,6 +16583,14 @@ async function sendMessage(){
       
       // Refresh presence list occasionally
       await maybeRefreshPresence();
+
+      // If this is a DM room, push a notif entry to the peer's inbox file
+      if (isDmRoom(currentRoom)) {
+        const _peer = dmPeerCache[currentRoom];
+        if (_peer?.peerUid && _peer.peerUid !== userId) {
+          _postDmNotif(_peer.peerUid, sender, currentRoom, text.slice(0, 100)).catch(() => {});
+        }
+      }
       
       // After a brief moment, update to delivered
       setTimeout(() => {
@@ -17119,6 +17834,7 @@ function _swPostState(){
     ghBranch      : GH_BRANCH,
     roomsCellsBase: 'rooms-cells',   // must match ROOMS_CELLS_BASE
     masterRoomsDir: 'master-rooms',  // must match MASTER_ROOMS_DIR
+    myUid         : session?.userId || null, // for DM inbox background polling
   };
   _swRegistration.active.postMessage({ type:'update-poll-state', state });
 }
@@ -17417,6 +18133,9 @@ async function _doJoinRoom(r){
         }, 800);
       }
     }catch(_){}
+
+    // Apply per-room or per-closet background
+    if (_isDm) { _applyClosetTint(r); } else { _applyRoomBg(r); }
 
     log(`✨ Joined "${currentRoom}" as ${displayName}.`, "INFO");
   }catch(e){
