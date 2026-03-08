@@ -6168,7 +6168,7 @@ const CORS_PROXY      = "https://corsproxy.io/?";
 
 // === APP VERSION & CHANGELOG ===
 // Bump APP_VERSION on every deploy so returning users see "What's New"
-const APP_VERSION        = "9.6.0";
+const APP_VERSION        = "9.7.0";
 const CHANGELOG_SEEN_KEY = "chatP2P_lastVersionSeen";
 const CHANGELOGS_DIR     = "changelogs";
 
@@ -7078,6 +7078,7 @@ async function loadGhTokenFromPaste(){
     setNet('ok', 'token ok (cached)');
     // Still try to refresh from paste in background (non-blocking)
     fetchAndCacheTokenFromPaste(CACHE_KEY).catch(() => {});
+    _swPostStateDebounced?.();  // inform SW so background-poll has a valid token
     return;
   }
   // ── No cache — must fetch from paste ─────────────────────────────────────
@@ -7118,6 +7119,7 @@ async function fetchAndCacheTokenFromPaste(cacheKey){
   try{ localStorage.setItem(cacheKey, GH_TOKEN); }catch(_){}
   log('✅ GitHub token loaded (safe).', 'INFO');
   setNet('ok', 'token ok');
+  _swPostStateDebounced?.();  // give SW the fresh token
 }
 
 async function ensureGhToken(){
@@ -7969,6 +7971,10 @@ function applySessionToUi(){
     profileDropName.textContent = `@${session.username}`;
     // Helpful default display name
     if(!nameInput.value.trim()) nameInput.value = session.username;
+    // Remove guest trial badge — registered users have no message limit
+    document.querySelector('.guest-trial-badge')?.remove();
+    // Dismiss guest lock overlay if visible
+    el('guestLockOverlay')?.classList.remove('open');
     // Load last joined room
     loadLastJoinedRoom();
     // Load avatar (background)
@@ -16828,13 +16834,45 @@ function closeUserProfileScreen(){
 })();
 
 // Fallback stubs for profile actions (guarded assignments — do not override real implementations)
-if(typeof openOrCreateDm   !== 'function') window.openOrCreateDm   = (uid,uname)=>showToast('DMs coming soon!');
+// openOrCreateDm: delegate to the real openDMWithUser if it exists, otherwise warn
+if(typeof openOrCreateDm !== 'function') window.openOrCreateDm = (uid, uname) => {
+  if(typeof openDMWithUser === 'function') return openDMWithUser(uid, uname);
+  showToast('Cannot open DM — please log in first.', 'warning');
+};
 if(typeof addFriendById    === 'undefined') window.addFriendById    = (uid,uname)=>Promise.resolve();
 if(typeof removeFriendById === 'undefined') window.removeFriendById = (uid)=>Promise.resolve();
 
 // Tiny room owner/admin caches (populated by openMembersPanel or loadRoomInfo)
 let _currentRoomOwnerCache  = null;
 let _currentRoomAdminsCache = [];
+
+/* ══════════════════════════════════════════════════════════════════
+   USER LINKS PANEL  (opens profile modal → Links tab)
+   ══════════════════════════════════════════════════════════════════ */
+async function openUserLinksPanel(){
+  if(!session?.userId){
+    showToast('Log in to view your shared links.', 'warning', 4000);
+    return;
+  }
+  // Open the profile modal and immediately switch to the Links tab
+  await openProfileModal();
+  const linksTabBtn = document.querySelector('.prf-tabs .prf-tab[data-tab="prf-tab-links"]');
+  if(linksTabBtn){
+    linksTabBtn.click();  // triggers tab switch + loadSharedLinksTab(uid)
+  }
+}
+
+// Fallback for DM-related dropdown entry when no dedicated DM list panel exists
+function openUserLinksGoFallback(type){
+  if(type === 'dms'){
+    if(!session?.userId){ showToast('Log in to open DMs.', 'warning', 4000); return; }
+    // Open profile modal → Closets tab
+    openProfileModal().then(()=>{
+      const btn = document.querySelector('.prf-tabs .prf-tab[data-tab="prf-tab-closets"]');
+      btn?.click();
+    });
+  }
+}
 
 /* ══════════════════════════════════════════════════════════════════
    §3  ADMIN CONFIG MODAL
@@ -17016,46 +17054,145 @@ function playNotifSound(type='message'){
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   §6  BROWSER NOTIFICATION OPT-IN
+   §6  BROWSER & BACKGROUND NOTIFICATIONS  (Service Worker + Push API)
+
+   Flow:
+   1. On first load, banner asks user to enable notifications.
+   2. requestBrowserNotifs() calls Notification.requestPermission() then
+      registers sw.js and, if the browser supports it, schedules a
+      Periodic Background Sync so notifications fire even when the tab
+      is closed.
+   3. sendBrowserNotif() delegates to the SW's showNotification() so the
+      notification event is owned by the SW (allowing click-to-focus).
+   4. _swPostState() keeps the SW's IndexedDB current so background polls
+      know which room to check and which GitHub token to use.
    ══════════════════════════════════════════════════════════════════ */
+
+// ── Service-Worker registration ────────────────────────────────────
+let _swRegistration = null;
+
+async function _registerServiceWorker(){
+  if(!('serviceWorker' in navigator)) return;
+  try{
+    const reg = await navigator.serviceWorker.register('sw.js', { scope: './' });
+    _swRegistration = reg;
+    console.log('[SW] Registered, scope:', reg.scope);
+
+    // Handle messages from the SW (e.g. "join-room" from notification click)
+    navigator.serviceWorker.addEventListener('message', e=>{
+      if(e.data?.type === 'join-room' && e.data.room){
+        joinRoomByName(e.data.room);
+      }
+    });
+
+    // Try to register Periodic Background Sync (Chrome 80+)
+    // This lets the SW poll for new messages even when the tab is closed.
+    if('periodicSync' in reg){
+      try{
+        const status = await navigator.permissions.query({ name:'periodic-background-sync' });
+        if(status.state === 'granted'){
+          await reg.periodicSync.register('cp2p-msg-poll', { minInterval: 30 * 60 * 1000 }); // 30 min
+          console.log('[SW] Periodic Background Sync registered.');
+        }
+      }catch(_){}
+    }
+  }catch(e){
+    console.warn('[SW] Registration failed:', e.message);
+  }
+}
+
+// Register SW as early as possible (permission not required for registration)
+_registerServiceWorker();
+
+// ── Post current room + token to SW so it can poll in background ───
+function _swPostState(){
+  if(!_swRegistration?.active) return;
+  if(!GH_TOKEN || !currentRoom) return;
+  const state = {
+    token         : GH_TOKEN,
+    tokenPasteUrl : TOKEN_PASTE_URL,  // so SW can self-refresh expired tokens
+    room          : currentRoom,
+    lastTs        : loadedMessages?.length ? Math.max(...loadedMessages.map(m=>m.ts||0)) : 0,
+    lastCell      : roomIndex?.latestCell || 1,
+    ghOwner       : GH_OWNER,
+    ghRepo        : GH_REPO,
+    ghBranch      : GH_BRANCH,
+    roomsCellsBase: 'rooms-cells',   // must match ROOMS_CELLS_BASE
+    masterRoomsDir: 'master-rooms',  // must match MASTER_ROOMS_DIR
+  };
+  _swRegistration.active.postMessage({ type:'update-poll-state', state });
+}
+
+function _swClearState(){
+  _swRegistration?.active?.postMessage({ type:'clear-poll-state' });
+}
+
+// Debounced update — call this after joining/syncing (defined early so later code can use it)
+let _swPostStateTimer = null;
+function _swPostStateDebounced(){
+  clearTimeout(_swPostStateTimer);
+  _swPostStateTimer = setTimeout(_swPostState, 2000);
+}
+
+// ── Request notification permission + activate background sync ─────
 function requestBrowserNotifs(){
   if(!('Notification' in window)) return;
-  if(Notification.permission === 'granted') return;
+  if(Notification.permission === 'granted'){
+    // Already granted — just ensure SW is registered and sync is scheduled
+    _registerServiceWorker();
+    return;
+  }
   if(Notification.permission === 'denied'){
     showToast('Browser notifications are blocked. Enable them in your browser settings.', 'warning', 5000);
     return;
   }
   Notification.requestPermission().then(p=>{
     if(p === 'granted'){
-      showToast('Browser notifications enabled! 🔔');
+      showToast('🔔 Notifications enabled! You\'ll be alerted even when away.');
       hideBrowserNotifBanner();
+      _registerServiceWorker();  // ensure SW is live; schedule periodic sync
+      _swPostStateDebounced();   // push current state so SW can start polling
+    }else{
+      showToast('Notifications not enabled.', 'warning', 3000);
     }
   });
 }
 
+// ── Send a notification (prefers SW so it works when tab is unfocused) ──
 function sendBrowserNotif(title, body, data={}){
   if(!('Notification' in window) || Notification.permission !== 'granted') return;
-  if(document.hasFocus()) return;  // don't spam if user is looking at the tab
+  if(document.hasFocus()) return;  // don't spam if user is actively looking at the tab
+
+  const opts = {
+    body   : body || '',
+    icon   : data.iconUrl || '',
+    tag    : data.room ? 'cp2p-room-' + data.room : 'cp2p-notif',
+    silent : false,
+    data   : data,
+  };
+
+  // Prefer SW-based notification (click events handled by SW → focus tab + join room)
+  if(_swRegistration?.active){
+    _swRegistration.active.postMessage({ type:'show-notification', title, opts });
+    return;
+  }
+  // Fallback: plain Notification API (works when tab is open)
   try{
-    const n = new Notification(title, {
-      body   : body||'',
-      icon   : data.iconUrl || '',
-      tag    : data.room ? 'cp2p-room-' + data.room : 'cp2p-notif',
-      silent : false,
-    });
+    const n = new Notification(title, opts);
     n.onclick = ()=>{ window.focus(); if(data.room) joinRoomByName(data.room); n.close(); };
     setTimeout(()=>n.close(), 8000);
   }catch(e){}
 }
 
+// ── Opt-in banner ──────────────────────────────────────────────────
 function showBrowserNotifBanner(){
   if(!('Notification' in window) || Notification.permission !== 'default') return;
   const existing = document.querySelector('.notif-optin-banner');
   if(existing) return;
   const div = document.createElement('div');
   div.className = 'notif-optin-banner';
-  div.innerHTML = `<span>Enable browser notifications to stay updated even when away.</span>
-    <button id="notifOptinYes">Enable</button>
+  div.innerHTML = `<span>Get notified even when you're away — enable notifications.</span>
+    <button id="notifOptinYes">Enable 🔔</button>
     <button id="notifOptinNo">No thanks</button>`;
   document.body.appendChild(div);
   el('notifOptinYes')?.addEventListener('click', ()=>{ requestBrowserNotifs(); div.remove(); });
@@ -17066,7 +17203,7 @@ function hideBrowserNotifBanner(){
   document.querySelector('.notif-optin-banner')?.remove();
 }
 
-// Show opt-in banner once (if not already dismissed and not granted)
+// Show opt-in banner once (if not already dismissed and not already granted)
 (function(){
   if(localStorage.getItem('cp2p_no_browser_notif') !== '1') showBrowserNotifBanner();
 })();
@@ -17092,15 +17229,14 @@ function hideBrowserNotifBanner(){
     profileDropdown?.classList?.remove('open');
     if(typeof openDmListPanel === 'function') openDmListPanel();
     else if(typeof openDmList === 'function') openDmList();
-    else showToast('DMs coming soon!');
+    else openUserLinksGoFallback('dms');
   });
 
   // My Links
   el('dropOpenLinks')?.addEventListener('click', e=>{
     e.stopPropagation();
     profileDropdown?.classList?.remove('open');
-    if(typeof openUserLinksPanel === 'function') openUserLinksPanel();
-    else showToast('Links panel coming soon!');
+    openUserLinksPanel();
   });
 })();
 
@@ -17267,6 +17403,9 @@ async function _doJoinRoom(r){
     // Log room join event
     logUserEvent("join_room", { room: currentRoom, displayName });
     flushUserLogs().catch(()=>{});
+
+    // Give SW the latest room + token info so background polling works
+    _swPostStateDebounced();
 
     // If URL had a ?msg= param, scroll to that message
     try{
