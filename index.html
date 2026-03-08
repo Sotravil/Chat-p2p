@@ -5222,15 +5222,21 @@
     .style-preset-btn{border-radius:10px;padding:9px 6px;cursor:pointer;font-size:11px;font-weight:600;font-family:inherit;text-align:center;border:2px solid transparent;transition:all .18s;line-height:1.4;}
     .style-preset-btn:hover{opacity:.85;transform:scale(1.03);}
     .style-preset-btn.active{border-color:rgba(255,255,255,.8) !important;box-shadow:0 0 0 2px rgba(255,255,255,.15);}
-    .style-ring-grid{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:4px;}
-    .style-ring-opt{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;opacity:.75;transition:all .18s;}
-    .style-ring-opt:hover{opacity:1;transform:scale(1.07);}
-    .style-ring-opt.active{opacity:1;}
-    .style-ring-opt.active .ring-demo-wrap::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:2px solid #fff;}
-    .style-ring-opt span{font-size:9px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
-    .ring-demo-wrap{position:relative;width:38px;height:38px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
-    .ring-demo-img{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.15);background:var(--panel2);position:relative;z-index:1;font-size:16px;display:flex;align-items:center;justify-content:center;}
-    .ring-demo-before{content:'';position:absolute;inset:-3px;border-radius:50%;z-index:0;}
+    .style-ring-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;}
+    /* Ring picker cards */
+    .ring-card{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 10px 11px;border-radius:16px;cursor:pointer;border:2px solid rgba(255,255,255,.07);background:rgba(255,255,255,.04);transition:all .2s;min-width:76px;position:relative;user-select:none;}
+    .ring-card:hover{background:rgba(255,255,255,.09);transform:translateY(-2px);border-color:rgba(255,255,255,.18);}
+    .ring-card.selected{border-color:rgba(255,255,255,.7)!important;background:rgba(255,255,255,.11);box-shadow:0 0 0 3px rgba(255,255,255,.1);}
+    .ring-card-check{position:absolute;top:6px;right:8px;font-size:11px;color:#fff;opacity:0;transform:scale(.5);transition:all .2s;}
+    .ring-card.selected .ring-card-check{opacity:1;transform:scale(1);}
+    .ring-card-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);text-align:center;line-height:1.3;}
+    .ring-card.selected .ring-card-label{color:var(--txt);}
+    .ring-card-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#374151,#1f2937);border:2px solid rgba(255,255,255,.12);font-size:17px;display:flex;align-items:center;justify-content:center;position:relative;z-index:1;flex-shrink:0;}
+    /* Extend ring effects to .ring-card-av so live preview works in picker */
+    .av-ring-wrap.ring-glow>.ring-card-av{border-color:#38bdf8!important;box-shadow:0 0 0 2px rgba(56,189,248,.45),0 0 12px rgba(56,189,248,.55);}
+    .av-ring-wrap.ring-pulse>.ring-card-av{border-color:#818cf8!important;animation:av-pulse-ring 2s ease-in-out infinite;}
+    .av-ring-wrap.ring-neon>.ring-card-av{border-color:#4ade80!important;box-shadow:0 0 0 2px rgba(74,222,128,.55),0 0 16px rgba(74,222,128,.7),0 0 0 4px rgba(74,222,128,.12);}
+    .av-ring-wrap.ring-aura>.ring-card-av{border-color:#c084fc!important;animation:av-aura-ring 2.2s ease-in-out infinite;}
     .style-emoji-grid{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px;}
     .style-emoji-opt{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;border:2px solid transparent;background:rgba(255,255,255,.05);transition:all .15s;}
     .style-emoji-opt:hover{background:rgba(255,255,255,.1);transform:scale(1.1);}
@@ -5266,6 +5272,95 @@
     .msg-status-emoji{font-size:11px;margin-left:3px;line-height:1;vertical-align:middle;display:inline-block;animation:float 3s ease-in-out infinite;}
     /* closet / room tint overlay */
     .room-tint{transition:background .4s;}
+
+    /* ── Extended ring types: Gold, Ice, Plasma, Void, Crystal ── */
+    @keyframes av-gold-ring{0%,100%{box-shadow:0 0 0 2px #fbbf24,0 0 10px #b45309}50%{box-shadow:0 0 0 3px #fde68a,0 0 22px #d97706}}
+    @keyframes av-ice-ring{0%,100%{box-shadow:0 0 0 2px #bae6fd,0 0 8px #7dd3fc}50%{box-shadow:0 0 0 2px #e0f2fe,0 0 20px #bae6fd}}
+    .av-ring-wrap.ring-gold::before{opacity:1;background:conic-gradient(#fbbf24,#fde68a,#d97706,#fbbf24);animation:av-ring-rotate 2s linear infinite;}
+    .av-ring-wrap.ring-ice::before{opacity:1;background:conic-gradient(#bae6fd,#e0f2fe,#7dd3fc,#bae6fd);animation:av-ring-rotate 3s linear infinite;}
+    .av-ring-wrap.ring-plasma::before{opacity:1;background:conic-gradient(#a78bfa,#ec4899,#f43f5e,#c084fc,#a78bfa);animation:av-ring-rotate 1.8s linear infinite;}
+    .av-ring-wrap.ring-void::before{opacity:1;background:conic-gradient(#1e1b4b,#312e81,#4338ca,#1e1b4b);animation:av-ring-rotate 4s linear infinite;filter:blur(1px);}
+    .av-ring-wrap.ring-crystal::before{opacity:1;background:conic-gradient(rgba(255,255,255,.9),rgba(186,230,253,.95),rgba(255,255,255,.6),rgba(165,243,252,.9),rgba(255,255,255,.9));animation:av-ring-rotate 2.2s linear infinite;}
+    .av-ring-wrap.ring-gold>img.msg-avatar-circle{border-color:#fbbf24!important;animation:av-gold-ring 2s ease-in-out infinite;}
+    .av-ring-wrap.ring-ice>img.msg-avatar-circle{border-color:#bae6fd!important;animation:av-ice-ring 2s ease-in-out infinite;}
+    .av-ring-wrap.ring-plasma>img.msg-avatar-circle{border-color:#a78bfa!important;animation:av-pulse-ring 1.8s ease-in-out infinite;}
+    .av-ring-wrap.ring-void>img.msg-avatar-circle{border-color:#4338ca!important;box-shadow:0 0 0 2px rgba(67,56,202,.4),0 0 14px rgba(67,56,202,.55);}
+    .av-ring-wrap.ring-crystal>img.msg-avatar-circle{border-color:#e0f2fe!important;box-shadow:0 0 0 2px rgba(224,242,254,.5),0 0 16px rgba(186,230,253,.6);}
+    /* ring-card-av preview for new ring types */
+    .av-ring-wrap.ring-gold>.ring-card-av{border-color:#fbbf24!important;animation:av-gold-ring 2s ease-in-out infinite;}
+    .av-ring-wrap.ring-ice>.ring-card-av{border-color:#bae6fd!important;animation:av-ice-ring 2s ease-in-out infinite;}
+    .av-ring-wrap.ring-plasma>.ring-card-av{border-color:#a78bfa!important;animation:av-pulse-ring 1.8s ease-in-out infinite;}
+    .av-ring-wrap.ring-void>.ring-card-av{border-color:#4338ca!important;box-shadow:0 0 0 2px rgba(67,56,202,.4),0 0 10px rgba(67,56,202,.5);}
+    .av-ring-wrap.ring-crystal>.ring-card-av{border-color:#e0f2fe!important;box-shadow:0 0 0 2px rgba(224,242,254,.5),0 0 14px rgba(186,230,253,.6);}
+    /* profile-header-img for new ring types */
+    .ring-gold.profile-header-img{border-color:#fbbf24!important;animation:av-gold-ring 2s ease-in-out infinite;}
+    .ring-ice.profile-header-img{border-color:#bae6fd!important;animation:av-ice-ring 2s ease-in-out infinite;}
+    .ring-plasma.profile-header-img{border-color:#a78bfa!important;animation:av-pulse-ring 1.8s ease-in-out infinite;}
+    .ring-void.profile-header-img{border-color:#4338ca!important;box-shadow:0 0 0 2px rgba(67,56,202,.4),0 0 12px rgba(67,56,202,.5)!important;}
+    .ring-crystal.profile-header-img{border-color:#e0f2fe!important;box-shadow:0 0 0 2px rgba(224,242,254,.5),0 0 14px rgba(186,230,253,.55)!important;}
+
+    /* ── Personal theme cards ── */
+    .style-theme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:9px;margin-top:6px;}
+    .style-theme-card{position:relative;border-radius:14px;overflow:hidden;cursor:pointer;border:2px solid rgba(255,255,255,.07);transition:all .22s;user-select:none;}
+    .style-theme-card:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.22);}
+    .style-theme-card.selected{border-color:rgba(255,255,255,.8)!important;box-shadow:0 0 0 3px rgba(255,255,255,.12);}
+    .style-theme-card-bg{height:52px;}
+    .style-theme-card-info{padding:6px 8px 7px;background:rgba(0,0,0,.55);}
+    .style-theme-name{font-size:11px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
+    .style-theme-meta{font-size:9px;color:rgba(255,255,255,.55);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block;}
+    .style-theme-check{position:absolute;top:5px;right:6px;background:rgba(255,255,255,.92);color:#111;border-radius:50%;width:16px;height:16px;font-size:10px;font-weight:900;display:flex;align-items:center;justify-content:center;opacity:0;transform:scale(.5);transition:all .15s;}
+    .style-theme-card.selected .style-theme-check{opacity:1;transform:scale(1);}
+
+    /* ── Live appearance preview card ── */
+    .style-preview-card{border-radius:14px;background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.09);padding:13px 13px 12px;margin-bottom:2px;}
+    .style-preview-lbl{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);margin-bottom:9px;}
+    .style-preview-row{display:flex;align-items:flex-end;gap:9px;}
+    .style-preview-av-wrap{position:relative;border-radius:50%;flex-shrink:0;}
+    .style-preview-av-wrap::before{content:'';position:absolute;inset:-4px;border-radius:50%;z-index:0;opacity:0;transition:opacity .3s;}
+    .style-preview-av{width:36px;height:36px;border-radius:50%;background-size:cover;background-position:center;background-color:var(--panel2);border:2px solid rgba(255,255,255,.15);position:relative;z-index:1;}
+    .style-preview-msg-inner{display:flex;flex-direction:column;gap:3px;}
+    .style-preview-sender-row{display:flex;align-items:center;gap:4px;}
+    .style-preview-sender{font-size:12px;font-weight:700;color:var(--txt);}
+    .style-preview-emoji{font-size:11px;}
+    .style-preview-bubble{padding:7px 12px;border-radius:12px 12px 12px 3px;font-size:12px;color:#fff;max-width:200px;line-height:1.4;}
+
+    /* ── Unsaved draft bar ── */
+    .style-draft-bar{background:rgba(251,146,60,.09);border:1.5px solid rgba(251,146,60,.28);border-radius:12px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;}
+    .style-draft-txt{font-size:12px;color:#fb923c;font-weight:600;flex:1;}
+    .style-draft-save{padding:7px 20px;border-radius:9px;border:none;background:#fb923c;color:#fff;font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:background .15s;}
+    .style-draft-save:hover{background:#f97316;}
+    .style-draft-discard{padding:7px 12px;border-radius:9px;border:1.5px solid rgba(251,146,60,.35);background:transparent;color:#fb923c;font-family:inherit;font-size:11px;cursor:pointer;transition:background .15s;}
+    .style-draft-discard:hover{background:rgba(251,146,60,.1);}
+
+    /* ── Custom hex color input ── */
+    .style-hex-row{display:flex;align-items:center;gap:8px;margin-top:8px;}
+    .style-hex-input{flex:1;padding:7px 11px;background:var(--panel2);border:1.5px solid var(--border);border-radius:9px;color:var(--txt);font-size:11px;font-family:monospace;outline:none;transition:border-color .15s;}
+    .style-hex-input:focus{border-color:var(--accent-primary);}
+    .style-hex-swatch{width:32px;height:32px;border-radius:8px;border:2px solid rgba(255,255,255,.15);cursor:pointer;padding:0;flex-shrink:0;transition:border-color .15s;}
+    .style-hex-swatch:hover{border-color:rgba(255,255,255,.4);}
+
+    /* ── Member-row ring decorations (member panel) ── */
+    .member-ring-wrap{position:relative;flex-shrink:0;border-radius:50%;}
+    .member-ring-wrap::before{content:'';position:absolute;inset:-3px;border-radius:50%;z-index:0;opacity:0;}
+    .member-ring-wrap>.member-avatar{position:relative;z-index:1;}
+    .member-ring-wrap.ring-spin::before{opacity:1;background:conic-gradient(#38bdf8 0%,#818cf8 33%,#f472b6 66%,#38bdf8 100%);animation:av-ring-rotate 2s linear infinite;}
+    .member-ring-wrap.ring-rainbow::before{opacity:1;background:conic-gradient(red,#f97316,#facc15,#4ade80,#38bdf8,#818cf8,#f472b6,red);animation:av-ring-rotate 2.5s linear infinite;}
+    .member-ring-wrap.ring-fire::before{opacity:1;background:conic-gradient(#ff4500,#ff8c00,#ff6200,#ff3100,#ff4500);animation:av-ring-rotate 1.5s linear infinite;}
+    .member-ring-wrap.ring-particles::before{opacity:1;background:conic-gradient(#facc15,#fb923c,#f472b6,#facc15);animation:av-ring-rotate 1s linear infinite;filter:blur(2px);}
+    .member-ring-wrap.ring-gold::before{opacity:1;background:conic-gradient(#fbbf24,#fde68a,#d97706,#fbbf24);animation:av-ring-rotate 2s linear infinite;}
+    .member-ring-wrap.ring-ice::before{opacity:1;background:conic-gradient(#bae6fd,#e0f2fe,#7dd3fc,#bae6fd);animation:av-ring-rotate 3s linear infinite;}
+    .member-ring-wrap.ring-plasma::before{opacity:1;background:conic-gradient(#a78bfa,#ec4899,#f43f5e,#c084fc,#a78bfa);animation:av-ring-rotate 1.8s linear infinite;}
+    .member-ring-wrap.ring-void::before{opacity:1;background:conic-gradient(#1e1b4b,#312e81,#4338ca,#1e1b4b);animation:av-ring-rotate 4s linear infinite;filter:blur(1px);}
+    .member-ring-wrap.ring-crystal::before{opacity:1;background:conic-gradient(rgba(255,255,255,.9),rgba(186,230,253,.95),rgba(255,255,255,.6),rgba(165,243,252,.9),rgba(255,255,255,.9));animation:av-ring-rotate 2.2s linear infinite;}
+    .member-ring-wrap.ring-glow>.member-avatar{border-color:#38bdf8!important;box-shadow:0 0 0 2px rgba(56,189,248,.45),0 0 10px rgba(56,189,248,.5);}
+    .member-ring-wrap.ring-pulse>.member-avatar{border-color:#818cf8!important;animation:av-pulse-ring 2s ease-in-out infinite;}
+    .member-ring-wrap.ring-neon>.member-avatar{border-color:#4ade80!important;box-shadow:0 0 0 2px rgba(74,222,128,.55),0 0 14px rgba(74,222,128,.65);}
+    .member-ring-wrap.ring-aura>.member-avatar{border-color:#c084fc!important;animation:av-aura-ring 2.2s ease-in-out infinite;}
+    .member-ring-wrap.ring-gold>.member-avatar{border-color:#fbbf24!important;animation:av-gold-ring 2s ease-in-out infinite;}
+    .member-ring-wrap.ring-ice>.member-avatar{border-color:#bae6fd!important;animation:av-ice-ring 2s ease-in-out infinite;}
+    .member-ring-wrap.ring-plasma>.member-avatar{border-color:#a78bfa!important;animation:av-pulse-ring 1.8s ease-in-out infinite;}
+    .member-ring-wrap.ring-void>.member-avatar{border-color:#4338ca!important;box-shadow:0 0 0 2px rgba(67,56,202,.4),0 0 10px rgba(67,56,202,.5);}
+    .member-ring-wrap.ring-crystal>.member-avatar{border-color:#e0f2fe!important;box-shadow:0 0 0 2px rgba(224,242,254,.45),0 0 12px rgba(186,230,253,.55);}
 
     /* ══════════════════════════════════════════════════════════
        ADMIN CONFIG MODAL
@@ -6054,10 +6149,40 @@
 
       <!-- TAB: STYLE / PERSONALIZATION -->
       <div class="prf-tab-pane" id="prf-tab-style">
+
+        <!-- Live appearance preview -->
+        <div class="style-section" style="padding-bottom:4px">
+          <div class="style-preview-card" id="stylePreviewCard">
+            <div class="style-preview-lbl">✶ Preview — how others see you</div>
+            <div class="style-preview-row">
+              <div class="style-preview-av-wrap av-ring-wrap" id="stylePreviewAvWrap">
+                <div class="style-preview-av" id="stylePreviewAv"></div>
+              </div>
+              <div class="style-preview-msg-inner">
+                <div class="style-preview-sender-row">
+                  <span class="style-preview-sender" id="stylePreviewSender">@you</span>
+                  <span class="style-preview-emoji" id="stylePreviewEmoji"></span>
+                </div>
+                <div class="style-preview-bubble" id="stylePreviewBubble">Hey, this is how your messages look! ✨</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Personal theme bundles -->
+        <div class="style-section">
+          <div class="style-section-hdr">🎭 Quick theme presets <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(applies name color + ring + bubble in one click)</span></div>
+          <div class="style-theme-grid" id="styleThemeGrid"></div>
+        </div>
+
         <div class="style-section">
           <div class="style-section-hdr">👤 Name color in chat</div>
           <div class="style-color-grid" id="nameColorGrid"></div>
-          <div class="style-name-preview">Preview: <span id="nameColorPreview" style="font-weight:600">Your Name</span></div>
+          <div class="style-hex-row">
+            <input class="style-hex-input" id="styleNameColorHex" type="text" placeholder="#hex or rgb(…)" maxlength="25" spellcheck="false"/>
+            <button class="style-hex-swatch" id="styleNameColorSwatchBtn" title="Apply custom color"></button>
+          </div>
+          <div class="style-name-preview" style="margin-top:7px">Preview: <span id="nameColorPreview" style="font-weight:700">Your Name</span></div>
         </div>
         <div class="style-section">
           <div class="style-section-hdr">❤️ Status emoji (shown next to your name)</div>
@@ -6070,6 +6195,10 @@
         <div class="style-section">
           <div class="style-section-hdr">🎨 Profile accent color</div>
           <div class="style-color-grid" id="profileAccentGrid"></div>
+          <div class="style-hex-row">
+            <input class="style-hex-input" id="styleAccentHex" type="text" placeholder="#hex or rgb(…)" maxlength="25" spellcheck="false"/>
+            <button class="style-hex-swatch" id="styleAccentSwatchBtn" title="Apply custom accent"></button>
+          </div>
         </div>
         <div class="style-section">
           <div class="style-section-hdr">💬 My message bubble <span style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0">(only you see this)</span></div>
@@ -6088,6 +6217,16 @@
           <div class="style-section-hdr">💌 This Closet’s color tint <span id="styleClosetBgLabel" style="font-size:10px;font-weight:400;text-transform:none;letter-spacing:0;color:var(--accent-primary)"></span></div>
           <div class="style-color-grid" id="closetTintGrid"></div>
         </div>
+
+        <!-- Unsaved cloud-style draft bar -->
+        <div class="style-draft-bar" id="styleDraftBar" style="display:none">
+          <span class="style-draft-txt">⚠️ Unsaved cloud changes — others won’t see them yet</span>
+          <div style="display:flex;gap:8px;flex-shrink:0">
+            <button class="style-draft-discard" id="styleDraftDiscardBtn">Discard</button>
+            <button class="style-draft-save" id="styleDraftSaveBtn">💾 Save for everyone</button>
+          </div>
+        </div>
+
       </div>
 
       <!-- TAB: FRIENDS & REQUESTS -->
@@ -6100,6 +6239,7 @@
 
       <!-- TAB: USER SEARCH -->
       <div class="prf-tab-pane" id="prf-tab-search">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:10px">Search any user by username. Their avatar ring, name color &amp; profile style are shown as others see them.</div>
         <div class="usr-search-wrap">
           <input id="usrSearchInput" class="usr-search-input" type="text" placeholder="Search @username…" autocomplete="off" spellcheck="false"/>
           <button id="usrSearchBtn" class="usr-search-btn">🔍 Search</button>
@@ -6266,7 +6406,7 @@ const CORS_PROXY      = "https://corsproxy.io/?";
 
 // === APP VERSION & CHANGELOG ===
 // Bump APP_VERSION on every deploy so returning users see "What's New"
-const APP_VERSION        = "9.8.0";
+const APP_VERSION        = "1.0.0.0";
 const CHANGELOG_SEEN_KEY = "chatP2P_lastVersionSeen";
 const CHANGELOGS_DIR     = "changelogs";
 
@@ -9292,7 +9432,8 @@ function defaultRoomSettings(roomName){
       canReply:'all',
       canSendLinks:'all'
     },
-    photoUrl:null                 // custom room photo URL
+    photoUrl:null,                // custom room photo URL
+    appearance:{ allowUserBg:true, forcedBg:null } // bg permissions: let users choose or force one
   };
 }
 
@@ -9903,12 +10044,12 @@ function buildMemberRow(m, isAdmin, roomName, myFriendIds=new Set()){
   const lastSeenStr = m.lastSeenAt ? `Last seen ${formatTimeAgo(m.lastSeenAt)}` : 'Never seen';
 
   row.innerHTML=`
-    <div style="position:relative">
+    <div class="member-ring-wrap" data-uid="${m.userId}" style="position:relative">
       <img class="member-avatar" src="${av}" onerror="this.src='${DEFAULT_AVATAR_URL}'" alt="${m.username}"/>
       <span class="member-status-dot ${m.online?'online':'offline'}"></span>
     </div>
     <div class="member-info">
-      <div class="member-name">
+      <div class="member-name" data-uid="${m.userId}">
         @${m.username||m.userId}
         ${isOwner?'<span class="member-role-badge owner">👑 Owner</span>':m.role==='admin'?'<span class="member-role-badge admin">🛡️ Admin</span>':''}
         ${isFriend?'<span style="font-size:9px;padding:1px 5px;border-radius:20px;background:rgba(99,179,237,.15);border:1px solid rgba(99,179,237,.35);color:rgba(99,179,237,.9)">🤝 Friend</span>':''}
@@ -9917,6 +10058,25 @@ function buildMemberRow(m, isAdmin, roomName, myFriendIds=new Set()){
       <div class="member-last-seen">${m.online?'🟢 Online now':lastSeenStr}</div>
     </div>
     <div class="member-actions" id="mact-${m.userId}"></div>`;
+  // Apply cached name color + avatar ring decorations from profile cache
+  const _cachedNC   = _nameColorCache[m.userId];
+  const _cachedRing = _avatarRingCache[m.userId];
+  if (_cachedNC) {
+    const nameEl = row.querySelector('.member-name');
+    if (nameEl) nameEl.style.color = _cachedNC;
+  } else if (!_cachedNC && !(m.userId in _nameColorCache)) {
+    _maybeLoadNameColor(m.userId);
+  }
+  const ringWrap = row.querySelector('.member-ring-wrap');
+  if (ringWrap) {
+    if (_cachedRing && _cachedRing !== 'none') {
+      const allR = STYLE_RING_PRESETS.filter(p=>p.cls).map(p=>p.cls);
+      ringWrap.classList.remove(...allR);
+      ringWrap.classList.add(_cachedRing);
+    } else if (!_cachedRing && !(m.userId in _avatarRingCache)) {
+      _maybeLoadAvatarRing(m.userId);
+    }
+  }
   // Build action buttons
   const acts = row.querySelector(`#mact-${m.userId}`);
   const dmBtn = document.createElement('button');
@@ -10225,6 +10385,24 @@ async function openRoomSettingsPanel(roomName){
       <div class="rsb-section-label" style="margin-bottom:8px">Room Rules (shown to roommates)</div>
       <textarea id="rsbRules" placeholder="Optional rules shown to roommates…" maxlength="400"
         style="width:100%;padding:10px 12px;background:var(--panel2);border:1.5px solid var(--border);border-radius:10px;color:var(--txt);font-family:inherit;font-size:13px;outline:none;resize:vertical;min-height:70px">${_rspSettings.rules||''}</textarea>
+    </div>
+
+    <!-- APPEARANCE PERMISSIONS -->
+    <div>
+      <div class="rsb-section-label" style="margin-bottom:8px">🎨 Appearance Permissions</div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:12px">Control how users see this room’s background. Enforce a specific look for everyone, or allow each member to personalize it.</p>
+      <div class="rsb-toggle-row" style="margin-bottom:12px">
+        <div>
+          <div class="rsb-toggle-label">Allow user-side custom backgrounds</div>
+          <div class="rsb-toggle-sub">When off, users cannot change this room’s background from their Style settings</div>
+        </div>
+        <label class="toggle-sw"><input type="checkbox" id="rsbAllowUserBg" ${_rspSettings.appearance?.allowUserBg !== false ? 'checked' : ''}/><span class="toggle-slider"></span></label>
+      </div>
+      <div class="rsb-toggle-label" style="margin-bottom:7px">Force a background for all users <span style="font-weight:400;font-size:10px;text-transform:none;color:var(--muted)">(overrides individual prefs)</span></div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:5px" id="rsbForcedBgGrid">
+        ${STYLE_ROOM_BG_PRESETS.map(p=>`<button type="button" class="style-room-sel-btn${(_rspSettings.appearance?.forcedBg||'default')===p.id?' active':''}" data-fbg="${p.id}" style="background:${p.bg||'rgba(255,255,255,.05)'};color:#ccc;font-family:inherit;font-size:10px;padding:7px 4px">${p.label}</button>`).join('')}
+      </div>
+      <div style="font-size:10px;color:var(--muted)">Choose “Default” to remove the forced background. A forced background always overrides user preferences.</div>
     </div>`;
 
   hideProgressBar();
@@ -10285,6 +10463,14 @@ async function openRoomSettingsPanel(roomName){
     };
     body.querySelector('#rsbAdminInput').addEventListener('keydown', e=>{ if(e.key==='Enter') body.querySelector('#rsbAdminAdd').click(); });
   }
+
+  // Wire forced-bg grid (Appearance section)
+  body.querySelector('#rsbForcedBgGrid')?.querySelectorAll('[data-fbg]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      body.querySelector('#rsbForcedBgGrid').querySelectorAll('[data-fbg]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
 
   // Wire all radio toggle highlights
   body.querySelectorAll('.rsb-radio-opt').forEach(opt=>{
@@ -10367,11 +10553,15 @@ async function openRoomSettingsPanel(roomName){
       showShareToast('⚠️ Private rooms need a password.','rgba(251,146,60,.9)'); return;
     }
 
+    const allowUserBg = body.querySelector('#rsbAllowUserBg')?.checked !== false;
+    const forcedBg    = body.querySelector('#rsbForcedBgGrid [data-fbg].active')?.dataset?.fbg || 'default';
+
     _rspSettings = { ..._rspSettings, admission:adm, showReadBy:showRB, allowUserAdds:allowAdds, showDeletedDisclosure:showDelDisclosure, rules, description,
                      showMemberCount, showMessageCount,
                      contentRating:rating, bannedWords:_bwArr, banThreshold:banThresh,
                      permissions:newPerms, photoUrl: photoUrl||null,
-                     visibility:newVis, updatedAt:Date.now() };
+                     visibility:newVis, updatedAt:Date.now(),
+                     appearance:{ allowUserBg, forcedBg: forcedBg==='default' ? null : forcedBg } };
 
     // Update password hash if changing to private + new password provided
     if(newVis === 'private' && newPwd && newPwd.length >= 3){
@@ -11662,14 +11852,26 @@ function _openClosetRowMenu(btn, dm, uid, row, container, fullList, sha){
 
 // ── Style / Personalization Tab ──────────────────────────────────────
 const STYLE_NAME_COLORS = [
-  { id:'default', label:'Default', color: null },
-  { id:'sky',     label:'Sky',     color:'#38bdf8' },
-  { id:'pink',    label:'Pink',    color:'#f472b6' },
-  { id:'violet',  label:'Violet',  color:'#a78bfa' },
-  { id:'lime',    label:'Lime',    color:'#4ade80' },
-  { id:'orange',  label:'Orange',  color:'#fb923c' },
-  { id:'red',     label:'Red',     color:'#f87171' },
-  { id:'gold',    label:'Gold',    color:'#facc15' },
+  { id:'default',   label:'Default',   color: null },
+  { id:'sky',       label:'Sky',       color:'#38bdf8' },
+  { id:'cornflower',label:'Cornflower',color:'#818cf8' },
+  { id:'violet',    label:'Violet',    color:'#a78bfa' },
+  { id:'pink',      label:'Pink',      color:'#f472b6' },
+  { id:'rose',      label:'Rose',      color:'#fb7185' },
+  { id:'red',       label:'Red',       color:'#f87171' },
+  { id:'coral',     label:'Coral',     color:'#f97316' },
+  { id:'orange',    label:'Orange',    color:'#fb923c' },
+  { id:'amber',     label:'Amber',     color:'#fbbf24' },
+  { id:'gold',      label:'Gold',      color:'#facc15' },
+  { id:'lime',      label:'Lime',      color:'#4ade80' },
+  { id:'emerald',   label:'Emerald',   color:'#34d399' },
+  { id:'teal',      label:'Teal',      color:'#2dd4bf' },
+  { id:'cyan',      label:'Cyan',      color:'#22d3ee' },
+  { id:'ice',       label:'Ice',       color:'#bae6fd' },
+  { id:'lavender',  label:'Lavender',  color:'#c084fc' },
+  { id:'peach',     label:'Peach',     color:'#fdba74' },
+  { id:'white',     label:'White',     color:'#f1f5f9' },
+  { id:'silver',    label:'Silver',    color:'#94a3b8' },
 ];
 const STYLE_BUBBLE_PRESETS = [
   { id:'default',  label:'\ud83d\udd35 Default',  gradient:'linear-gradient(135deg,#38bdf8,#818cf8)' },
@@ -11678,31 +11880,182 @@ const STYLE_BUBBLE_PRESETS = [
   { id:'midnight', label:'\ud83c\udf19 Midnight', gradient:'linear-gradient(135deg,#818cf8,#7c3aed)' },
   { id:'rose',     label:'\ud83c\udf38 Rose',     gradient:'linear-gradient(135deg,#f472b6,#fb7185)' },
   { id:'gold',     label:'\u2728 Gold',           gradient:'linear-gradient(135deg,#facc15,#f97316)' },
+  { id:'arctic',   label:'\u2744\ufe0f Arctic',   gradient:'linear-gradient(135deg,#bae6fd,#818cf8)' },
+  { id:'ember',    label:'\ud83d\udd25 Ember',    gradient:'linear-gradient(135deg,#ff4500,#b45309)' },
+  { id:'cosmos',   label:'\ud83d\udd2e Cosmos',   gradient:'linear-gradient(135deg,#c084fc,#818cf8)' },
+  { id:'mint',     label:'\ud83c\udf43 Mint',     gradient:'linear-gradient(135deg,#4ade80,#34d399)' },
 ];
 const STYLE_CHAT_BG_PRESETS = [
-  { id:'default', label:'\ud83c\udf11 Dark',   bg:'' },
-  { id:'navy',    label:'\ud83c\udf0a Navy',   bg:'linear-gradient(160deg,#0f1729 0%,#0c1a2e 100%)' },
-  { id:'forest',  label:'\ud83c\udf32 Forest', bg:'linear-gradient(160deg,#0a1a0f 0%,#0f2518 100%)' },
-  { id:'slate',   label:'\ud83e\udea8 Slate',  bg:'linear-gradient(160deg,#1e2130 0%,#2d3148 100%)' },
-  { id:'dusk',    label:'\ud83c\udf06 Dusk',   bg:'linear-gradient(160deg,#1a0f2a 0%,#2d1530 100%)' },
-  { id:'warm',    label:'\ud83d\udd06 Warm',   bg:'linear-gradient(160deg,#1a120a 0%,#251a0e 100%)' },
+  { id:'default',  label:'\ud83c\udf11 Dark',    bg:'' },
+  { id:'navy',     label:'\ud83c\udf0a Navy',    bg:'linear-gradient(160deg,#0f1729 0%,#0c1a2e 100%)' },
+  { id:'forest',   label:'\ud83c\udf32 Forest',  bg:'linear-gradient(160deg,#0a1a0f 0%,#0f2518 100%)' },
+  { id:'slate',    label:'\ud83e\udea8 Slate',   bg:'linear-gradient(160deg,#1e2130 0%,#2d3148 100%)' },
+  { id:'dusk',     label:'\ud83c\udf06 Dusk',    bg:'linear-gradient(160deg,#1a0f2a 0%,#2d1530 100%)' },
+  { id:'warm',     label:'\ud83d\udd06 Warm',    bg:'linear-gradient(160deg,#1a120a 0%,#251a0e 100%)' },
+  { id:'void',     label:'\ud83d\udc7b Void',    bg:'linear-gradient(160deg,#020617 0%,#0f172a 100%)' },
+  { id:'sakura',   label:'\ud83c\udf38 Sakura',  bg:'linear-gradient(160deg,#1a0510 0%,#2d0c20 100%)' },
+  { id:'arctic',   label:'\u2744\ufe0f Arctic',  bg:'linear-gradient(160deg,#0c2a4a 0%,#0a1929 100%)' },
+  { id:'matrix',   label:'\u26a1 Matrix',        bg:'linear-gradient(160deg,#001a00 0%,#002b00 100%)' },
+];
+const STYLE_PERSONAL_THEMES = [
+  { id:'custom',   label:'Custom',   desc:'Your own mix',        bg:'linear-gradient(135deg,#374151,#4b5563)',  nameColor:null,      ring:'none',         bubbleId:'default',  chatBgId:'default' },
+  { id:'midnight', label:'Midnight', desc:'Deep indigo calm',    bg:'linear-gradient(135deg,#1e1b4b,#312e81)',  nameColor:'#818cf8', ring:'ring-pulse',   bubbleId:'midnight', chatBgId:'navy'    },
+  { id:'sakura',   label:'Sakura',   desc:'Soft pink blossom',   bg:'linear-gradient(135deg,#4a0f2e,#be185d)',  nameColor:'#f9a8d4', ring:'ring-aura',    bubbleId:'rose',     chatBgId:'sakura'  },
+  { id:'arctic',   label:'Arctic',   desc:'Cool crisp blues',    bg:'linear-gradient(135deg,#0c2a4a,#164e63)',  nameColor:'#bae6fd', ring:'ring-ice',     bubbleId:'arctic',   chatBgId:'arctic'  },
+  { id:'ember',    label:'Ember',    desc:'Warm fiery orange',   bg:'linear-gradient(135deg,#431407,#c2410c)',  nameColor:'#fb923c', ring:'ring-fire',    bubbleId:'ember',    chatBgId:'warm'    },
+  { id:'matrix',   label:'Matrix',   desc:'Neon green cyber',    bg:'linear-gradient(135deg,#052e16,#14532d)',  nameColor:'#4ade80', ring:'ring-neon',    bubbleId:'forest',   chatBgId:'matrix'  },
+  { id:'candy',    label:'Candy',    desc:'Vivid rainbow pop',   bg:'linear-gradient(135deg,#4a0072,#be185d)',  nameColor:'#f472b6', ring:'ring-rainbow', bubbleId:'rose',     chatBgId:'dusk'    },
+  { id:'solar',    label:'Solar',    desc:'Golden radiant glow', bg:'linear-gradient(135deg,#451a03,#78350f)',  nameColor:'#fbbf24', ring:'ring-gold',    bubbleId:'gold',     chatBgId:'warm'    },
+  { id:'cosmos',   label:'Cosmos',   desc:'Deep space purple',   bg:'linear-gradient(135deg,#1e0533,#312e81)',  nameColor:'#c084fc', ring:'ring-plasma',  bubbleId:'cosmos',   chatBgId:'dusk'    },
+  { id:'crystal',  label:'Crystal',  desc:'Prismatic luminous',  bg:'linear-gradient(135deg,#082f49,#0c4a6e)',  nameColor:'#e0f2fe', ring:'ring-crystal', bubbleId:'arctic',   chatBgId:'arctic'  },
+  { id:'ghost',    label:'Ghost',    desc:'Clean minimal spin',  bg:'linear-gradient(135deg,#1e293b,#334155)',  nameColor:'#e2e8f0', ring:'ring-spin',    bubbleId:'default',  chatBgId:'slate'   },
+  { id:'void',     label:'Void',     desc:'Dark mysterious',     bg:'linear-gradient(135deg,#020617,#0f172a)',  nameColor:'#94a3b8', ring:'ring-void',    bubbleId:'midnight', chatBgId:'void'    },
 ];
 
+// Module-level draft state for Style tab (persists between tab switches)
+let _styleDraftUid  = null;
+let _styleDraft     = null;   // {nameColor, profileAccent, avatarRing, statusEmoji}
+let _styleDraftBase = null;   // last known server state
+
 async function loadStyleTab(uid) {
-  // Load current profile for server-side appearance settings
   const got  = await ghGetJsonWithSha(`users/${uid}/profile.json`).catch(() => ({ ok:false }));
   const prof = (got.ok && got.obj) ? { ...got.obj } : {};
-  const curNameColor     = prof.nameColor     || null;
-  const curProfileAccent = prof.profileAccent || null;
-  // Local prefs (only you see these)
-  const curBubble = localStorage.getItem('cp2p_bubble_style') || 'default';
-  const curChatBg = localStorage.getItem('cp2p_chat_bg')     || 'default';
 
-  // Helper: re-fetch latest SHA before each profile write to avoid conflicts
-  async function _saveProfField(fields) {
+  // Initialize or restore draft for this uid
+  if (_styleDraftUid !== uid || !_styleDraft) {
+    _styleDraftBase = {
+      nameColor:     prof.nameColor     || null,
+      profileAccent: prof.profileAccent || null,
+      avatarRing:    prof.avatarRing    || 'none',
+      statusEmoji:   prof.statusEmoji   || null,
+    };
+    _styleDraft    = { ..._styleDraftBase };
+    _styleDraftUid = uid;
+  }
+
+  // ── Inner helpers ─────────────────────────────────────────────────
+  function _hasDraftChanges() {
+    return ['nameColor','profileAccent','avatarRing','statusEmoji']
+      .some(k => _styleDraft[k] !== _styleDraftBase[k]);
+  }
+
+  function _updateDraft(fields) {
+    Object.assign(_styleDraft, fields);
+    _renderDraftBar();
+    _renderPreview();
+  }
+
+  function _renderDraftBar() {
+    const bar = document.getElementById('styleDraftBar');
+    if (bar) bar.style.display = _hasDraftChanges() ? 'flex' : 'none';
+  }
+
+  function _renderPreview() {
+    const allRingCls = STYLE_RING_PRESETS.filter(p=>p.cls).map(p=>p.cls);
+
+    // Avatar ring on preview av-wrap
+    const avWrap = document.getElementById('stylePreviewAvWrap');
+    if (avWrap) {
+      avWrap.classList.remove(...allRingCls);
+      const ringPreset = STYLE_RING_PRESETS.find(p=>p.id===(_styleDraft.avatarRing||'none'));
+      if (ringPreset?.cls) avWrap.classList.add(ringPreset.cls);
+    }
+    // Avatar image
+    const avDiv = document.getElementById('stylePreviewAv');
+    if (avDiv) {
+      const avUrl = typeof getCachedAvatarUrl === 'function' ? getCachedAvatarUrl(uid) : null;
+      if (avUrl) { avDiv.style.backgroundImage=`url(${avUrl})`; avDiv.style.backgroundSize='cover'; avDiv.style.backgroundPosition='center'; }
+    }
+    // Sender name
+    const senderEl = document.getElementById('stylePreviewSender');
+    if (senderEl) {
+      const uname = (typeof session !== 'undefined' && session?.username) ? session.username : 'you';
+      senderEl.textContent = '@' + uname;
+      senderEl.style.color = _styleDraft.nameColor || 'var(--txt)';
+    }
+    // Status emoji
+    const emojiEl = document.getElementById('stylePreviewEmoji');
+    if (emojiEl) emojiEl.textContent = _styleDraft.statusEmoji || '';
+    // Bubble
+    const bubbleEl = document.getElementById('stylePreviewBubble');
+    if (bubbleEl) {
+      const curBubble = localStorage.getItem('cp2p_bubble_style') || 'default';
+      const bp = STYLE_BUBBLE_PRESETS.find(p=>p.id===curBubble) || STYLE_BUBBLE_PRESETS[0];
+      bubbleEl.style.background = bp.gradient;
+    }
+  }
+
+  async function _commitDraft() {
     const fresh = await ghGetJsonWithSha(`users/${uid}/profile.json`).catch(() => ({ ok:false }));
-    const updated = fresh.ok ? { ...fresh.obj, ...fields } : { ...fields };
-    await ghPutJson(`users/${uid}/profile.json`, updated, fresh.sha || null, 'update style');
+    const updated = fresh.ok ? { ...fresh.obj, ..._styleDraft } : { ..._styleDraft };
+    await ghPutJson(`users/${uid}/profile.json`, updated, fresh.sha || null, 'update profile style');
+    _styleDraftBase = { ..._styleDraft };
+    if (typeof _propagateProfileChange === 'function') _propagateProfileChange(uid, updated);
+    _renderDraftBar();
+    showToast('✨ Style saved for everyone!', 'success', 2800);
+  }
+
+  // Wire save/discard buttons
+  const saveBtn    = document.getElementById('styleDraftSaveBtn');
+  const discardBtn = document.getElementById('styleDraftDiscardBtn');
+  if (saveBtn) {
+    saveBtn.onclick = async () => {
+      saveBtn.disabled = true; saveBtn.textContent = 'Saving…';
+      try   { await _commitDraft(); }
+      catch (e) { showToast('Could not save: ' + e.message, 'error'); }
+      finally   { saveBtn.disabled = false; saveBtn.textContent = '💾 Save for everyone'; }
+    };
+  }
+  if (discardBtn) {
+    discardBtn.onclick = () => {
+      _styleDraft = { ..._styleDraftBase };
+      loadStyleTab(uid);
+    };
+  }
+
+  // ── Render live preview ──────────────────────────────────────────
+  _renderPreview();
+
+  // ── Personal theme bundles ───────────────────────────────────────
+  const themeGrid = document.getElementById('styleThemeGrid');
+  if (themeGrid) {
+    themeGrid.innerHTML = '';
+    STYLE_PERSONAL_THEMES.forEach(t => {
+      const card = document.createElement('div');
+      card.className = 'style-theme-card';
+      const isActive = t.id !== 'custom' &&
+        _styleDraft.nameColor === t.nameColor &&
+        (_styleDraft.avatarRing || 'none') === t.ring;
+      if (isActive) card.classList.add('selected');
+
+      const chk = document.createElement('span');
+      chk.className = 'style-theme-check'; chk.textContent = '✓'; card.appendChild(chk);
+      const bg = document.createElement('div');
+      bg.className = 'style-theme-card-bg'; bg.style.background = t.bg; card.appendChild(bg);
+      const info = document.createElement('div');
+      info.className = 'style-theme-card-info';
+      info.innerHTML = `<span class="style-theme-name">${t.label}</span><span class="style-theme-meta">${t.desc}</span>`;
+      card.appendChild(info);
+
+      card.onclick = () => {
+        themeGrid.querySelectorAll('.style-theme-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        _updateDraft({ nameColor: t.nameColor, avatarRing: t.ring });
+        if (t.bubbleId) { localStorage.setItem('cp2p_bubble_style', t.bubbleId); _applyBubbleStyle(t.bubbleId); }
+        if (t.chatBgId) { localStorage.setItem('cp2p_chat_bg', t.chatBgId); _applyChatBg(t.chatBgId); }
+        const ncG = document.getElementById('nameColorGrid');
+        ncG?.querySelectorAll('.style-color-swatch').forEach(s => {
+          s.classList.toggle('active', s.dataset.colorId === (t.nameColor || 'default'));
+        });
+        document.getElementById('avatarRingGrid')?.querySelectorAll('.ring-card').forEach(rc => {
+          rc.classList.toggle('selected', rc.dataset.ringId === (t.ring || 'none'));
+        });
+        const ncPv = document.getElementById('nameColorPreview');
+        if (ncPv) ncPv.style.color = t.nameColor || 'var(--txt)';
+        showToast(`Theme: ${t.label}`, 'success', 2000);
+      };
+      themeGrid.appendChild(card);
+    });
   }
 
   // ── Name color swatches ──────────────────────────────────────────
@@ -11712,27 +12065,36 @@ async function loadStyleTab(uid) {
     ncGrid.innerHTML = '';
     STYLE_NAME_COLORS.forEach(sw => {
       const div = document.createElement('div');
-      div.className  = 'style-color-swatch' + (curNameColor === sw.color ? ' active' : '');
+      div.className  = 'style-color-swatch' + (_styleDraft.nameColor === sw.color ? ' active' : '');
+      div.dataset.colorId = sw.id;
       div.style.background = sw.color || 'rgba(255,255,255,.18)';
       div.title = sw.label;
       if (!sw.color) { div.style.border = '2px dashed rgba(255,255,255,.3)'; div.style.background = 'transparent'; }
-      div.onclick = async () => {
+      div.onclick = () => {
         ncGrid.querySelectorAll('.style-color-swatch').forEach(s => s.classList.remove('active'));
         div.classList.add('active');
         if (ncPrev) ncPrev.style.color = sw.color || 'var(--txt)';
-        _nameColorCache[uid] = sw.color;
-        // Update all existing message sender spans immediately
-        if (sw.color) {
-          document.querySelectorAll(`.msg-sender-name[data-uid="${uid}"]`).forEach(sp => { sp.style.color = sw.color; });
-        } else {
-          document.querySelectorAll(`.msg-sender-name[data-uid="${uid}"]`).forEach(sp => { sp.style.color = ''; });
-        }
-        await _saveProfField({ nameColor: sw.color }).catch(() => showToast('Could not save', 'error'));
-        showToast('\u2728 Name color saved!', 'success', 2000);
+        _updateDraft({ nameColor: sw.color });
       };
       ncGrid.appendChild(div);
     });
-    if (ncPrev) ncPrev.style.color = curNameColor || 'var(--txt)';
+    if (ncPrev) ncPrev.style.color = _styleDraft.nameColor || 'var(--txt)';
+  }
+  // Hex input for name color
+  const ncHex    = document.getElementById('styleNameColorHex');
+  const ncSwatch = document.getElementById('styleNameColorSwatchBtn');
+  if (ncHex && ncSwatch) {
+    ncHex.value   = _styleDraft.nameColor || '';
+    ncSwatch.style.background = _styleDraft.nameColor || 'rgba(255,255,255,.2)';
+    const _applyHexNC = () => {
+      const v = ncHex.value.trim();
+      ncSwatch.style.background = v || 'rgba(255,255,255,.2)';
+      _updateDraft({ nameColor: v || null });
+      if (ncPrev) ncPrev.style.color = v || 'var(--txt)';
+      ncGrid?.querySelectorAll('.style-color-swatch').forEach(s => s.classList.remove('active'));
+    };
+    ncHex.oninput   = _applyHexNC;
+    ncSwatch.onclick = _applyHexNC;
   }
 
   // ── Profile accent swatches ──────────────────────────────────────
@@ -11741,34 +12103,50 @@ async function loadStyleTab(uid) {
     paGrid.innerHTML = '';
     STYLE_NAME_COLORS.forEach(sw => {
       const div = document.createElement('div');
-      div.className  = 'style-color-swatch' + (curProfileAccent === sw.color ? ' active' : '');
+      div.className  = 'style-color-swatch' + (_styleDraft.profileAccent === sw.color ? ' active' : '');
       div.style.background = sw.color || 'rgba(255,255,255,.18)';
       div.title = sw.label;
       if (!sw.color) { div.style.border = '2px dashed rgba(255,255,255,.3)'; div.style.background = 'transparent'; }
-      div.onclick = async () => {
+      div.onclick = () => {
         paGrid.querySelectorAll('.style-color-swatch').forEach(s => s.classList.remove('active'));
         div.classList.add('active');
-        await _saveProfField({ profileAccent: sw.color }).catch(() => showToast('Could not save', 'error'));
-        showToast('\u2728 Accent saved!', 'success', 2000);
+        _updateDraft({ profileAccent: sw.color });
       };
       paGrid.appendChild(div);
     });
+  }
+  // Hex input for accent
+  const acHex    = document.getElementById('styleAccentHex');
+  const acSwatch = document.getElementById('styleAccentSwatchBtn');
+  if (acHex && acSwatch) {
+    acHex.value   = _styleDraft.profileAccent || '';
+    acSwatch.style.background = _styleDraft.profileAccent || 'rgba(255,255,255,.2)';
+    const _applyHexAc = () => {
+      const v = acHex.value.trim();
+      acSwatch.style.background = v || 'rgba(255,255,255,.2)';
+      _updateDraft({ profileAccent: v || null });
+      paGrid?.querySelectorAll('.style-color-swatch').forEach(s => s.classList.remove('active'));
+    };
+    acHex.oninput   = _applyHexAc;
+    acSwatch.onclick = _applyHexAc;
   }
 
   // ── Bubble presets ───────────────────────────────────────────────
   const bpGrid = document.getElementById('bubblePresetGrid');
   if (bpGrid) {
     bpGrid.innerHTML = '';
+    const curBubble = localStorage.getItem('cp2p_bubble_style') || 'default';
     STYLE_BUBBLE_PRESETS.forEach(p => {
       const btn = document.createElement('button');
       btn.className = 'style-preset-btn' + (curBubble === p.id ? ' active' : '');
       btn.style.cssText = `background:${p.gradient};color:#fff;border-color:${curBubble===p.id?'rgba(255,255,255,.8)':'transparent'}`;
       btn.textContent = p.label;
       btn.onclick = () => {
-        bpGrid.querySelectorAll('.style-preset-btn').forEach(b => { b.classList.remove('active'); b.style.borderColor = 'transparent'; });
-        btn.classList.add('active'); btn.style.borderColor = 'rgba(255,255,255,.8)';
+        bpGrid.querySelectorAll('.style-preset-btn').forEach(b => { b.classList.remove('active'); b.style.borderColor='transparent'; });
+        btn.classList.add('active'); btn.style.borderColor='rgba(255,255,255,.8)';
         localStorage.setItem('cp2p_bubble_style', p.id);
         _applyBubbleStyle(p.id);
+        _renderPreview();
         showToast('Bubble style updated!', 'success', 2000);
       };
       bpGrid.appendChild(btn);
@@ -11779,14 +12157,15 @@ async function loadStyleTab(uid) {
   const cbGrid = document.getElementById('chatBgPresetGrid');
   if (cbGrid) {
     cbGrid.innerHTML = '';
+    const curChatBg = localStorage.getItem('cp2p_chat_bg') || 'default';
     STYLE_CHAT_BG_PRESETS.forEach(p => {
       const btn = document.createElement('button');
       btn.className = 'style-preset-btn' + (curChatBg === p.id ? ' active' : '');
       btn.style.cssText = `background:${p.bg||'rgba(255,255,255,.06)'};color:#ccc;border-color:${curChatBg===p.id?'rgba(255,255,255,.8)':'transparent'}`;
       btn.textContent = p.label;
       btn.onclick = () => {
-        cbGrid.querySelectorAll('.style-preset-btn').forEach(b => { b.classList.remove('active'); b.style.borderColor = 'transparent'; });
-        btn.classList.add('active'); btn.style.borderColor = 'rgba(255,255,255,.8)';
+        cbGrid.querySelectorAll('.style-preset-btn').forEach(b => { b.classList.remove('active'); b.style.borderColor='transparent'; });
+        btn.classList.add('active'); btn.style.borderColor='rgba(255,255,255,.8)';
         localStorage.setItem('cp2p_chat_bg', p.id);
         _applyChatBg(p.id);
         showToast('Chat background updated!', 'success', 2000);
@@ -11795,99 +12174,106 @@ async function loadStyleTab(uid) {
     });
   }
 
-  // ── Avatar ring style ────────────────────────────────────────────
-  const ringGrid = document.getElementById('avatarRingGrid');
+  // ── Avatar ring style ─────────────────────────────────────────────
+  const ringGrid  = document.getElementById('avatarRingGrid');
   if (ringGrid) {
     ringGrid.innerHTML = '';
-    const curRing = prof?.avatarRing || 'none';
+    const curRing = _styleDraft.avatarRing || 'none';
+    const avUrl   = typeof getCachedAvatarUrl === 'function' ? getCachedAvatarUrl(uid) : null;
     STYLE_RING_PRESETS.forEach(p => {
-      const cell = document.createElement('div');
-      cell.className = 'style-ring-opt' + (curRing === p.id ? ' active' : '');
-      cell.title = p.label;
-      // Demo circle
-      const demo = document.createElement('div');
-      demo.className = 'ring-demo-wrap';
-      if (p.gradient) {
-        demo.innerHTML = `<div class="ring-demo-before" style="position:absolute;inset:-3px;border-radius:50%;background:${p.gradient};animation:av-ring-rotate 2s linear infinite;z-index:0"></div>`;
-      }
-      const icon = document.createElement('div');
-      icon.className = 'ring-demo-img';
-      icon.style.cssText = p.color ? `border-color:${p.color};box-shadow:0 0 8px ${p.color}` : '';
-      if (p.id === 'ring-particles') icon.textContent = '✨';
-      else icon.textContent = p.id === 'none' ? '—' : '👤';
-      demo.appendChild(icon);
-      const lbl = document.createElement('span');
-      lbl.textContent = p.label;
-      cell.appendChild(demo);
-      cell.appendChild(lbl);
-      // Click
-      cell.onclick = async () => {
-        ringGrid.querySelectorAll('.style-ring-opt').forEach(c => c.classList.remove('active'));
-        cell.classList.add('active');
-        await _saveProfField({ avatarRing: p.id });
-        _avatarRingCache[uid] = p.id;
-        _applyAvatarRingToAll(uid, p.id);
-        showToast(`Ring: ${p.label}`, 'success', 2000);
+      const card = document.createElement('div');
+      card.className   = 'ring-card' + (curRing === p.id ? ' selected' : '');
+      card.dataset.ringId = p.id;
+      const chk = document.createElement('span');
+      chk.className = 'ring-card-check'; chk.textContent = '✓'; card.appendChild(chk);
+      const wrap = document.createElement('div');
+      wrap.className   = 'av-ring-wrap' + (p.cls ? ' ' + p.cls : '');
+      wrap.style.cssText = 'align-self:center';
+      const av = document.createElement('div');
+      av.className = 'ring-card-av';
+      if (avUrl) { av.style.backgroundImage=`url(${avUrl})`; av.style.backgroundSize='cover'; av.style.backgroundPosition='center'; }
+      wrap.appendChild(av); card.appendChild(wrap);
+      const lbl = document.createElement('div');
+      lbl.className = 'ring-card-label'; lbl.textContent = p.label; card.appendChild(lbl);
+      card.onclick = () => {
+        ringGrid.querySelectorAll('.ring-card').forEach(rc => rc.classList.remove('selected'));
+        card.classList.add('selected');
+        _updateDraft({ avatarRing: p.id });
       };
-      ringGrid.appendChild(cell);
+      ringGrid.appendChild(card);
     });
   }
 
-  // ── Status emoji ────────────────────────────────────────────────
+  // ── Status emoji ──────────────────────────────────────────────────
   const emojiGrid = document.getElementById('statusEmojiGrid');
   if (emojiGrid) {
     emojiGrid.innerHTML = '';
-    const curEmoji = prof?.statusEmoji ? STYLE_STATUS_EMOJIS.find(e=>e.emoji===prof.statusEmoji)?.id || 'none' : 'none';
+    const curEmojiVal = _styleDraft.statusEmoji || '';
+    const curEmojiId  = STYLE_STATUS_EMOJIS.find(e=>e.emoji===curEmojiVal)?.id || 'none';
     STYLE_STATUS_EMOJIS.forEach(e => {
       const btn = document.createElement('div');
-      btn.className = 'style-emoji-opt' + (curEmoji === e.id ? ' active' : '');
-      btn.title = e.label;
-      btn.textContent = e.emoji || '✕';
-      btn.onclick = async () => {
+      btn.className = 'style-emoji-opt' + (curEmojiId === e.id ? ' active' : '');
+      btn.title = e.label; btn.textContent = e.emoji || '✕';
+      btn.onclick = () => {
         emojiGrid.querySelectorAll('.style-emoji-opt').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        await _saveProfField({ statusEmoji: e.id === 'none' ? '' : e.emoji });
-        _statusEmojiCache[uid] = e.id === 'none' ? null : e.emoji;
-        showToast(`Status emoji set!`, 'success', 2000);
+        _updateDraft({ statusEmoji: e.id === 'none' ? null : e.emoji });
       };
       emojiGrid.appendChild(btn);
     });
   }
 
-  // ── Per-room background ─────────────────────────────────────────
-  const roomBgSec = document.getElementById('styleRoomBgSection');
-  const roomBgGrid = document.getElementById('roomBgGrid');
+  // ── Per-room background ───────────────────────────────────────────
+  const roomBgSec   = document.getElementById('styleRoomBgSection');
+  const roomBgGrid  = document.getElementById('roomBgGrid');
   const roomBgLabel = document.getElementById('styleRoomBgLabel');
   if (roomBgGrid) {
     roomBgGrid.innerHTML = '';
     const inRoom = typeof currentRoom !== 'undefined' && currentRoom && !isDmRoom(currentRoom);
     if (inRoom) {
-      const roomBgKey = `cp2p_room_bg_${currentRoom}`;
-      const curRoomBg = localStorage.getItem(roomBgKey) || 'default';
       if (roomBgLabel) roomBgLabel.textContent = `(#${currentRoom})`;
+      const roomBgKey    = `cp2p_room_bg_${currentRoom}`;
+      const curRoomBg    = localStorage.getItem(roomBgKey) || 'default';
+      const rsAppearance = await loadRoomSettings(currentRoom)
+        .then(s => s?.appearance || { allowUserBg:true, forcedBg:null })
+        .catch(() => ({ allowUserBg:true, forcedBg:null }));
+      const isLocked   = rsAppearance.allowUserBg === false;
+      const isForcedBg = rsAppearance.forcedBg && rsAppearance.forcedBg !== 'default';
+      if (isLocked || isForcedBg) {
+        const ln = document.createElement('div');
+        ln.style.cssText = 'padding:9px 13px;background:rgba(251,146,60,.08);border:1.5px solid rgba(251,146,60,.2);border-radius:10px;font-size:11px;color:#fb923c;margin-bottom:8px;grid-column:1/-1;';
+        ln.innerHTML = isForcedBg
+          ? `\uD83D\uDD12 Room owner enforces: <strong>${STYLE_ROOM_BG_PRESETS.find(p=>p.id===rsAppearance.forcedBg)?.label||rsAppearance.forcedBg}</strong>`
+          : `\uD83D\uDD12 Room owner has disabled custom backgrounds`;
+        roomBgGrid.appendChild(ln);
+      }
+      const effectiveCur  = isForcedBg ? rsAppearance.forcedBg : (isLocked ? 'default' : curRoomBg);
+      const userCanChange = !isLocked && !isForcedBg;
       STYLE_ROOM_BG_PRESETS.forEach(p => {
         const btn = document.createElement('button');
-        btn.className = 'style-room-sel-btn' + (curRoomBg === p.id ? ' active' : '');
-        btn.style.cssText = `background:${p.bg||'rgba(255,255,255,.05)'};color:#ccc;font-family:inherit`;
-        btn.textContent = p.label;
-        btn.onclick = () => {
-          roomBgGrid.querySelectorAll('.style-room-sel-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          localStorage.setItem(roomBgKey, p.id);
-          _applyRoomBg(currentRoom);
-          showToast(`Room background: ${p.label}`, 'success', 2000);
-        };
+        btn.className = 'style-room-sel-btn' + (effectiveCur === p.id ? ' active' : '');
+        btn.style.cssText = `background:${p.bg||'rgba(255,255,255,.05)'};color:#ccc;font-family:inherit;${userCanChange?'':'opacity:.4;cursor:not-allowed'}`;
+        btn.textContent = p.label; btn.disabled = !userCanChange;
+        if (userCanChange) {
+          btn.onclick = () => {
+            roomBgGrid.querySelectorAll('.style-room-sel-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            localStorage.setItem(roomBgKey, p.id);
+            _applyRoomBg(currentRoom);
+            showToast(`Room background: ${p.label}`, 'success', 2000);
+          };
+        }
         roomBgGrid.appendChild(btn);
       });
     } else {
-      if (roomBgSec) roomBgSec.style.opacity = '0.45';
-      if (roomBgLabel) roomBgLabel.textContent = '(join a room first)';
+      if (roomBgSec)   roomBgSec.style.opacity   = '0.4';
+      if (roomBgLabel) roomBgLabel.textContent    = '(join a room first)';
     }
   }
 
-  // ── Per-closet tint ──────────────────────────────────────────────
-  const closetSec = document.getElementById('styleClosetBgSection');
-  const closetGrid = document.getElementById('closetTintGrid');
+  // ── Per-closet tint ───────────────────────────────────────────────
+  const closetSec   = document.getElementById('styleClosetBgSection');
+  const closetGrid  = document.getElementById('closetTintGrid');
   const closetLabel = document.getElementById('styleClosetBgLabel');
   if (closetSec && closetGrid) {
     const inDm = typeof currentRoom !== 'undefined' && currentRoom && isDmRoom(currentRoom);
@@ -11895,7 +12281,7 @@ async function loadStyleTab(uid) {
     if (inDm) {
       closetGrid.innerHTML = '';
       const closetKey = `cp2p_closet_tint_${currentRoom}`;
-      const curTint = localStorage.getItem(closetKey) || 'none';
+      const curTint   = localStorage.getItem(closetKey) || 'none';
       if (closetLabel) closetLabel.textContent = `(${getDmDisplayTitle(currentRoom)||currentRoom})`;
       STYLE_CLOSET_TINTS.forEach(t => {
         const sw = document.createElement('div');
@@ -11913,8 +12299,10 @@ async function loadStyleTab(uid) {
       });
     }
   }
-}
 
+  // ── Initial draft bar state ───────────────────────────────────────
+  _renderDraftBar();
+}
 function _applyBubbleStyle(presetId) {
   const p = STYLE_BUBBLE_PRESETS.find(x => x.id === presetId) || STYLE_BUBBLE_PRESETS[0];
   let s = document.getElementById('__bubbleStyleOverride');
@@ -12067,6 +12455,24 @@ async function renderUserPublicProfile(userId, username, container){
 
   container.innerHTML = '';
   container.appendChild(card);
+
+  // Apply cloud-saved profile style (ring, name color, status emoji)
+  const _uprf_nameEl  = card.querySelector('.uprf-name');
+  const _uprf_avWrap  = card.querySelector('.uprf-avatar-wrap');
+  const _uprf_avImg   = card.querySelector('.uprf-avatar');
+  if (_uprf_nameEl && prof.nameColor) _uprf_nameEl.style.color = prof.nameColor;
+  if (_uprf_nameEl && prof.statusEmoji) {
+    const se = document.createElement('span');
+    se.className = 'msg-status-emoji'; se.textContent = prof.statusEmoji;
+    _uprf_nameEl.after(se);
+  }
+  if (_uprf_avWrap && prof.avatarRing && prof.avatarRing !== 'none') {
+    const _allRC = STYLE_RING_PRESETS.filter(p=>p.cls).map(p=>p.cls);
+    _uprf_avWrap.classList.add('av-ring-wrap');
+    _uprf_avWrap.classList.remove(..._allRC);
+    _uprf_avWrap.classList.add(prof.avatarRing);
+    if (_uprf_avImg) _uprf_avImg.classList.add('msg-avatar-circle');
+  }
 
   if(!isMe){
     const acts = card.querySelector('#_uprf_actions');
@@ -13160,6 +13566,8 @@ function _maybeLoadNameColor(userId) {
       if (nc) {
         // Retroactively colour all existing sender-name spans for this user
         document.querySelectorAll(`.msg-sender-name[data-uid="${userId}"]`).forEach(sp => { sp.style.color = nc; });
+        // Also colour member-panel name elements
+        document.querySelectorAll(`.member-name[data-uid="${userId}"]`).forEach(el => { el.style.color = nc; });
       }
     })
     .catch(() => { _nameColorCache[userId] = null; })
@@ -13180,6 +13588,11 @@ const STYLE_RING_PRESETS = [
   { id:'ring-spin',     label:'Spin',     cls:'ring-spin',     color:null,  gradient:'conic-gradient(#38bdf8 0%,#818cf8 33%,#f472b6 66%,#38bdf8 100%)' },
   { id:'ring-rainbow',  label:'Rainbow',  cls:'ring-rainbow',  color:null,  gradient:'conic-gradient(red,#f97316,#facc15,#4ade80,#38bdf8,#818cf8,#f472b6,red)' },
   { id:'ring-particles',label:'✨ Sparks',cls:'ring-particles',color:null,  gradient:'conic-gradient(#facc15,#fb923c,#f472b6,#facc15)' },
+  { id:'ring-gold',    label:'Gold',    cls:'ring-gold',    color:'#fbbf24', gradient:'conic-gradient(#fbbf24,#fde68a,#d97706,#fbbf24)' },
+  { id:'ring-ice',     label:'Ice',     cls:'ring-ice',     color:'#bae6fd', gradient:'conic-gradient(#bae6fd,#e0f2fe,#7dd3fc,#bae6fd)' },
+  { id:'ring-plasma',  label:'Plasma',  cls:'ring-plasma',  color:null,      gradient:'conic-gradient(#a78bfa,#ec4899,#f43f5e,#c084fc,#a78bfa)' },
+  { id:'ring-void',    label:'Void',    cls:'ring-void',    color:null,      gradient:'conic-gradient(#1e1b4b,#312e81,#4338ca,#1e1b4b)' },
+  { id:'ring-crystal', label:'Crystal', cls:'ring-crystal', color:null,      gradient:'conic-gradient(rgba(255,255,255,.9),rgba(186,230,253,.95),rgba(255,255,255,.6),rgba(165,243,252,.9),rgba(255,255,255,.9))' },
 ];
 const _ALL_RING_CLASSES = STYLE_RING_PRESETS.filter(p=>p.cls).map(p=>p.cls);
 
@@ -13189,6 +13602,11 @@ function _applyAvatarRingToAll(userId, ringId) {
   document.querySelectorAll(`.av-ring-wrap`).forEach(wrap => {
     const img = wrap.querySelector(`img.msg-avatar-circle[data-userId="${userId}"]`);
     if (!img) return;
+    wrap.classList.remove(..._ALL_RING_CLASSES);
+    if (preset.cls) wrap.classList.add(preset.cls);
+  });
+  // Member-panel ring wraps
+  document.querySelectorAll(`.member-ring-wrap[data-uid="${userId}"]`).forEach(wrap => {
     wrap.classList.remove(..._ALL_RING_CLASSES);
     if (preset.cls) wrap.classList.add(preset.cls);
   });
@@ -13218,6 +13636,42 @@ function _maybeLoadAvatarRing(userId) {
     })
     .catch(() => { _avatarRingCache[userId] = 'none'; })
     .finally(() => _avatarRingFetchPending.delete(userId));
+}
+
+// ─── Real-time profile change propagation ──────────────────────────────────
+function _propagateProfileChange(uid, profileObj) {
+  if (!uid || !profileObj) return;
+  const nc    = profileObj.nameColor    || null;
+  const ring  = profileObj.avatarRing   || 'none';
+  const emoji = profileObj.statusEmoji  || null;
+
+  // Update caches
+  _nameColorCache[uid]    = nc;
+  _avatarRingCache[uid]   = ring;
+  _statusEmojiCache[uid]  = emoji;
+
+  // Name color — all message sender spans
+  document.querySelectorAll(`.msg-sender-name[data-uid="${uid}"]`).forEach(sp => {
+    sp.style.color = nc || '';
+  });
+  // Name color — member panel rows
+  document.querySelectorAll(`.member-name[data-uid="${uid}"]`).forEach(el => {
+    el.style.color = nc || '';
+  });
+
+  // Avatar ring — chat wraps + member-ring-wrap + profile header
+  _applyAvatarRingToAll(uid, ring);
+
+  // Status emoji — update or remove spans beside sender name
+  document.querySelectorAll(`.msg-sender-name[data-uid="${uid}"]`).forEach(sp => {
+    const next = sp.nextElementSibling;
+    if (next?.classList.contains('msg-status-emoji')) next.remove();
+    if (emoji) {
+      const se = document.createElement('span');
+      se.className = 'msg-status-emoji'; se.textContent = emoji;
+      sp.after(se);
+    }
+  });
 }
 
 // ─── Particle canvas on own header avatar ──────────────────────────────────
@@ -13308,18 +13762,43 @@ const STYLE_ROOM_BG_PRESETS = [
 ];
 
 function _applyRoomBg(roomName) {
+  const msgEl = document.getElementById('messages');
+  if (!msgEl) return;
+  msgEl.style.borderLeft = ''; // clear any DM tint border
+
+  // Room appearance permissions from cached settings
+  const rs = _roomSettingsCache[roomName];
+  const appearance = rs?.appearance || { allowUserBg:true, forcedBg:null };
+
+  // 1. Forced background by owner/admin — overrides everyone
+  if (appearance.forcedBg && appearance.forcedBg !== 'default') {
+    const forced = STYLE_ROOM_BG_PRESETS.find(p => p.id === appearance.forcedBg);
+    if (forced?.bg) {
+      msgEl.style.background = forced.bg;
+      msgEl.style.backgroundAttachment = 'fixed';
+      return;
+    }
+  }
+
+  // 2. User customization disabled — show default/global only
+  if (appearance.allowUserBg === false) {
+    msgEl.style.background = '';
+    msgEl.style.backgroundAttachment = '';
+    const globalId = localStorage.getItem('cp2p_chat_bg') || 'default';
+    if (globalId !== 'default') _applyChatBg(globalId);
+    return;
+  }
+
+  // 3. Normal: user's local preference
   const key = roomName ? `cp2p_room_bg_${roomName}` : null;
   const id = key ? (localStorage.getItem(key) || 'default') : 'default';
   const preset = STYLE_ROOM_BG_PRESETS.find(p=>p.id===id) || STYLE_ROOM_BG_PRESETS[0];
-  const msgEl = document.getElementById('messages');
-  if (!msgEl) return;
   if (preset.bg) {
     msgEl.style.background = preset.bg;
     msgEl.style.backgroundAttachment = 'fixed';
   } else {
     msgEl.style.background = '';
     msgEl.style.backgroundAttachment = '';
-    // Restore global bg if set
     const globalId = localStorage.getItem('cp2p_chat_bg') || 'default';
     if (globalId !== 'default') _applyChatBg(globalId);
   }
@@ -18134,7 +18613,8 @@ async function _doJoinRoom(r){
       }
     }catch(_){}
 
-    // Apply per-room or per-closet background
+    // Ensure room settings are cached so _applyRoomBg can honour appearance permissions
+    if (!_isDm) await loadRoomSettings(r).catch(()=>{});
     if (_isDm) { _applyClosetTint(r); } else { _applyRoomBg(r); }
 
     log(`✨ Joined "${currentRoom}" as ${displayName}.`, "INFO");
