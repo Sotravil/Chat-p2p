@@ -5120,6 +5120,168 @@
     .ui-modal-btn.ui-cancel{background:rgba(255,255,255,.08);color:var(--txt);border:1px solid var(--border);}
     .ui-modal-btn.ui-confirm{background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary,var(--accent-primary)));color:#fff;}
     .ui-modal-btn.ui-danger{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);}
+
+    /* ══════════════════════════════════════════════════════════
+       NOTIFICATION CENTER
+       ══════════════════════════════════════════════════════════ */
+    .notif-btn{position:relative;background:transparent;border:none;cursor:pointer;padding:6px;border-radius:10px;color:var(--muted);font-size:18px;transition:color .2s,background .2s;display:flex;align-items:center;}
+    .notif-btn:hover{color:var(--txt);background:rgba(255,255,255,.07);}
+    .notif-badge{position:absolute;top:2px;right:2px;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#ef4444;color:#fff;font-size:9px;font-weight:700;line-height:16px;text-align:center;pointer-events:none;display:none;}
+    .notif-overlay{position:fixed;inset:0;z-index:99980;display:none;animation:fadeIn .15s ease;}
+    .notif-overlay.open{display:block;}
+    .notif-panel{position:fixed;top:60px;right:16px;width:min(400px,96vw);max-height:calc(100vh - 80px);background:var(--panel);border:1px solid var(--border);border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden;animation:slideUp .25s ease;}
+    .notif-panel-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 12px;border-bottom:1px solid var(--border);flex-shrink:0;}
+    .notif-panel-title{font-size:15px;font-weight:800;color:var(--txt);}
+    .notif-panel-actions{display:flex;gap:8px;align-items:center;}
+    .notif-action-btn{background:none;border:none;cursor:pointer;font-size:11px;color:var(--muted);padding:4px 8px;border-radius:6px;transition:all .15s;}
+    .notif-action-btn:hover{color:var(--txt);background:rgba(255,255,255,.08);}
+    .notif-body{flex:1;overflow-y:auto;padding:6px 8px;}
+    .notif-group-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;padding:10px 10px 4px;}
+    .notif-item{display:flex;gap:10px;align-items:flex-start;padding:10px 10px;border-radius:12px;cursor:pointer;transition:background .15s;position:relative;}
+    .notif-item:hover{background:rgba(255,255,255,.05);}
+    .notif-item.unread{background:rgba(56,189,248,.06);}
+    .notif-item.unread::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;background:var(--accent-primary);border-radius:0 3px 3px 0;}
+    .notif-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:rgba(56,189,248,.1);}
+    .notif-icon.dm{background:rgba(168,85,247,.12);}
+    .notif-icon.friend{background:rgba(34,197,94,.1);}
+    .notif-icon.role{background:rgba(245,158,11,.1);}
+    .notif-icon.mod{background:rgba(239,68,68,.1);}
+    .notif-content{flex:1;min-width:0;}
+    .notif-content-title{font-size:13px;font-weight:600;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .notif-content-preview{font-size:12px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .notif-content-time{font-size:10px;color:var(--muted);margin-top:3px;}
+    .notif-empty{text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;}
+    .notif-sound-btn{background:none;border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--muted);font-size:11px;cursor:pointer;transition:all .15s;}
+    .notif-sound-btn:hover{border-color:var(--accent-primary);color:var(--txt);}
+    .rich-toast{display:flex;flex-direction:column;gap:3px;}
+    .rich-toast-meta{display:flex;align-items:center;gap:6px;font-size:11px;color:rgba(255,255,255,.55);}
+    .rich-toast-source{font-weight:600;color:rgba(255,255,255,.75);}
+    .rich-toast-preview{font-size:13px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:280px;}
+
+    /* ══════════════════════════════════════════════════════════
+       FULL USER PROFILE SCREEN
+       ══════════════════════════════════════════════════════════ */
+    .ups-overlay{position:fixed;inset:0;z-index:99985;background:rgba(0,0,0,.75);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;animation:fadeIn .2s ease;}
+    .ups-overlay.open{display:flex;}
+    .ups-box{background:var(--panel);border:1px solid var(--border);border-radius:22px;width:min(520px,96vw);max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.7);animation:slideUp .3s ease;}
+    .ups-banner{height:100px;background:linear-gradient(135deg,rgba(56,189,248,.4),rgba(168,85,247,.4));position:relative;flex-shrink:0;}
+    .ups-banner-img{width:100%;height:100%;object-fit:cover;display:block;}
+    .ups-avatar-wrap{position:absolute;left:20px;bottom:-32px;}
+    .ups-avatar{width:66px;height:66px;border-radius:50%;border:3px solid var(--panel);object-fit:cover;display:block;}
+    .ups-avatar.ring-gold{border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.35);}
+    .ups-avatar.ring-fire{border-color:#f97316;box-shadow:0 0 12px rgba(249,115,22,.5);}
+    .ups-avatar.ring-cyber{border-color:#6366f1;box-shadow:0 0 8px rgba(99,102,241,.6);}
+    .ups-hdr-actions{position:absolute;right:14px;top:14px;display:flex;gap:8px;}
+    .ups-hdr-btn{background:rgba(0,0,0,.5);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:8px;padding:5px 11px;font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s;}
+    .ups-hdr-btn:hover{background:rgba(255,255,255,.15);}
+    .ups-body{flex:1;overflow-y:auto;padding:44px 22px 22px;}
+    .ups-name{font-size:20px;font-weight:900;color:var(--txt);margin-bottom:1px;}
+    .ups-handle{font-size:12px;color:var(--muted);font-family:monospace;}
+    .ups-status-row{display:flex;align-items:center;gap:6px;margin-top:8px;}
+    .ups-status-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+    .ups-status-dot.online{background:#22c55e;box-shadow:0 0 6px rgba(34,197,94,.6);}
+    .ups-status-dot.offline{background:rgba(255,255,255,.3);}
+    .ups-status-text{font-size:12px;color:var(--muted);}
+    .ups-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+    .ups-badge{font-size:10px;padding:3px 9px;border-radius:99px;font-weight:700;}
+    .ups-badge.owner{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.25);}
+    .ups-badge.admin{background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.25);}
+    .ups-badge.friend{background:rgba(99,179,237,.12);color:rgba(99,179,237,.9);border:1px solid rgba(99,179,237,.2);}
+    .ups-bio{font-size:13px;color:var(--txt);line-height:1.6;margin-top:14px;padding:12px 14px;background:rgba(255,255,255,.04);border-radius:10px;border:1px solid var(--border);}
+    .ups-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+    .ups-action-btn{padding:8px 16px;border-radius:10px;border:none;cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:all .2s;}
+    .ups-action-btn.dm{background:linear-gradient(135deg,rgba(168,85,247,.3),rgba(56,189,248,.3));color:var(--txt);border:1px solid rgba(168,85,247,.3);}
+    .ups-action-btn.friend{background:rgba(34,197,94,.12);color:#4ade80;border:1px solid rgba(34,197,94,.2);}
+    .ups-action-btn.block{background:rgba(239,68,68,.1);color:#f87171;border:1px solid rgba(239,68,68,.2);}
+    .ups-action-btn:hover{opacity:.8;transform:translateY(-1px);}
+    .ups-section-title{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:18px 0 8px;}
+    .ups-rooms-grid{display:flex;flex-direction:column;gap:6px;}
+    .ups-room-chip{display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .18s;font-size:12px;color:var(--txt);}
+    .ups-room-chip:hover{background:rgba(56,189,248,.08);border-color:rgba(56,189,248,.3);}
+    .ups-footer{padding:16px 22px;border-top:1px solid var(--border);display:flex;gap:10px;align-items:center;flex-shrink:0;}
+    .ups-back-btn{background:rgba(255,255,255,.07);border:1px solid var(--border);color:var(--txt);border-radius:10px;padding:9px 18px;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;}
+    .ups-back-btn:hover{background:rgba(255,255,255,.12);}
+    /* Personalization section */
+    .ups-persona-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:8px;}
+    .ups-persona-opt{border:1.5px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .18s;font-size:12px;color:var(--muted);text-align:center;}
+    .ups-persona-opt:hover{border-color:var(--accent-primary);color:var(--txt);background:rgba(99,102,241,.06);}
+    .ups-persona-opt.selected{border-color:var(--accent-primary);background:rgba(99,102,241,.1);color:var(--txt);}
+    .ups-persona-preview{font-size:20px;margin-bottom:4px;}
+
+    /* ══════════════════════════════════════════════════════════
+       ADMIN CONFIG MODAL
+       ══════════════════════════════════════════════════════════ */
+    .admin-cfg-overlay{position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,.75);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;animation:fadeIn .2s ease;}
+    .admin-cfg-overlay.open{display:flex;}
+    .admin-cfg-box{background:var(--panel);border:1px solid var(--border);border-radius:20px;width:min(480px,96vw);max-height:88vh;display:flex;flex-direction:column;box-shadow:0 28px 72px rgba(0,0,0,.65);overflow:hidden;animation:slideUp .3s ease;}
+    .admin-cfg-hdr{padding:20px 22px 16px;border-bottom:1px solid var(--border);flex-shrink:0;}
+    .admin-cfg-title{font-size:16px;font-weight:800;color:var(--txt);}
+    .admin-cfg-subtitle{font-size:12px;color:var(--muted);margin-top:3px;}
+    .admin-cfg-body{flex:1;overflow-y:auto;padding:16px 22px;}
+    .admin-cfg-section{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 8px;}
+    .admin-cfg-section:first-child{margin-top:0;}
+    .admin-perm-row{display:flex;align-items:center;justify-content:space-between;padding:9px 12px;border-radius:10px;transition:background .15s;}
+    .admin-perm-row:hover{background:rgba(255,255,255,.04);}
+    .admin-perm-label{font-size:13px;color:var(--txt);}
+    .admin-perm-desc{font-size:11px;color:var(--muted);margin-top:1px;}
+    .admin-perm-toggle{position:relative;width:36px;height:20px;flex-shrink:0;}
+    .admin-perm-toggle input{opacity:0;width:0;height:0;}
+    .admin-toggle-slider{position:absolute;inset:0;background:rgba(255,255,255,.12);border-radius:10px;cursor:pointer;transition:background .2s;}
+    .admin-toggle-slider::before{content:'';position:absolute;width:14px;height:14px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.4);}
+    .admin-perm-toggle input:checked+.admin-toggle-slider{background:var(--accent-primary);}
+    .admin-perm-toggle input:checked+.admin-toggle-slider::before{transform:translateX(16px);}
+    .admin-cfg-footer{padding:16px 22px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end;flex-shrink:0;}
+    .admin-cfg-reason-wrap{margin-top:12px;}
+    .admin-cfg-reason-input{width:100%;padding:10px 14px;background:rgba(255,255,255,.06);border:1.5px solid var(--border);border-radius:10px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;resize:vertical;min-height:72px;transition:border-color .15s;box-sizing:border-box;}
+    .admin-cfg-reason-input:focus{border-color:var(--accent-primary);}
+
+    /* ══════════════════════════════════════════════════════════
+       MEMBERS PANEL SEARCH
+       ══════════════════════════════════════════════════════════ */
+    .members-search-wrap{padding:10px 14px 8px;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0;}
+    .members-search-input{width:100%;padding:8px 13px 8px 34px;background:rgba(255,255,255,.06);border:1.5px solid var(--border);border-radius:10px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;transition:border-color .15s;box-sizing:border-box;}
+    .members-search-input:focus{border-color:var(--accent-primary);}
+    .members-search-ic{position:absolute;left:24px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;color:var(--muted);}
+    .members-search-rel{position:relative;display:flex;align-items:center;}
+    .members-filter-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;}
+    .members-filter-chip{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:99px;padding:3px 10px;font-size:11px;color:var(--muted);cursor:pointer;transition:all .15s;}
+    .members-filter-chip:hover,.members-filter-chip.active{background:rgba(56,189,248,.12);border-color:rgba(56,189,248,.35);color:var(--accent-primary);}
+
+    /* ══════════════════════════════════════════════════════════
+       GUEST TRIAL SYSTEM
+       ══════════════════════════════════════════════════════════ */
+    .guest-trial-badge{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(17,28,54,.96);border:1px solid rgba(56,189,248,.35);border-radius:99px;padding:7px 18px;font-size:12px;color:var(--txt);display:flex;align-items:center;gap:8px;z-index:9000;backdrop-filter:blur(10px);box-shadow:0 4px 16px rgba(0,0,0,.4);animation:fadeIn .3s ease;pointer-events:none;}
+    .guest-trial-bar{width:80px;height:5px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden;}
+    .guest-trial-fill{height:100%;background:linear-gradient(90deg,#38bdf8,#818cf8);border-radius:3px;transition:width .4s ease;}
+    .guest-lock-overlay{position:fixed;inset:0;z-index:99975;background:rgba(0,0,0,.82);backdrop-filter:blur(14px);display:none;align-items:center;justify-content:center;flex-direction:column;gap:20px;animation:fadeIn .25s ease;}
+    .guest-lock-overlay.open{display:flex;}
+    .guest-lock-box{background:var(--panel);border:1px solid var(--border);border-radius:22px;padding:36px 32px;width:min(400px,90vw);text-align:center;box-shadow:0 28px 72px rgba(0,0,0,.7);}
+    .guest-lock-icon{font-size:48px;margin-bottom:12px;}
+    .guest-lock-title{font-size:20px;font-weight:900;color:var(--txt);margin-bottom:8px;}
+    .guest-lock-desc{font-size:14px;color:var(--muted);line-height:1.6;}
+
+    /* ══════════════════════════════════════════════════════════
+       IMPROVED CHANGELOG — VERSION LIST
+       ══════════════════════════════════════════════════════════ */
+    .wn-ver-list{display:flex;flex-direction:column;gap:8px;padding:4px 0;}
+    .wn-ver-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;cursor:pointer;border:1px solid var(--border);background:rgba(255,255,255,.03);transition:all .18s;}
+    .wn-ver-item:hover{background:rgba(56,189,248,.07);border-color:rgba(56,189,248,.3);}
+    .wn-ver-badge{font-size:11px;font-weight:800;background:rgba(99,102,241,.15);color:#818cf8;border:1px solid rgba(99,102,241,.25);border-radius:8px;padding:3px 9px;flex-shrink:0;}
+    .wn-ver-badge.latest{background:rgba(34,197,94,.12);color:#4ade80;border-color:rgba(34,197,94,.2);}
+    .wn-ver-info{flex:1;min-width:0;}
+    .wn-ver-title{font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .wn-ver-date{font-size:11px;color:var(--muted);margin-top:1px;}
+    .wn-ver-arrow{color:var(--muted);font-size:14px;flex-shrink:0;}
+    .wn-back-btn{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.06);border:1px solid var(--border);color:var(--txt);border-radius:9px;padding:7px 14px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .18s;margin-bottom:14px;}
+    .wn-back-btn:hover{background:rgba(255,255,255,.1);}
+
+    /* ══════════════════════════════════════════════════════════
+       BROWSER NOTIFICATION OPT-IN BANNER
+       ══════════════════════════════════════════════════════════ */
+    .notif-optin-banner{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid rgba(56,189,248,.35);border-radius:14px;padding:14px 18px;display:flex;align-items:center;gap:12px;font-size:13px;color:var(--txt);z-index:9005;box-shadow:0 8px 24px rgba(0,0,0,.5);animation:slideUp .3s ease;max-width:min(420px,90vw);}
+    .notif-optin-banner button{border:none;cursor:pointer;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;font-family:inherit;}
+    .notif-optin-yes{background:linear-gradient(135deg,var(--accent-primary),var(--accent-secondary,var(--accent-primary)));color:#fff;}
+    .notif-optin-no{background:rgba(255,255,255,.08);color:var(--muted);}
   </style>
 </head>
 <body>
@@ -5479,6 +5641,7 @@
         <img class="profile-header-img" id="profileHeaderImg" src="" alt="Me"/>
         <span id="friendReqBadge" style="display:none;position:absolute;top:0;right:0;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#f87171;color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;pointer-events:none;z-index:10"></span>
       </button>
+      <button class="notif-btn" id="notifBellBtn" title="Notifications">🔔<span class="notif-badge" id="notifBellBadge"></span></button>
       <button class="ham-btn" id="hamburgerBtn" title="Menu" aria-label="Open menu">&#9776;</button>
       <!-- Hamburger dropdown – positioned via JS -->
       <div class="profile-dropdown" id="profileDropdown">
@@ -5491,14 +5654,25 @@
         </div>
         <div class="profile-drop-divider"></div>
         <button class="profile-drop-item" id="dropEditPhoto">&#x1F4F7; Change Photo</button>
-        <button class="profile-drop-item" id="dropOpenProfile">&#x1F464; Edit Profile &amp; Bio</button>
-        <button class="profile-drop-item" id="dropBrowseRooms2">&#x1F4C1; Browse Rooms</button>
+        <button class="profile-drop-item" id="dropOpenProfile">&#x1F464; My Profile</button>
+        <div class="profile-drop-divider"></div>
+        <button class="profile-drop-item" id="dropOpenNotifs" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>&#x1F514; Notifications</span>
+          <span id="dropNotifBadge" style="display:none;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#ef4444;color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;"></span>
+        </button>
+        <button class="profile-drop-item" id="dropOpenDMs">&#x1F4AC; DMs / Closets</button>
         <button class="profile-drop-item" id="dropOpenFriends" style="display:flex;justify-content:space-between;align-items:center;">
           <span>&#x1F91D; Friends &amp; Requests</span>
           <span id="dropFriendBadge" style="display:none;min-width:16px;height:16px;padding:0 4px;border-radius:99px;background:#f87171;color:#fff;font-size:10px;font-weight:700;line-height:16px;text-align:center;"></span>
         </button>
+        <button class="profile-drop-item" id="dropBrowseRooms2">&#x1F4C1; Browse Rooms</button>
+        <button class="profile-drop-item" id="dropOpenLinks">&#x1F517; My Links</button>
+        <div class="profile-drop-divider"></div>
         <button class="profile-drop-item" id="dropRecoveryKey">&#x1F511; Recovery Key</button>
-        <button class="profile-drop-item" id="dropWhatsNew">&#x1F4CB; What's New</button>
+        <button class="profile-drop-item" id="dropWhatsNew" style="display:flex;justify-content:space-between;align-items:center;">
+          <span>&#x1F4CB; What&#39;s New</span>
+          <span id="dropVersionBadge" style="font-size:9px;padding:2px 6px;border-radius:99px;background:rgba(99,102,241,.2);color:#818cf8;border:1px solid rgba(99,102,241,.25);"></span>
+        </button>
         <div class="profile-drop-divider"></div>
         <button class="profile-drop-item danger" id="dropLogout">&#x1F6AA; Logout</button>
       </div>
@@ -5994,7 +6168,7 @@ const CORS_PROXY      = "https://corsproxy.io/?";
 
 // === APP VERSION & CHANGELOG ===
 // Bump APP_VERSION on every deploy so returning users see "What's New"
-const APP_VERSION        = "9.4.0";
+const APP_VERSION        = "9.6.0";
 const CHANGELOG_SEEN_KEY = "chatP2P_lastVersionSeen";
 const CHANGELOGS_DIR     = "changelogs";
 
@@ -6022,7 +6196,7 @@ const POLL_MS_BURST          = 1500;    // ⚡ 1.5s burst - safe on rate limit
 const POLL_MS_INTERACTION    = 3000;    // Check after interaction (3s)
 const POLL_BURST_DURATION    = 8_000;   // 8s burst after sending message
 const POLL_MS_IDLE           = 90_000;  // 90s (for presence only)
-const IDLE_THRESHOLD_MS      = 2_000;   // 2s since last interaction => idle
+const IDLE_THRESHOLD_MS      = 30_000;  // 30s since last interaction → idle (was 2s — too aggressive for chat)
 const ACTIVE_BURST_MS        = 2_000;   // keep active for 2s after last interaction
 const INTERACTION_THROTTLE_MS= 150;     // update timestamps at most every 150ms
 
@@ -6362,7 +6536,14 @@ async function showWhatsNewLatest(){
 
 /** Write current changelog to repo if not already there (runs once per version) */
 async function ensureChangelogInRepo(){
-  if(!GH_TOKEN_READY) return; // token not loaded yet
+  if(!ghTokenReady) return; // token not loaded yet
+  // L-1 fix: throttle with a 24-hour localStorage guard so that every
+  // concurrent browser tab doesn't hammer the changelog index on startup.
+  // The write is content-idempotent (same APP_VERSION), so a single writer
+  // per day per client is sufficient.
+  const _CL_GUARD = `cp2p_cl_written_${APP_VERSION}`;
+  const _lastCl = parseInt(localStorage.getItem(_CL_GUARD) || '0', 10);
+  if(Date.now() - _lastCl < 86_400_000) return; // already ran within 24 h
   try{
     const idxPath = `${CHANGELOGS_DIR}/index.json`;
 
@@ -6380,6 +6561,8 @@ async function ensureChangelogInRepo(){
       idx.updatedAt = Date.now();
       await ghPutJson(idxPath, idx, idxRaw.sha||null, `update changelog index → v${APP_VERSION}`);
     }
+    // Stamp successful check regardless of whether a write was needed
+    localStorage.setItem(_CL_GUARD, String(Date.now()));
   }catch(e){
     console.warn('[changelog] ensureChangelogInRepo failed:', e?.message||e);
   }
@@ -6461,32 +6644,70 @@ el('dropWhatsNew')?.addEventListener('click', async e=>{
 el('wnDismissBtn')?.addEventListener('click', ()=>{
   closeWhatsNew();
 });
-el('wnAllVersionsBtn')?.addEventListener('click', async ()=>{
+el('wnAllVersionsBtn')?.addEventListener('click', ()=>{ showAllChangelogVersions(); });
+
+/** Show all changelog versions as a list with individual version detail navigation */
+async function showAllChangelogVersions(){
   const body = el('wnBody');
+  const title = el('wnTitle');
+  const badge = el('wnVersionBadge');
+  const dateEl = el('wnDate');
   if(!body) return;
-  body.innerHTML = '<div class="wn-loading"><div class="wn-spinner"></div>Fetching all versions…</div>';
+  if(title)  title.textContent = 'All Versions';
+  if(badge)  badge.textContent = '';
+  if(dateEl) dateEl.textContent = '';
+  body.innerHTML = '<div class="wn-loading"><div class="wn-spinner"></div>Fetching version history…</div>';
   try{
     const idx = await loadChangelogIndex();
     if(!idx || !idx.versions?.length){
-      body.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;">No version history found yet.</div>';
+      body.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px;">No version history found.</div>';
       return;
     }
-    let html = '';
-    for(const v of idx.versions){
-      const cl = await loadChangelog(v);
-      if(!cl) continue;
+    // Fetch all summaries in parallel
+    const clMaps = await Promise.all(idx.versions.map(v=>loadChangelog(v).catch(()=>null)));
+    const html = document.createElement('div');
+    html.className='wn-ver-list';
+    clMaps.forEach((cl, i)=>{
+      if(!cl) return;
+      const v = idx.versions[i];
       const isLatest = v === idx.latest;
-      const dt = cl.date ? new Date(cl.date).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '';
-      html += `<div class="wn-prev-section">
-        <div class="wn-prev-label">v${cl.version}${isLatest ? ' <span style="color:#4ade80;font-size:10px;">LATEST</span>' : ''} &nbsp;&middot;&nbsp; ${dt}</div>
-        ${(cl.entries||[]).map(e=>`<div class="wn-prev-item">&#x25B8; ${e.text}</div>`).join('')}
-      </div>`;
-    }
-    body.innerHTML = html || '<div style="padding:20px;color:var(--muted);">No history found.</div>';
+      const rawDate  = cl.date || cl.releasedAt;
+      let dateStr = '';
+      if(rawDate){
+        try{ dateStr = new Date(rawDate).toLocaleDateString('en-US',{year:'numeric',month:'short',day:'numeric'}); }catch(_){}
+      }
+      const item = document.createElement('div');
+      item.className = 'wn-ver-item';
+      item.innerHTML = `
+        <span class="wn-ver-badge${isLatest?' latest':''}">v${cl.version||v}${isLatest?' ★':''}</span>
+        <div class="wn-ver-info">
+          <div class="wn-ver-title"></div>
+          <div class="wn-ver-date"></div>
+        </div>
+        <span class="wn-ver-arrow">›</span>`;
+      item.querySelector('.wn-ver-title').textContent = cl.title || `Version ${cl.version||v}`;
+      item.querySelector('.wn-ver-date').textContent  = dateStr;
+      item.onclick = ()=> showChangelogVersion(cl, ()=>showAllChangelogVersions());
+      html.appendChild(item);
+    });
+    body.innerHTML = '';
+    body.appendChild(html);
   }catch(err){
-    body.innerHTML = `<div style="padding:20px;color:var(--bad);font-size:12px;">${err?.message||err}</div>`;
+    body.innerHTML = `<div style="padding:20px;color:var(--bad);font-size:12px;">Error: ${err?.message||err}</div>`;
   }
-});
+}
+
+/** Show a specific changelog version with a back-button */
+function showChangelogVersion(cl, backFn){
+  renderChangelogEntries(cl);          // wipes wnBody, sets title/badge/date
+  const body = el('wnBody');
+  if(!body) return;
+  const backBtn = document.createElement('button');
+  backBtn.className = 'wn-back-btn';
+  backBtn.textContent = '← All Versions';
+  backBtn.onclick = backFn;
+  body.prepend(backBtn);               // insert AFTER wipe
+}
 wnOverlay?.addEventListener('click', e=>{ if(e.target===wnOverlay) closeWhatsNew(); });
 
 // Home logo: non-selectable, click = leave room (go home) or scroll to join panel
@@ -7503,11 +7724,40 @@ async function registerUser(username, password){
     await ghPutJson(chunkPath, obj, null, "auth chunk");
   }
 
-  // Update index
+  // Update index — H-1 fix: re-read-and-merge before each attempt so concurrent
+  // registrations cannot silently overwrite each other.  After every write we
+  // re-read and verify our entry survived; if a competing writer beat us to the
+  // SHA, the loop will re-read fresh content and retry.
   updateProgressBar(85, 'Finalizing account…');
-  idx.obj.byUsernameLower[uLower] = userId;
-  idx.obj.updatedAt = Date.now();
-  await ghPutJson("users/index.json", idx.obj, idx.sha, "register user index");
+  {
+    let _idxWriteOk = false;
+    let _idxCur = idx;  // first attempt uses the already-read snapshot
+    for(let _attempt = 0; _attempt < 5; _attempt++){
+      if(_attempt > 0){
+        await sleep(300 * _attempt);
+        _idxCur = await ensureUsersIndex();
+        if(!_idxCur.ok) throw new Error('users/index reload failed');
+        // Another concurrent registration may have already taken this username
+        if(_idxCur.obj.byUsernameLower?.[uLower] && _idxCur.obj.byUsernameLower[uLower] !== userId)
+          throw new Error("Username already exists.");
+      }
+      _idxCur.obj.byUsernameLower[uLower] = userId;
+      _idxCur.obj.updatedAt = Date.now();
+      try{
+        await ghPutJson("users/index.json", _idxCur.obj, _idxCur.sha, "register user index");
+        // Verify the write survived (a concurrent writer could have beaten our PUT)
+        const _verify = await ensureUsersIndex();
+        if(_verify.ok && _verify.obj?.byUsernameLower?.[uLower] === userId){
+          _idxWriteOk = true; break;
+        }
+        // Entry is missing: our write was overwritten — retry with a fresh read
+      }catch(_e){
+        if(_attempt >= 4) throw _e;
+        // Otherwise fall through to next retry iteration
+      }
+    }
+    if(!_idxWriteOk) throw new Error("Failed to register in users index after 5 attempts");
+  }
 
   // Generate + save recovery key
   updateProgressBar(93, 'Generating recovery key…');
@@ -7745,6 +7995,7 @@ function applySessionToUi(){
 let _logBuffer      = [];   // buffered events pending flush
 let _logFlushTimer  = null;
 let _logMsgCount    = 0;    // messages sent since last flush
+let _logFlushLastAt = 0;    // timestamp of the last completed flush (rate guard)
 let _logSessionStart = Date.now();
 
 function _logDateParts(ts = Date.now()){
@@ -7785,6 +8036,18 @@ async function flushUserLogs(){
   clearTimeout(_logFlushTimer);
   const userId = session?.userId;
   if(!userId) return;
+
+  // ── Rate guard: max 1 flush per 45 s to prevent API write storms ──────────
+  // Direct callers (login/logout/join-room) must also respect this limit.
+  // If called too soon, reschedule so events are not lost.
+  const now = Date.now();
+  const MIN_FLUSH_INTERVAL_MS = 45_000;
+  if(_logFlushLastAt && (now - _logFlushLastAt) < MIN_FLUSH_INTERVAL_MS){
+    const remainingMs = MIN_FLUSH_INTERVAL_MS - (now - _logFlushLastAt);
+    clearTimeout(_logFlushTimer);
+    _logFlushTimer = setTimeout(() => flushUserLogs().catch(()=>{}), remainingMs + 500);
+    return;
+  }
 
   // Snapshot & clear local buffer
   const events = [..._logBuffer];
@@ -7862,6 +8125,7 @@ async function flushUserLogs(){
     await ghPutJson(annualPath, annual, annualGot.sha||null, `log:annual:${isoYear}`);
   }
 
+  _logFlushLastAt = Date.now();
   log(`📋 Activity logs saved to GitHub (${events.length} event(s))`, "INFO");
 }
 
@@ -8422,6 +8686,7 @@ async function openRoommateActivityPanel(roomName, userId, username){
 function escapeHtml(s){
   return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
+const esc = escapeHtml;   // short alias used throughout
 
 /* ============================================================
    === ROOM ROUTING & SHARING ===
@@ -9459,15 +9724,74 @@ async function openMembersPanel(roomName){
     offline.forEach(m=>body.appendChild(buildMemberRow(m, isAdmin, roomName, myFriendIds)));
   }
   hideProgressBar();
+
+  // ── Populate global role caches for openUserProfileScreen ────
+  const _cachedRoles = _roomRolesCache[roomName];
+  if(_cachedRoles){
+    _currentRoomOwnerCache  = _cachedRoles.ownerUid || null;
+    _currentRoomAdminsCache = Array.from(_cachedRoles.adminUids || []).map(uid=>({ userId:uid }));
+  }
+
+  // ── Wire search + filter chips ──────────────────────────────
+  const searchInput = document.getElementById('membersSearchInput');
+  if(searchInput){
+    searchInput.value = '';
+    const filterRows = ()=>{
+      const q   = searchInput.value.toLowerCase().trim();
+      const af  = document.querySelector('.members-filter-chip.active')?.dataset?.filter || 'all';
+      const rows= body.querySelectorAll('.member-row');
+      let visibleSections = new Set();
+      rows.forEach(row=>{
+        const un  = row.dataset.username||'';
+        const rl  = row.dataset.role||'member';
+        const onl = row.dataset.online==='1';
+        const fr  = row.dataset.friend==='1';
+        const matchQ = !q || un.includes(q) || rl.includes(q);
+        const matchF = af==='all' ||
+          (af==='online'  && onl) ||
+          (af==='owner'   && rl==='owner') ||
+          (af==='admin'   && rl==='admin') ||
+          (af==='friend'  && fr);
+        const show = matchQ && matchF;
+        row.style.display = show ? '' : 'none';
+        if(show) visibleSections.add(onl ? 'online' : 'offline');
+      });
+      // Show/hide section labels
+      body.querySelectorAll('.member-section-label').forEach(lbl=>{
+        const isOnlineLbl = lbl.textContent.includes('🟢');
+        lbl.style.display = (isOnlineLbl ? visibleSections.has('online') : visibleSections.has('offline')) ? '' : 'none';
+      });
+    };
+    searchInput.removeEventListener('input', filterRows);
+    searchInput.addEventListener('input', filterRows);
+    document.querySelectorAll('.members-filter-chip').forEach(chip=>{
+      chip.onclick = ()=>{
+        document.querySelectorAll('.members-filter-chip').forEach(c=>c.classList.remove('active'));
+        chip.classList.add('active');
+        filterRows();
+      };
+    });
+  }
 }
 
 function buildMemberRow(m, isAdmin, roomName, myFriendIds=new Set()){
   const row = document.createElement('div');
   row.className='member-row';
-  const av = getCachedAvatarUrl(m.userId);
+  // Data attributes for search / filter without re-render
   const isMe = session?.userId===m.userId;
-  const isOwner = m.role==='owner'||(isRoomOwner(roomName)&&m.userId===session?.userId);
+  // isOwner: prefer explicit role field; fall back to ownerUid from roles cache (works for
+  // any viewer, not just the owner themselves — fixes badge for non-self members)
+  const isOwner = m.role==='owner'
+    || (_roomRolesCache[roomName]?.ownerUid && _roomRolesCache[roomName].ownerUid===m.userId)
+    || (isRoomOwner(roomName)&&m.userId===session?.userId);
   const isFriend = !isMe && myFriendIds.has(m.userId);
+  const resolvedRole = isOwner ? 'owner' : (m.role==='admin' ? 'admin' : 'member');
+  row.dataset.username = (m.username||m.userId).toLowerCase();
+  row.dataset.role     = resolvedRole;
+  row.dataset.online   = m.online ? '1' : '0';
+  row.dataset.friend   = isFriend ? '1' : '0';
+  row.dataset.userId   = m.userId;
+  const av = getCachedAvatarUrl(m.userId);
   const lastSeenStr = m.lastSeenAt ? `Last seen ${formatTimeAgo(m.lastSeenAt)}` : 'Never seen';
 
   row.innerHTML=`
@@ -9537,8 +9861,13 @@ function buildMemberRow(m, isAdmin, roomName, myFriendIds=new Set()){
           const ag = await ghGetJsonWithSha(roomAdminsPath(roomName));
           let admArr = (ag.ok && Array.isArray(ag.obj)) ? ag.obj : [];
           if(newRole==='admin'){
-            if(!admArr.find(a=>(typeof a==='string'?a:a.userId)===m.userId))
-              admArr.push({userId:m.userId, username:m.username||m.userId});
+            if(!admArr.find(a=>(typeof a==='string'?a:a.userId)===m.userId)){
+              // Open admin permissions config modal, then write with permissions
+              let permsObj = null;
+              try{ permsObj = await openAdminConfigModal(m); }catch(_){}
+              if(permsObj === null){ roleBtn.disabled=false; return; } // user cancelled
+              admArr.push({userId:m.userId, username:m.username||m.userId, permissions:permsObj});
+            }
           } else {
             admArr = admArr.filter(a=>(typeof a==='string'?a:a.userId)!==m.userId);
           }
@@ -9565,7 +9894,7 @@ function buildMemberRow(m, isAdmin, roomName, myFriendIds=new Set()){
 
   row.onclick = (e)=>{
     if(e.target.tagName==='BUTTON') return;
-    openUserHoverCard(row, m.userId, m.username);
+    openUserProfileScreen(m.userId, m.username||m.userId, { fromRoom: roomName });
   };
   return row;
 }
@@ -9577,10 +9906,15 @@ async function openAddMemberDialog(roomName){
   try{
     const idx = await ghGetJsonWithSha('users/index.json');
     if(!idx.ok||!idx.obj){ showShareToast('Could not load user index','rgba(251,146,60,.9)'); return; }
-    const entry = Object.values(idx.obj).find(u=>(u.username||'').toLowerCase()===username.toLowerCase());
-    if(!entry){ showShareToast(`User @${username} not found`,'rgba(251,146,60,.9)'); return; }
-    const res = await addUserToRoom(roomName, entry.userId, entry.username);
-    if(res.ok){ showShareToast(`@${entry.username} added!`); openMembersPanel(roomName); }
+    // users/index.json structure: { byUsernameLower: { lowercaseName → userId } }
+    const byUsernameMap = idx.obj.byUsernameLower || idx.obj;
+    const foundUserId = byUsernameMap[username.toLowerCase()];
+    if(!foundUserId){ showShareToast(`User @${username} not found`,'rgba(251,146,60,.9)'); return; }
+    // Load profile to get canonical username
+    const profGot = await ghGetJsonWithSha(`users/${foundUserId}/profile.json`).catch(()=>({ok:false}));
+    const canonicalUsername = (profGot.ok && profGot.obj?.username) ? profGot.obj.username : username;
+    const res = await addUserToRoom(roomName, foundUserId, canonicalUsername);
+    if(res.ok){ showShareToast(`@${canonicalUsername} added!`); openMembersPanel(roomName); }
     else{ showShareToast(res.reason,'rgba(251,146,60,.9)'); }
   }catch(e){ showShareToast('Error: '+e.message,'rgba(251,146,60,.9)'); }
 }
@@ -10201,6 +10535,12 @@ async function openDMWithUser(targetUid, targetUsername){
     const dmExists = await ghGetJsonWithSha(manifestPath(dmRoom));
     if(!dmExists.ok || !dmExists.obj){
       await createRoomWithMeta(dmRoom, 'unlisted', '').catch(()=>{});
+    } else if(dmExists.obj.type && dmExists.obj.type !== 'unlisted'){
+      // M-5 fix: a public room shares this deterministic name — surface an error
+      // rather than silently routing private DMs into a public room.
+      hideProgressBar();
+      showShareToast('DM room name collision detected. Please contact support.', 'rgba(251,146,60,.9)');
+      return;
     }
 
     updateProgressBar(75, 'Joining Closet\u2026');
@@ -12454,13 +12794,17 @@ function updateMentionBadge(){
 }
 
 function checkNewMessages(messages){
-  if(!session && !localGuest.userId) return;
+  // M-8 fix: use optional chaining so a call that races with initGuestIdentity
+  // (where localGuest may still be the bare {} default) exits cleanly.
+  if(!session && !localGuest?.userId) return;
   
   const userId = session?.userId || localGuest.userId;
   const username = session?.username || nameInput.value || localGuest.name;
   
   let newUnread = 0;
   let newMentions = 0;
+  // Track rooms with new activity for batched message notification (one notif per room per sync)
+  const notifiedRooms = new Set();
   
   for(const msg of messages){
     // Skip own messages
@@ -12474,6 +12818,33 @@ function checkNewMessages(messages){
       const mentions = detectMentions(msg.text);
       if(mentions.some(m => m.toLowerCase() === username.toLowerCase())){
         newMentions++;
+        // Fire a mention notification (once per message)
+        try{
+          addNotif('mention', {
+            title    : `@${username} mentioned by ${msg.sender}`,
+            preview  : (msg.text || '').slice(0, 80),
+            sender   : msg.sender,
+            room     : msg.room || currentRoom || '',
+            sound    : true,
+            browser  : true
+          });
+        }catch(_){}
+      } else {
+        // One generic message notification per room per sync batch (avoids flooding the center)
+        const msgRoom = msg.room || currentRoom || '';
+        if(!notifiedRooms.has(msgRoom)){
+          notifiedRooms.add(msgRoom);
+          try{
+            addNotif('message', {
+              title  : `New message in ${msgRoom ? '#'+msgRoom : 'chat'}`,
+              preview: (msg.text || '').slice(0, 80),
+              sender : msg.sender,
+              room   : msgRoom,
+              sound  : false,   // sound only for mentions; avoid noise on every poll
+              browser: false
+            });
+          }catch(_){}
+        }
       }
     }
   }
@@ -12831,11 +13202,26 @@ async function ensureRoomV3(roomName){
 
     const boxObj = { v:3, room: roomName, box:1, startCell:1, endCell:1, cellCount:1, updatedAt: now };
 
-    // create files (order doesn't matter, but keep clean)
-    await ghPutJson(roomIndexPath(roomName), idxObj, null, "init room index");
-    await ghPutJson(boxesIndexPath(roomName), boxesIdxObj, null, "init boxes index");
-    await ghPutJson(boxPath(roomName, 1), boxObj, null, "init box");
-    await ghPutJson(cellPath(roomName, 1), [], null, "init cell");
+    // create files idempotently — skip any file that already exists so a
+    // partially-completed room creation is safely resumable on retry (C-3 fix)
+    const _riEx = await ghGetJsonWithSha(roomIndexPath(roomName));
+    if(!_riEx.ok || !_riEx.obj)
+      await ghPutJson(roomIndexPath(roomName), idxObj, null, "init room index");
+
+    const _biEx = await ghGetJsonWithSha(boxesIndexPath(roomName));
+    if(!_biEx.ok || !_biEx.obj)
+      await ghPutJson(boxesIndexPath(roomName), boxesIdxObj, null, "init boxes index");
+
+    const _bxEx = await ghGetJsonWithSha(boxPath(roomName, 1));
+    if(!_bxEx.ok || !_bxEx.obj)
+      await ghPutJson(boxPath(roomName, 1), boxObj, null, "init box");
+
+    const _c1Ex = await ghGetJsonWithSha(cellPath(roomName, 1));
+    if(!_c1Ex.ok || !_c1Ex.obj)
+      await ghPutJson(cellPath(roomName, 1), [], null, "init cell");
+
+    // Manifest is always the last file written; its absence is the trigger for
+    // this whole block, so we can write unconditionally (null SHA = new file).
     await ghPutJson(manifestPath(roomName), manifest, null, "init room manifest v3");
 
     // Ensure master file exists (false)
@@ -13046,8 +13432,10 @@ async function loadCellsRange(roomName, startCell, endCell, forceApi = false){
     try{
       // forceApi=true (initial join / verification) → always use GitHub API so stale CDN
       // cache (raw.githubusercontent.com caches for up to 5 min) never hides fresh messages.
-      // forceApi=false (normal incremental poll) → raw CDN for older cells, API for latest.
-      const useApi = forceApi || (c === endCell);
+      // forceApi=false (normal incremental poll) → raw CDN for older cells, API for the last
+      // TWO cells (H-5 fix: N-1 cell can contain recently edited/deleted messages missed when
+      // only the very last cell is checked via API).
+      const useApi = forceApi || (c >= endCell - 1);
       console.log(`  Cell ${c}: ${useApi ? '⚡ API (fresh)' : '📦 Raw CDN (historical)'}`);
       const got = await ghGetJsonWithSha(cellPath(roomName,c), useApi);
       if(got.ok && Array.isArray(got.obj)){
@@ -13150,6 +13538,10 @@ function enqueueMessageWrite(roomName, msgObj){
     })
     .catch(err => {
       console.error(`[MsgQueue] FAILED id=${msgObj.id} queuePos=${queuePos} error=`, err);
+      // User-facing failure feedback — mark the bubble and show a toast
+      showToast('⚠️ Message failed to deliver. Check your connection.', 'error', 8000);
+      const failBubble = document.querySelector(`[data-msg-id="${msgObj.id}"]`);
+      if(failBubble) failBubble.style.opacity = '0.45';  // dim to indicate failure
       rejectFn(err);
     });
   return p;
@@ -13510,7 +13902,9 @@ async function pollLoop(){
       if(presenceState.inRoom && !presenceState.isIdle){
         await presenceSetOnline(false, "idle");
       }
-      // No more polling when idle - will resume on interaction
+      // Schedule a minimum 30s heartbeat poll even while idle so users
+      // don't permanently miss messages during long passive reading sessions.
+      scheduleNextPoll(POLL_MS_IDLE / 3); // 30s idle heartbeat
       return;
     }
 
@@ -13560,9 +13954,11 @@ async function pollLoop(){
 
       if(master.value){
         await sleep(100);
+        // H-4 fix: use Date.now() (post-sync time) rather than the pre-sync `now`
+        // so the full HYPER_BURST_DURATION window starts from when we actually finish
+        // syncing, not from when the poll loop began (which could be 1-2 s earlier).
         await saveMasterValue(currentRoom, false);
-        // Receiving a message → enter hyper burst so replies are near-instant
-        hyperBurstUntil = now + HYPER_BURST_DURATION;
+        hyperBurstUntil = Date.now() + HYPER_BURST_DURATION;
       }
 
       // (Re-)enter standard burst mode
@@ -15194,9 +15590,10 @@ async function markRead(ts, msgId, zone){
 
   presenceCache.set(userId, p);
 
-  // Throttle writes
+  // Throttle writes — M-7 fix: raised from 1500 ms to 3000 ms to reduce
+  // presence-write pressure during hyper-burst (500 ms polls) and log flushes.
   const now = Date.now();
-  if(now - lastReadWriteAt < 1500) return;
+  if(now - lastReadWriteAt < 3000) return;
   lastReadWriteAt = now;
 
   await presenceWrite(p);
@@ -15337,7 +15734,12 @@ function updateReadBadges(){
       chip.className='reads-chip';
       chip.title='@'+r.username;
       const av=getCachedAvatarUrl(r.userId);
-      chip.innerHTML=`<img src="${av}" onerror="this.src='${DEFAULT_AVATAR_URL}'" alt="${r.username}"/>`;
+      // Safe: use createElement + .src/.alt instead of innerHTML to prevent XSS via crafted avatar URLs
+      const chipImg = document.createElement('img');
+      chipImg.src = av;
+      chipImg.alt = r.username;
+      chipImg.onerror = () => { chipImg.src = DEFAULT_AVATAR_URL; };
+      chip.appendChild(chipImg);
       chip.onclick=e=>{ e.stopPropagation(); openUserHoverCardById(r.userId); };
       readsEl.appendChild(chip);
     });
@@ -15364,6 +15766,9 @@ function updateReadBadges(){
    ============================================================ */
 async function sendMessage(){
   if(!running || !currentRoom) return;
+
+  // ── Guest trial gate (must come before text check so the lock always shows) ──
+  if(!checkGuestTrialBeforeSend()) return;
 
   const text = (msgInput.value||"").trim();
   if(!text) return;
@@ -15531,51 +15936,14 @@ async function retryMessage(msg){
   updateMessageStatus(msg.id, 'sending');
   
   try{
-    // For media messages: files are already uploaded, just need to save message metadata
-    // Check if message already exists in the cell to avoid duplicates
-    if(msg.cell){
-      const cellNum = msg.cell;
-      
-      // Clear cached SHA to force fresh fetch
-      const cellPathStr = cellPath(currentRoom, cellNum);
-      clearCachedSha(cellPathStr);
-      
-      // Fetch current cell content
-      const got = await ghGetJsonWithSha(cellPathStr);
-      if(!got.ok || !Array.isArray(got.obj)){
-        throw new Error(`Failed to fetch cell ${cellNum} for retry`);
-      }
-      
-      const cellArr = got.obj;
-      const existingIdx = cellArr.findIndex(m => m.id === msg.id);
-      
-      if(existingIdx >= 0){
-        // Message already exists, just update it
-        cellArr[existingIdx] = msg;
-        console.log(`[retryMessage] Updating existing message in cell ${cellNum}`);
-      }else{
-        // Message doesn't exist yet, append it
-        cellArr.push(msg);
-        console.log(`[retryMessage] Appending message to cell ${cellNum}`);
-      }
-      
-      // Write back with fresh SHA
-      const put = await ghPutJson(cellPathStr, cellArr, got.sha, `retry msg cell ${cellNum}`);
-      if(!put || !put.ok || !put.sha){
-        throw new Error(`Failed to write message to cell ${cellNum} - no SHA returned`);
-      }
-      
-      // Update room index if this was a new append
-      if(existingIdx < 0){
-        await loadRoomIndex(currentRoom);
-        roomIndex.totalMessages = (roomIndex.totalMessages || 0) + 1;
-        await saveRoomIndex(currentRoom);
-        await saveMasterValue(currentRoom, true);
-      }
-    }else{
-      // No cell assigned yet, use normal append
-      await enqueueMessageWrite(currentRoom, msg);
-    }
+    // L-2 fix: always route through the serialised _msgWriteQueue regardless of
+    // whether msg.cell is set.  Direct ghGetJsonWithSha + ghPutJson here would
+    // race with any in-flight send on the same cell.
+    // appendMessageV3 (called by the queue) already deduplicates by message ID
+    // (Step 3) and only increments totalMessages for truly new messages —
+    // which also eliminates the L-5 double-count risk from the old direct path.
+    console.log(`[retryMessage] Routing msg id=${msg.id} through write queue (cell=${msg.cell ?? 'unknown'})`);
+    await enqueueMessageWrite(currentRoom, msg);
     
     updateMessageStatus(msg.id, 'sent');
     showToast('Message sent successfully', 'success');
@@ -15910,6 +16278,9 @@ async function syncLatestFromStorage(){
       log(`📨 ${addedCount} new message(s) received (loaded cells)`, "INFO");
       setupReadObserver();
       
+      // Check for new messages and mentions (including notification wiring)
+      checkNewMessages(newMsgs);
+      
       // Scroll to bottom after adding new messages
       setTimeout(() => {
         messagesEl.scrollTop = messagesEl.scrollHeight;
@@ -15955,6 +16326,8 @@ async function syncLatestFromStorage(){
       if(addedCount > 0){
         log(`📨 ${addedCount} message(s) found in verification`, "INFO");
         setupReadObserver();
+        // Wire notifications for newly discovered messages
+        checkNewMessages(msgs);
       }
     }
     
@@ -16201,6 +16574,539 @@ el('dropRecoveryKey')?.addEventListener('click', async e=>{
     showToast('Error: ' + (err?.message||err));
   }
 });
+
+/* ══════════════════════════════════════════════════════════════════
+   §1  NOTIFICATION CENTER
+   ══════════════════════════════════════════════════════════════════ */
+const NOTIF_STORE_KEY = 'cp2p_notifs_v1';
+const NOTIF_MAX       = 80;
+
+function _loadNotifStore(){
+  try{ return JSON.parse(localStorage.getItem(NOTIF_STORE_KEY)||'[]'); }catch(e){ return []; }
+}
+function _saveNotifStore(arr){
+  try{ localStorage.setItem(NOTIF_STORE_KEY, JSON.stringify(arr.slice(0, NOTIF_MAX))); }catch(e){}
+}
+
+function addNotif(type, data={}){
+  // type: 'message'|'mention'|'friend'|'room'|'system'
+  const notif = {
+    id   : Date.now() + '_' + Math.random().toString(36).slice(2,6),
+    type,
+    title  : data.title  || 'Notification',
+    preview: data.preview|| '',
+    sender : data.sender || '',
+    room   : data.room   || '',
+    ts     : Date.now(),
+    read   : false,
+  };
+  const store = _loadNotifStore();
+  store.unshift(notif);
+  _saveNotifStore(store);
+  refreshNotifBadge();
+  if(data.sound !== false) playNotifSound(type);
+  if(data.browser !== false) sendBrowserNotif(notif.title, notif.preview||notif.sender, data);
+  return notif.id;
+}
+
+function refreshNotifBadge(){
+  const unread = _loadNotifStore().filter(n=>!n.read).length;
+  const badge  = el('notifBellBadge');
+  const drop   = el('dropNotifBadge');
+  if(badge){ badge.textContent = unread > 0 ? (unread > 99 ? '99+' : unread) : ''; badge.style.display = unread > 0 ? '' : 'none'; }
+  if(drop) { drop.textContent  = unread > 0 ? (unread > 99 ? '99+' : unread) : ''; drop.style.display  = unread > 0 ? '' : 'none'; }
+}
+
+function openNotifCenter(){
+  const ov = el('notifCenterOverlay');
+  if(!ov) return;
+  ov.classList.add('open');
+  renderNotifCenter();
+}
+function closeNotifCenter(){
+  el('notifCenterOverlay')?.classList.remove('open');
+}
+
+const NOTIF_ICONS = { message:'💬', mention:'🔔', friend:'🤝', room:'🏠', system:'ℹ️' };
+function renderNotifCenter(){
+  const body  = el('notifBody');
+  if(!body) return;
+  const store = _loadNotifStore();
+  if(!store.length){
+    body.innerHTML = '<div style="text-align:center;padding:40px;color:#888;font-size:14px;">All caught up!<br><span style="font-size:32px">🎉</span></div>';
+    return;
+  }
+  body.innerHTML = '';
+  store.forEach(n=>{
+    const item = document.createElement('div');
+    item.className = 'notif-item' + (n.read ? ' read' : '');
+    item.innerHTML = `
+      <span class="notif-icon">${NOTIF_ICONS[n.type]||'🔔'}</span>
+      <div class="notif-content">
+        <div class="notif-title">${esc(n.title)}</div>
+        <div class="notif-preview">${esc(n.preview)}</div>
+        <div class="notif-meta">${n.sender ? '@'+esc(n.sender) : ''}${n.room ? (n.sender?' · ':'')+('#'+esc(n.room)) : ''} · ${relTime(n.ts)}</div>
+      </div>
+      <button class="notif-dismiss" data-id="${n.id}" title="Dismiss">✕</button>`;
+    item.querySelector('.notif-dismiss').addEventListener('click', e=>{
+      e.stopPropagation();
+      const arr = _loadNotifStore().filter(x=>x.id !== n.id);
+      _saveNotifStore(arr);
+      refreshNotifBadge();
+      renderNotifCenter();
+    });
+    item.addEventListener('click', ()=>{
+      const arr = _loadNotifStore().map(x=> x.id===n.id ? {...x, read:true} : x);
+      _saveNotifStore(arr);
+      refreshNotifBadge();
+      if(n.room) joinRoomByName(n.room);
+      closeNotifCenter();
+    });
+    body.appendChild(item);
+  });
+}
+
+// Wire notification center control buttons
+(function(){
+  el('notifMarkAllReadBtn')?.addEventListener('click', ()=>{
+    _saveNotifStore(_loadNotifStore().map(n=>({...n,read:true})));
+    refreshNotifBadge(); renderNotifCenter();
+  });
+  el('notifClearAllBtn')?.addEventListener('click', ()=>{
+    _saveNotifStore([]); refreshNotifBadge(); renderNotifCenter();
+  });
+  // M-6 fix: always derive sound state from localStorage so external writers
+  // (admin settings modal, other tabs) are immediately reflected without a
+  // stale closure variable drifting out of sync.
+  const _sBtn = el('notifSoundToggleBtn');
+  function _updSoundBtn(){
+    const on = localStorage.getItem('cp2p_sound_v1') !== 'false';
+    if(_sBtn) _sBtn.textContent = on ? '🔔 Sound On' : '🔕 Sound Off';
+  }
+  _updSoundBtn();
+  _sBtn?.addEventListener('click', ()=>{
+    const current = localStorage.getItem('cp2p_sound_v1') !== 'false';
+    localStorage.setItem('cp2p_sound_v1', String(!current));
+    _updSoundBtn();
+  });
+  el('notifCenterOverlay')?.addEventListener('click', e=>{ if(e.target===el('notifCenterOverlay')) closeNotifCenter(); });
+  el('notifBellBtn')?.addEventListener('click', ()=>openNotifCenter());
+})();
+
+// helper: relative time
+function relTime(ts){
+  const d = Date.now() - ts;
+  if(d < 60000)  return 'just now';
+  if(d < 3600000) return Math.floor(d/60000) + 'm ago';
+  if(d < 86400000) return Math.floor(d/3600000) + 'h ago';
+  return Math.floor(d/86400000) + 'd ago';
+}
+
+// helper: join room by name (used when tapping a notif)
+function joinRoomByName(roomName){
+  if(!roomName) return;
+  const inp = document.getElementById('roomInput');
+  if(inp){ inp.value = roomName; }
+  const btn = document.getElementById('joinBtn');
+  if(btn){ btn.click(); }
+}
+
+// Bootstrap badge on load
+refreshNotifBadge();
+
+/* ══════════════════════════════════════════════════════════════════
+   §2  FULL USER PROFILE SCREEN
+   ══════════════════════════════════════════════════════════════════ */
+let _upsBackCtx = null;
+
+async function openUserProfileScreen(userId, username, opts={}){
+  const ov = el('userProfileScreen');
+  if(!ov) return;
+  _upsBackCtx = opts;
+  ov.classList.add('open');
+  const body   = el('upsBody');
+  const footer = el('upsFooter');
+  if(body)   body.innerHTML   = '<div style="text-align:center;padding:40px;color:#aaa;">Loading…</div>';
+  if(footer) footer.innerHTML = '';
+
+  try{
+    // Load profile from repo (users/<id>/profile.json)
+    const pRes = await ghGetJsonWithSha(`users/${userId}/profile.json`).catch(()=>({ok:false}));
+    const prof = (pRes.ok && pRes.obj) ? pRes.obj : {};
+
+    // Determine role in current room if we are inside one
+    const isSelf   = session?.userId === userId;
+    // If _currentRoomOwnerCache was not populated via openMembersPanel, fall back to
+    // the roles cache which is populated by loadRoomRoles() on room join.
+    const _fallbackRoles = currentRoom ? (_roomRolesCache[currentRoom] || null) : null;
+    const roomAdmins = (_currentRoomAdminsCache && _currentRoomAdminsCache.length)
+      ? _currentRoomAdminsCache
+      : (_fallbackRoles ? Array.from(_fallbackRoles.adminUids || []).map(uid=>({userId:uid})) : []);
+    const ownerUID   = _currentRoomOwnerCache || (_fallbackRoles ? _fallbackRoles.ownerUid : null) || null;
+    const isOwner   = ownerUID === userId;
+    const isAdmin   = !isOwner && roomAdmins.some(a=> (typeof a==='string'?a:a.userId) === userId);
+    const isFriendF = (session?.friendIds||[]).includes(userId);
+
+    // Banner + avatar
+    const bannerUrl = prof.bannerUrl || '';
+    const avatarUrl = prof.avatarUrl || '';
+    const displayName = prof.displayName || prof.username || username || userId;
+    const bio       = prof.bio || '';
+    const statusTxt = prof.status || '';
+
+    let badgeHtml = '';
+    if(isOwner) badgeHtml += '<span class="ups-badge owner">👑 Owner</span>';
+    else if(isAdmin) badgeHtml += '<span class="ups-badge admin">🛡️ Admin</span>';
+    if(isFriendF) badgeHtml += '<span class="ups-badge friend">🤝 Friend</span>';
+    if(isSelf)    badgeHtml += '<span class="ups-badge self">👤 You</span>';
+
+    const personaItems = (Array.isArray(prof.personas) ? prof.personas : [])
+      .map(p=>`<div class="ups-persona-item"><span>${esc(p.platform||'')}</span><span>${esc(p.handle||'')}</span></div>`).join('');
+
+    // Sanitize bannerUrl — only allow https:// URLs with no CSS-breaking chars
+    const safeBannerUrl = (bannerUrl && /^https:\/\/[^ "')]+$/.test(bannerUrl)) ? bannerUrl : '';
+    if(body) body.innerHTML = `
+      <div class="ups-banner" style="${safeBannerUrl?'background-image:url('+esc(safeBannerUrl)+');background-size:cover;background-position:center':'background:linear-gradient(135deg,#1e293b,#334155)'}"></div>
+      <div class="ups-avatar-wrap">
+        ${avatarUrl ? `<img class="ups-avatar" src="${esc(avatarUrl)}" alt="${esc(displayName)}">` : `<div class="ups-avatar" style="display:flex;align-items:center;justify-content:center;font-size:32px;background:#334155">👤</div>`}
+      </div>
+      <div class="ups-info">
+        <div class="ups-displayname">${esc(displayName)}</div>
+        <div class="ups-username">@${esc(username||userId)}</div>
+        ${statusTxt ? `<div class="ups-status">${esc(statusTxt)}</div>` : ''}
+        <div class="ups-badges">${badgeHtml}</div>
+        ${bio ? `<div class="ups-bio">${esc(bio)}</div>` : ''}
+        ${personaItems ? `<div class="ups-persona-grid">${personaItems}</div>` : ''}
+      </div>`;
+
+    // Footer action buttons
+    if(footer && !isSelf){
+      let btns = '';
+      btns += `<button class="ups-action-btn" id="upsBtnDM">💬 Message</button>`;
+      if(!isFriendF)
+        btns += `<button class="ups-action-btn" id="upsBtnAddFriend">🤝 Add Friend</button>`;
+      else
+        btns += `<button class="ups-action-btn secondary" id="upsBtnRemoveFriend">Remove Friend</button>`;
+      btns += `<button class="ups-action-btn danger" id="upsBtnBlock">🚫 Block</button>`;
+      footer.innerHTML = btns;
+
+      el('upsBtnDM')?.addEventListener('click', ()=>{
+        closeUserProfileScreen();
+        openOrCreateDm(userId, username);
+      });
+      el('upsBtnAddFriend')?.addEventListener('click', async()=>{
+        el('upsBtnAddFriend').disabled = true;
+        await addFriendById(userId, username);
+        showToast('Friend request sent!');
+        closeUserProfileScreen();
+      });
+      el('upsBtnRemoveFriend')?.addEventListener('click', async()=>{
+        el('upsBtnRemoveFriend').disabled = true;
+        await removeFriendById(userId);
+        showToast('Friend removed.');
+        closeUserProfileScreen();
+      });
+      el('upsBtnBlock')?.addEventListener('click', ()=>{
+        if(confirm(`Block @${username||userId}?`)) blockUser(userId, username);
+        closeUserProfileScreen();
+      });
+    }
+  }catch(err){
+    if(body) body.innerHTML = `<div style="text-align:center;padding:40px;color:#f87171;">Could not load profile.<br><small>${esc(String(err))}</small></div>`;
+  }
+}
+
+function closeUserProfileScreen(){
+  el('userProfileScreen')?.classList.remove('open');
+  _upsBackCtx = null;
+}
+
+// Back button + overlay click
+(function(){
+  el('upsBackBtn')?.addEventListener('click', closeUserProfileScreen);
+  el('userProfileScreen')?.addEventListener('click', e=>{ if(e.target===el('userProfileScreen')) closeUserProfileScreen(); });
+})();
+
+// Fallback stubs for profile actions (guarded assignments — do not override real implementations)
+if(typeof openOrCreateDm   !== 'function') window.openOrCreateDm   = (uid,uname)=>showToast('DMs coming soon!');
+if(typeof addFriendById    === 'undefined') window.addFriendById    = (uid,uname)=>Promise.resolve();
+if(typeof removeFriendById === 'undefined') window.removeFriendById = (uid)=>Promise.resolve();
+
+// Tiny room owner/admin caches (populated by openMembersPanel or loadRoomInfo)
+let _currentRoomOwnerCache  = null;
+let _currentRoomAdminsCache = [];
+
+/* ══════════════════════════════════════════════════════════════════
+   §3  ADMIN CONFIG MODAL
+   ══════════════════════════════════════════════════════════════════ */
+const DEFAULT_ADMIN_PERMS = {
+  canEditDescription  : true,
+  canEditRules        : true,
+  canManageMembers    : true,
+  canRemoveMembers    : true,
+  canAccessSettings   : false,
+  canApproveInvites   : true,
+  canManageBannedWords: false,
+  canModerateMessages : true,
+  canPromoteAdmins    : false,
+  canDemoteAdmins     : false,
+  canChangeVisibility : false,
+};
+
+const ADMIN_PERM_LABELS = {
+  canEditDescription  : 'Edit room description',
+  canEditRules        : 'Edit room rules',
+  canManageMembers    : 'Manage members',
+  canRemoveMembers    : 'Remove / kick members',
+  canAccessSettings   : 'Access room settings',
+  canApproveInvites   : 'Approve invites',
+  canManageBannedWords: 'Manage banned words',
+  canModerateMessages : 'Moderate messages',
+  canPromoteAdmins    : 'Promote other admins',
+  canDemoteAdmins     : 'Demote other admins',
+  canChangeVisibility : 'Change room visibility',
+};
+
+let _adminCfgResolveRef = null;
+let _adminCfgRejectRef  = null;
+
+function openAdminConfigModal(targetMember){
+  return new Promise((resolve, reject)=>{
+    const ov = el('adminCfgOverlay');
+    if(!ov){ reject(null); return; }
+    _adminCfgResolveRef = resolve;
+    _adminCfgRejectRef  = reject;
+
+    const titleEl = el('adminCfgTitle');
+    const bodyEl  = el('adminCfgBody');
+    if(titleEl) titleEl.textContent = `Admin permissions for @${targetMember.username||targetMember.userId}`;
+
+    // Existing perms or defaults
+    const existing = (typeof targetMember === 'object' && targetMember.permissions) ? targetMember.permissions : {};
+    const perms = { ...DEFAULT_ADMIN_PERMS, ...existing };
+
+    if(bodyEl){
+      bodyEl.innerHTML = Object.keys(DEFAULT_ADMIN_PERMS).map(key=>`
+        <div class="admin-perm-row">
+          <span class="admin-perm-label">${ADMIN_PERM_LABELS[key]||key}</span>
+          <label class="admin-toggle">
+            <input type="checkbox" data-perm="${key}" ${perms[key]?'checked':''}>
+            <span class="admin-toggle-slider"></span>
+          </label>
+        </div>`).join('');
+    }
+    ov.classList.add('open');
+  });
+}
+
+function _adminCfgCancel(){
+  el('adminCfgOverlay')?.classList.remove('open');
+  if(_adminCfgRejectRef) _adminCfgRejectRef(null);
+  _adminCfgResolveRef = _adminCfgRejectRef = null;
+}
+
+(function(){
+  el('adminCfgConfirm')?.addEventListener('click', ()=>{
+    const perms = { ...DEFAULT_ADMIN_PERMS };
+    el('adminCfgBody')?.querySelectorAll('input[data-perm]').forEach(inp=>{
+      perms[inp.dataset.perm] = inp.checked;
+    });
+    el('adminCfgOverlay')?.classList.remove('open');
+    if(_adminCfgResolveRef) _adminCfgResolveRef(perms);
+    _adminCfgResolveRef = _adminCfgRejectRef = null;
+  });
+  el('adminCfgOverlay')?.addEventListener('click', e=>{ if(e.target===el('adminCfgOverlay')) _adminCfgCancel(); });
+})();
+
+/* ══════════════════════════════════════════════════════════════════
+   §4  GUEST TRIAL SYSTEM
+   ══════════════════════════════════════════════════════════════════ */
+const GUEST_TRIAL_MAX = 10;
+const GUEST_TRIAL_KEY = 'cp2p_guest_trial_v1';
+
+function getGuestMsgCount(){ return parseInt(localStorage.getItem(GUEST_TRIAL_KEY)||'0',10); }
+function incrementGuestMsgCount(){ localStorage.setItem(GUEST_TRIAL_KEY, getGuestMsgCount()+1); }
+
+function checkGuestTrialBeforeSend(){
+  if(session?.userId) return true;   // logged in — no restriction
+  const count = getGuestMsgCount();
+  if(count >= GUEST_TRIAL_MAX){
+    openGuestLockOverlay();
+    return false;
+  }
+  incrementGuestMsgCount();
+  if(count === GUEST_TRIAL_MAX - 1){
+    showToast(`⚠️ 1 guest message left. Create an account to keep chatting!`, 'warning', 5000);
+  }
+  return true;
+}
+
+function openGuestLockOverlay(){
+  el('guestLockOverlay')?.classList.add('open');
+}
+function closeGuestLockOverlay(){
+  el('guestLockOverlay')?.classList.remove('open');
+}
+
+function showGuestTrialBadge(){
+  if(session?.userId) return;           // already logged in
+  const remaining = Math.max(0, GUEST_TRIAL_MAX - getGuestMsgCount());
+  const existing  = document.querySelector('.guest-trial-badge');
+  if(!remaining){ if(existing) existing.remove(); return; }
+  if(!existing){
+    const badge = document.createElement('div');
+    badge.className = 'guest-trial-badge';
+    badge.textContent = `${remaining} guest msg${remaining===1?'':'s'} left`;
+    badge.onclick = openGuestLockOverlay;
+    document.body.appendChild(badge);
+  } else {
+    existing.textContent = `${remaining} guest msg${remaining===1?'':'s'} left`;
+  }
+}
+
+(function(){
+  el('guestLockRegisterBtn')?.addEventListener('click', ()=>{
+    closeGuestLockOverlay();
+    // Open register/login panel — try existing openAuthPanel or fallback
+    if(typeof openAuthPanel === 'function') openAuthPanel('register');
+    else if(typeof openLoginPanel === 'function') openLoginPanel();
+    else showToast('Create an account to continue!');
+  });
+  el('guestLockOverlay')?.addEventListener('click', e=>{ if(e.target===el('guestLockOverlay')) closeGuestLockOverlay(); });
+  showGuestTrialBadge();  // show on page load if applicable
+})();
+
+/* ══════════════════════════════════════════════════════════════════
+   §5  SOUND SYSTEM
+   ══════════════════════════════════════════════════════════════════ */
+let _soundEnabled = localStorage.getItem('cp2p_sound_v1') !== 'false';
+let _audioCtx     = null;
+
+function _getAudioCtx(){
+  if(!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return _audioCtx;
+}
+
+function playNotifSound(type='message'){
+  // Always read from localStorage so toggle in the notification center takes
+  // effect immediately without requiring a page reload.
+  if(localStorage.getItem('cp2p_sound_v1') === 'false') return;
+  try{
+    const ctx     = _getAudioCtx();
+    const osc     = ctx.createOscillator();
+    const gain    = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    // Different pitches / shapes per type
+    const config = {
+      message : { freq: 880, type: 'sine',     dur: 0.12, vol: 0.15 },
+      mention : { freq: 1047, type: 'triangle', dur: 0.18, vol: 0.20 },
+      friend  : { freq: 660,  type: 'sine',     dur: 0.20, vol: 0.15 },
+      room    : { freq: 550,  type: 'square',   dur: 0.10, vol: 0.08 },
+      system  : { freq: 440,  type: 'sine',     dur: 0.14, vol: 0.10 },
+    };
+    const c = config[type] || config.message;
+    osc.type    = c.type;
+    osc.frequency.setValueAtTime(c.freq, ctx.currentTime);
+    gain.gain.setValueAtTime(c.vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + c.dur);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + c.dur);
+  }catch(e){ /* AudioContext blocked or unavailable */ }
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   §6  BROWSER NOTIFICATION OPT-IN
+   ══════════════════════════════════════════════════════════════════ */
+function requestBrowserNotifs(){
+  if(!('Notification' in window)) return;
+  if(Notification.permission === 'granted') return;
+  if(Notification.permission === 'denied'){
+    showToast('Browser notifications are blocked. Enable them in your browser settings.', 'warning', 5000);
+    return;
+  }
+  Notification.requestPermission().then(p=>{
+    if(p === 'granted'){
+      showToast('Browser notifications enabled! 🔔');
+      hideBrowserNotifBanner();
+    }
+  });
+}
+
+function sendBrowserNotif(title, body, data={}){
+  if(!('Notification' in window) || Notification.permission !== 'granted') return;
+  if(document.hasFocus()) return;  // don't spam if user is looking at the tab
+  try{
+    const n = new Notification(title, {
+      body   : body||'',
+      icon   : data.iconUrl || '',
+      tag    : data.room ? 'cp2p-room-' + data.room : 'cp2p-notif',
+      silent : false,
+    });
+    n.onclick = ()=>{ window.focus(); if(data.room) joinRoomByName(data.room); n.close(); };
+    setTimeout(()=>n.close(), 8000);
+  }catch(e){}
+}
+
+function showBrowserNotifBanner(){
+  if(!('Notification' in window) || Notification.permission !== 'default') return;
+  const existing = document.querySelector('.notif-optin-banner');
+  if(existing) return;
+  const div = document.createElement('div');
+  div.className = 'notif-optin-banner';
+  div.innerHTML = `<span>Enable browser notifications to stay updated even when away.</span>
+    <button id="notifOptinYes">Enable</button>
+    <button id="notifOptinNo">No thanks</button>`;
+  document.body.appendChild(div);
+  el('notifOptinYes')?.addEventListener('click', ()=>{ requestBrowserNotifs(); div.remove(); });
+  el('notifOptinNo')?.addEventListener('click',  ()=>{ div.remove(); localStorage.setItem('cp2p_no_browser_notif','1'); });
+}
+
+function hideBrowserNotifBanner(){
+  document.querySelector('.notif-optin-banner')?.remove();
+}
+
+// Show opt-in banner once (if not already dismissed and not granted)
+(function(){
+  if(localStorage.getItem('cp2p_no_browser_notif') !== '1') showBrowserNotifBanner();
+})();
+
+/* ══════════════════════════════════════════════════════════════════
+   §7  DROPDOWN NEW ITEM HANDLERS
+   ══════════════════════════════════════════════════════════════════ */
+(function(){
+  // Set version badge in dropdown What's New row
+  const dvb = el('dropVersionBadge');
+  if(dvb) dvb.textContent = 'v' + (typeof APP_VERSION !== 'undefined' ? APP_VERSION : '');
+
+  // Notifications
+  el('dropOpenNotifs')?.addEventListener('click', e=>{
+    e.stopPropagation();
+    profileDropdown?.classList?.remove('open');
+    openNotifCenter();
+  });
+
+  // DMs / Closets
+  el('dropOpenDMs')?.addEventListener('click', e=>{
+    e.stopPropagation();
+    profileDropdown?.classList?.remove('open');
+    if(typeof openDmListPanel === 'function') openDmListPanel();
+    else if(typeof openDmList === 'function') openDmList();
+    else showToast('DMs coming soon!');
+  });
+
+  // My Links
+  el('dropOpenLinks')?.addEventListener('click', e=>{
+    e.stopPropagation();
+    profileDropdown?.classList?.remove('open');
+    if(typeof openUserLinksPanel === 'function') openUserLinksPanel();
+    else showToast('Links panel coming soon!');
+  });
+})();
+
+/* ══════════════════════════════════════════════════════════════════
+   END NEW FEATURE SYSTEMS
+   ══════════════════════════════════════════════════════════════════ */
 
 /* ---- Core join logic (shared by joinBtn and password gate) ---- */
 async function _doJoinRoom(r){
@@ -19121,6 +20027,19 @@ window.addEventListener("load", async ()=>{
         <button class="prf-close" onclick="closeMembersPanel()">✕</button>
       </div>
     </div>
+    <div class="members-search-wrap">
+      <div class="members-search-rel">
+        <span class="members-search-ic">🔍</span>
+        <input class="members-search-input" id="membersSearchInput" type="text" placeholder="Search members…" autocomplete="off"/>
+      </div>
+      <div class="members-filter-chips">
+        <span class="members-filter-chip active" data-filter="all">All</span>
+        <span class="members-filter-chip" data-filter="online">🟢 Online</span>
+        <span class="members-filter-chip" data-filter="owner">👑 Owner</span>
+        <span class="members-filter-chip" data-filter="admin">🛡️ Admin</span>
+        <span class="members-filter-chip" data-filter="friend">🤝 Friends</span>
+      </div>
+    </div>
     <div class="members-panel-body" id="membersPanelBody">
       <div style="text-align:center;padding:30px;color:var(--muted)">Loading members…</div>
     </div>
@@ -19181,6 +20100,70 @@ window.addEventListener("load", async ()=>{
       <button class="prf-close" onclick="closeReadsPopup()">✕</button>
     </div>
     <div class="reads-popup-list" id="readsPopupList"></div>
+  </div>
+</div>
+
+<!-- ═══ NOTIFICATION CENTER ═══ -->
+<div id="notifCenterOverlay" class="notif-overlay" onclick="if(event.target===this)closeNotifCenter()">
+  <div class="notif-panel">
+    <div class="notif-panel-hdr">
+      <span class="notif-panel-title">🔔 Notifications</span>
+      <div class="notif-panel-actions">
+        <button class="notif-action-btn" id="notifMarkAllRead">Mark all read</button>
+        <button class="notif-action-btn" id="notifClearAll">Clear all</button>
+        <button class="notif-sound-btn" id="notifSoundToggle" title="Toggle notification sounds">🔔 Sounds: On</button>
+        <button class="prf-close" onclick="closeNotifCenter()">✕</button>
+      </div>
+    </div>
+    <div class="notif-body" id="notifBody">
+      <div class="notif-empty">🔔<br/>No notifications yet.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ FULL USER PROFILE SCREEN ═══ -->
+<div id="userProfileScreen" class="ups-overlay" onclick="if(event.target===this)closeUserProfileScreen()">
+  <div class="ups-box">
+    <div class="ups-banner" id="upsBanner">
+      <div class="ups-hdr-actions">
+        <button class="ups-hdr-btn" id="upsBackBtn" onclick="closeUserProfileScreen()">← Back</button>
+      </div>
+      <div class="ups-avatar-wrap">
+        <img class="ups-avatar" id="upsAvatar" src="" alt=""/>
+      </div>
+    </div>
+    <div class="ups-body" id="upsBody">
+      <div style="text-align:center;padding:40px;color:var(--muted)">Loading profile…</div>
+    </div>
+    <div class="ups-footer" id="upsFooter"></div>
+  </div>
+</div>
+
+<!-- ═══ ADMIN CONFIG MODAL ═══ -->
+<div id="adminCfgOverlay" class="admin-cfg-overlay" onclick="if(event.target===this)_adminCfgCancel()">
+  <div class="admin-cfg-box">
+    <div class="admin-cfg-hdr">
+      <div class="admin-cfg-title" id="adminCfgTitle">🛡️ Configure Admin Permissions</div>
+      <div class="admin-cfg-subtitle" id="adminCfgSubtitle">Set what this admin is allowed to do.</div>
+    </div>
+    <div class="admin-cfg-body" id="adminCfgBody">Loading…</div>
+    <div class="admin-cfg-footer">
+      <button class="secondary" onclick="_adminCfgCancel()">Cancel</button>
+      <button class="primary" id="adminCfgConfirm">Promote to Admin</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ GUEST TRIAL LOCK SCREEN ═══ -->
+<div id="guestLockOverlay" class="guest-lock-overlay" onclick="">
+  <div class="guest-lock-box">
+    <div class="guest-lock-icon">🔒</div>
+    <div class="guest-lock-title">Create a free account to keep chatting</div>
+    <div class="guest-lock-desc">You've used your guest trial messages. Register in seconds — no email required.</div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;">
+      <button class="secondary" onclick="document.getElementById('guestLockOverlay').classList.remove('open');" style="padding:10px 20px">Continue Reading</button>
+      <button class="primary" id="guestLockRegisterBtn" style="padding:10px 20px">Create Account</button>
+    </div>
   </div>
 </div>
 
