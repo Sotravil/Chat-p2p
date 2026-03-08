@@ -1140,32 +1140,52 @@
     }
     .audio-visualizer{
       width:100%;
-      height:80px;
-      background:rgba(0,0,0,.3);
-      border-radius:12px;
-      margin:20px 0;
+      height:96px;
+      background:rgba(0,0,0,.35);
+      border-radius:14px;
+      margin:16px 0;
       display:flex;
       align-items:center;
       justify-content:center;
-      gap:3px;
-      padding:0 15px;
+      gap:2px;
+      padding:0 12px;
       overflow:hidden;
+      box-shadow:inset 0 0 24px rgba(56,189,248,.06), inset 0 1px 0 rgba(255,255,255,.04);
     }
     .audio-bar{
-      width:4px;
+      width:3px;
       background:linear-gradient(to top, var(--accent-primary), var(--accent-secondary));
       border-radius:2px;
-      transition:height .1s ease;
-      min-height:4px;
+      transition:height .06s cubic-bezier(0.25,0.46,0.45,0.94);
+      min-height:3px;
+      opacity:.85;
+    }
+    .audio-bar.peak{
+      background:linear-gradient(to top, #f97316, #fbbf24);
+      opacity:1;
+      box-shadow:0 0 8px rgba(251,191,36,.6), 0 0 16px rgba(249,115,22,.3);
     }
     .audio-timer{
       text-align:center;
-      font-size:24px;
-      font-weight:600;
+      font-size:28px;
+      font-weight:700;
       color:var(--txt);
-      margin:15px 0;
+      margin:10px 0 4px;
       font-variant-numeric:tabular-nums;
+      letter-spacing:.03em;
     }
+    .audio-record-status{
+      text-align:center;
+      font-size:12px;
+      font-weight:600;
+      margin:0 0 12px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      opacity:.7;
+    }
+    .audio-record-status.rec{ color:#ef4444; animation:rec-blink 1.1s ease-in-out infinite; }
+    .audio-record-status.paused{ color:#fbbf24; animation:none; }
+    @keyframes rec-blink{ 0%,100%{ opacity:.7; } 50%{ opacity:.25; } }
     .audio-controls{
       display:flex;
       gap:10px;
@@ -1297,19 +1317,20 @@
     /* Audio Message Bubbles */
     .msg-audio{
       background:linear-gradient(135deg, rgba(56,189,248,.12), rgba(168,85,247,.08));
-      border-radius:12px;
-      padding:12px;
+      border-radius:14px;
+      padding:10px 12px 10px 10px;
       margin-top:8px;
       display:flex;
       align-items:center;
-      gap:12px;
-      min-width:280px;
-      max-width:350px;
+      gap:10px;
+      min-width:260px;
+      max-width:360px;
+      border:1px solid rgba(56,189,248,.1);
     }
     .audio-play-btn{
-      width:42px;
-      height:42px;
-      min-width:42px;
+      width:40px;
+      height:40px;
+      min-width:40px;
       border-radius:50%;
       background:linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
       border:none;
@@ -1317,70 +1338,87 @@
       align-items:center;
       justify-content:center;
       cursor:pointer;
-      transition:all .2s ease;
+      transition:all .18s ease;
       color:#fff;
-      font-size:16px;
+      font-size:15px;
+      box-shadow:0 2px 8px rgba(56,189,248,.25);
     }
     .audio-play-btn:hover{
-      transform:scale(1.05);
-      box-shadow:0 4px 12px rgba(56,189,248,.3);
+      transform:scale(1.08);
+      box-shadow:0 4px 16px rgba(56,189,248,.4);
+    }
+    .audio-play-btn.playing{
+      animation:play-btn-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes play-btn-pulse{
+      0%,100%{ box-shadow:0 2px 8px rgba(56,189,248,.3); }
+      50%{ box-shadow:0 0 0 6px rgba(56,189,248,.15), 0 2px 16px rgba(56,189,248,.4); }
+    }
+    .audio-waveform-area{
+      flex:1;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:0;
+      cursor:pointer;
     }
     .audio-waveform{
-      flex:1;
-      height:40px;
+      width:100%;
+      height:44px;
       display:flex;
       align-items:center;
       gap:2px;
-      cursor:pointer;
-      padding:0 4px;
-      transition:gap .2s ease;
-    }
-    .audio-waveform:hover{
-      gap:3px;
+      padding:0 2px;
     }
     .audio-wave-bar{
-      width:3px;
-      background:rgba(56,189,248,.3);
+      flex:1;
+      max-width:4px;
+      background:rgba(56,189,248,.28);
       border-radius:2px;
-      opacity:.6;
-      transition:all .1s cubic-bezier(0.4, 0, 0.2, 1);
+      opacity:.65;
+      transition:height .055s cubic-bezier(0.25,0.46,0.45,0.94), background .18s ease, opacity .18s ease;
       position:relative;
-      transform-origin:center;
-    }
-    .audio-wave-bar:hover{
-      opacity:.8;
-      transform:scaleY(1.1);
     }
     .audio-wave-bar.active{
       opacity:1;
       background:linear-gradient(to top, var(--accent-primary), var(--accent-secondary));
-      box-shadow:0 0 6px rgba(56,189,248,.6), 0 0 12px rgba(56,189,248,.3);
-      transform:scaleY(1.05);
-      animation:pulse-bar .6s ease-in-out infinite;
+      box-shadow:0 0 5px rgba(56,189,248,.5);
     }
-    @keyframes pulse-bar{
-      0%, 100%{ transform:scaleY(1.05); }
-      50%{ transform:scaleY(1.15); }
+    .audio-wave-bar.playhead{
+      background:linear-gradient(to top, #f0abfc, #c084fc);
+      opacity:1;
+      box-shadow:0 0 8px rgba(192,132,252,.7);
     }
-    .audio-wave-bar.active::after{
-      content:'';
-      position:absolute;
-      top:0;
-      left:-1px;
-      right:-1px;
-      bottom:0;
-      background:linear-gradient(to top, rgba(56,189,248,.4), rgba(168,85,247,.4));
-      filter:blur(3px);
-      z-index:-1;
-      border-radius:2px;
+    .audio-meta-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:6px;
     }
     .audio-duration{
-      font-size:12px;
+      font-size:11px;
       color:var(--muted);
       font-variant-numeric:tabular-nums;
-      min-width:80px;
-      text-align:right;
+      line-height:1;
+    }
+    .audio-speed-btn{
+      font-size:10px;
+      font-weight:700;
+      color:var(--muted);
+      background:rgba(255,255,255,.07);
+      border:1px solid rgba(255,255,255,.1);
+      border-radius:6px;
+      padding:2px 5px;
+      cursor:pointer;
+      transition:all .15s ease;
       line-height:1.4;
+      letter-spacing:.03em;
+      flex-shrink:0;
+    }
+    .audio-speed-btn:hover{
+      background:rgba(56,189,248,.15);
+      border-color:rgba(56,189,248,.3);
+      color:var(--accent-primary);
     }
     .audio-play-btn[disabled]{
       opacity:0.6;
@@ -6132,6 +6170,7 @@
           <!-- Waveform bars will be generated here -->
         </div>
         <div class="audio-timer" id="audioTimer">0:00</div>
+        <div class="audio-record-status rec" id="audioRecordStatus">● REC</div>
         <div class="audio-controls">
           <button class="audio-control-btn record" id="audioStopBtn">⏹️ Stop</button>
           <button class="audio-control-btn pause" id="audioPauseBtn">⏸️ Pause</button>
@@ -6629,7 +6668,7 @@ const CORS_PROXY      = "https://corsproxy.io/?";
 
 // === APP VERSION & CHANGELOG ===
 // Bump APP_VERSION on every deploy so returning users see "What's New"
-const APP_VERSION        = "1.0.0.32";
+const APP_VERSION        = "1.0.0.33";
 const CHANGELOG_SEEN_KEY = "chatP2P_lastVersionSeen";
 const CHANGELOGS_DIR     = "changelogs";
 
@@ -6769,6 +6808,7 @@ const audioModal = el("audioModal");
 const audioCloseBtn = el("audioCloseBtn");
 const audioVisualizer = el("audioVisualizer");
 const audioTimer = el("audioTimer");
+const audioRecordStatus = el("audioRecordStatus");
 const audioStopBtn = el("audioStopBtn");
 const audioPauseBtn = el("audioPauseBtn");
 const audioSendBtn = el("audioSendBtn");
@@ -18240,28 +18280,36 @@ function createMessageElement(m){
     audioPlayBtn.dataset.loaded = "false";
     audioPlayBtn.title = "Tap to download and play";
     
+    const audioWaveformArea = document.createElement("div");
+    audioWaveformArea.className = "audio-waveform-area";
+
     const audioWaveform = document.createElement("div");
     audioWaveform.className = "audio-waveform";
-    
-    // Generate waveform bars
-    const barCount = 30;
+
+    // Generate waveform bars with stored static heights for spectral overlay
+    const barCount = 40;
     for(let i = 0; i < barCount; i++){
       const bar = document.createElement("div");
       bar.className = "audio-wave-bar";
-      const height = Math.random() * 30 + 10;
+      // Natural-looking voice waveform shape (higher in middle, tapers at ends)
+      const envelope = Math.sin((i / (barCount - 1)) * Math.PI);
+      const height = 6 + envelope * 24 + Math.random() * 16;
       bar.style.height = height + 'px';
+      bar.dataset.staticHeight = height + 'px';
       audioWaveform.appendChild(bar);
     }
-    
+
+    const audioMetaRow = document.createElement("div");
+    audioMetaRow.className = "audio-meta-row";
+
     const audioDuration = document.createElement("div");
     audioDuration.className = "audio-duration";
-    
+
     // Show file size initially if not downloaded yet
     const audioSize = m.audioSize || 0;
     const durationSec = Math.floor(m.audioDuration || 0);
-    
+
     if(audioSize > 0){
-      // Show size before download
       const sizeSpan = document.createElement('span');
       sizeSpan.style.opacity = '0.7';
       sizeSpan.textContent = formatBytes(audioSize);
@@ -18270,17 +18318,37 @@ function createMessageElement(m){
     }else{
       audioDuration.textContent = formatDuration(durationSec);
     }
-    
+
+    // Speed button
+    const PLAYBACK_SPEEDS = [1, 1.25, 1.5, 2, 0.75];
+    let speedIdx = 0;
+    const audioSpeedBtn = document.createElement("button");
+    audioSpeedBtn.className = "audio-speed-btn";
+    audioSpeedBtn.textContent = "1×";
+    audioSpeedBtn.title = "Playback speed";
+    audioSpeedBtn.onclick = (e) => {
+      e.stopPropagation();
+      speedIdx = (speedIdx + 1) % PLAYBACK_SPEEDS.length;
+      const spd = PLAYBACK_SPEEDS[speedIdx];
+      audioElement.playbackRate = spd;
+      audioSpeedBtn.textContent = spd % 1 === 0 ? `${spd}×` : `${spd}×`;
+    };
+
+    audioMetaRow.appendChild(audioDuration);
+    audioMetaRow.appendChild(audioSpeedBtn);
+    audioWaveformArea.appendChild(audioWaveform);
+    audioWaveformArea.appendChild(audioMetaRow);
+
     // Audio element (hidden)
     const audioElement = document.createElement("audio");
     audioElement.style.display = "none";
     audioElement.preload = "metadata";
     audioElement.dataset.msgId = m.id;
-    
+
     // Load audio function (on-demand)
     const loadAudioOnDemand = async () => {
       if(audioPlayBtn.dataset.loaded === "true") return true;
-      
+
       audioPlayBtn.textContent = "⏳";
       audioPlayBtn.disabled = true;
       audioDuration.textContent = '';
@@ -18288,31 +18356,19 @@ function createMessageElement(m){
       loadingSpan.style.opacity = '0.7';
       loadingSpan.textContent = 'Loading...';
       audioDuration.appendChild(loadingSpan);
-      
+
       try{
         if(m.audioPath){
-          // Get from cache or download
           const cached = await getCachedAudio(m.audioPath);
           if(!cached) throw new Error('Failed to download audio');
-          
           audioElement.src = cached.blobUrl;
           audioPlayBtn.textContent = "▶️";
           audioPlayBtn.disabled = false;
           audioPlayBtn.dataset.loaded = "true";
           audioPlayBtn.title = "Play audio";
-          
-          // Update duration display to show just time now
           audioDuration.textContent = formatDuration(durationSec);
-          
-          console.log('Audio ready for playback:', {
-            msgId: m.id,
-            size: formatBytes(cached.size),
-            path: m.audioPath
-          });
-          
           return true;
         }else if(m.audioData){
-          // Use base64 data (legacy or just-sent)
           audioElement.src = m.audioData;
           audioPlayBtn.textContent = "▶️";
           audioPlayBtn.disabled = false;
@@ -18335,59 +18391,48 @@ function createMessageElement(m){
         return false;
       }
     };
-    
+
     // Handle audio element errors
-    audioElement.addEventListener('error', (e) => {
-      console.error('Audio playback error:', e);
+    audioElement.addEventListener('error', () => {
       audioPlayBtn.textContent = "❌";
       audioPlayBtn.disabled = true;
       showToast('Audio playback failed', 'error');
     });
-    
+
     // Play/pause functionality with on-demand loading
     audioPlayBtn.onclick = async () => {
       if(audioPlayBtn.disabled) return;
-      
-      // Load audio if not loaded yet
+
       if(audioPlayBtn.dataset.loaded !== "true"){
         const loaded = await loadAudioOnDemand();
         if(!loaded) return;
-        // Don't auto-play after download, wait for second click
         showToast('Audio ready. Tap to play.', 'success');
         return;
       }
-      
+
       const isPlaying = audioPlayBtn.dataset.playing === "true";
-      
+
       if(isPlaying){
         audioElement.pause();
         audioPlayBtn.textContent = "▶️";
+        audioPlayBtn.classList.remove('playing');
         audioPlayBtn.dataset.playing = "false";
       }else{
         // Pause all other audio players
         document.querySelectorAll('.audio-play-btn[data-playing="true"]').forEach(btn => {
           if(btn !== audioPlayBtn){
-            const otherMsgId = btn.closest('.msg-audio').dataset.msgId;
-            const otherAudio = document.querySelector(`audio[data-msg-id="${otherMsgId}"]`);
-            if(otherAudio){
-              otherAudio.pause();
-              btn.textContent = "▶️";
-              btn.dataset.playing = "false";
-            }
+            const otherAudio = btn.closest('.msg-audio')?.nextElementSibling;
+            if(otherAudio?.tagName === 'AUDIO') otherAudio.pause();
+            btn.textContent = "▶️";
+            btn.classList.remove('playing');
+            btn.dataset.playing = "false";
           }
         });
-        
-        // Play this audio
+
         audioElement.play().then(() => {
           audioPlayBtn.textContent = "⏸️";
+          audioPlayBtn.classList.add('playing');
           audioPlayBtn.dataset.playing = "true";
-          console.log('Audio playing:', m.id);
-          
-          // ========================================
-          // AUDIO READ RECEIPT: Mark as listened when playback starts
-          // This is the ONLY way audio messages get marked as "read"
-          // (not just by being visible like regular text messages)
-          // ========================================
           markAudioAsListened(m.id);
         }).catch(e => {
           console.error('Error playing audio:', e);
@@ -18396,96 +18441,118 @@ function createMessageElement(m){
         });
       }
     };
-    
-    // ⚡ Update waveform y tiempo durante reproducción (optimizado con requestAnimationFrame)
+
+    // Real-time spectral progress animation
     let playbackAnimationId = null;
     let lastUpdateTime = 0;
-    const UPDATE_INTERVAL = 50; // Actualizar cada 50ms para suavidad y eficiencia
-    
+    const UPDATE_INTERVAL = 33; // ~30fps
+
     const updatePlaybackProgress = (timestamp = 0) => {
-      // ⚡ Throttle: Solo actualizar cada 50ms para mejor performance
       if(timestamp - lastUpdateTime < UPDATE_INTERVAL && lastUpdateTime !== 0){
-        if(!audioElement.paused){
-          playbackAnimationId = requestAnimationFrame(updatePlaybackProgress);
-        }
+        if(!audioElement.paused) playbackAnimationId = requestAnimationFrame(updatePlaybackProgress);
         return;
       }
       lastUpdateTime = timestamp;
-      
-      if(!audioElement.duration) {
-        if(!audioElement.paused){
-          playbackAnimationId = requestAnimationFrame(updatePlaybackProgress);
-        }
+
+      if(!audioElement.duration){
+        if(!audioElement.paused) playbackAnimationId = requestAnimationFrame(updatePlaybackProgress);
         return;
       }
-      
+
       const progress = audioElement.currentTime / audioElement.duration;
       const bars = audioWaveform.querySelectorAll('.audio-wave-bar');
       const activeBarCount = Math.floor(progress * bars.length);
-      
-      // ⚡ Batch DOM updates para mejor performance
-      requestAnimationFrame(() => {
-        bars.forEach((bar, idx) => {
-          if(idx < activeBarCount){
-            bar.classList.add('active');
-          }else{
-            bar.classList.remove('active');
-          }
-        });
-        
-        // Update duration display con tiempo actual
-        const currentSec = Math.floor(audioElement.currentTime);
-        audioDuration.textContent = formatDuration(currentSec);
-      });
-      
-      // Continue animation mientras reproduce
-      if(!audioElement.paused){
-        playbackAnimationId = requestAnimationFrame(updatePlaybackProgress);
+
+      // Read live spectral data if analyser is ready
+      let specData = null;
+      if(audioElement._analyser && audioElement._specData){
+        audioElement._analyser.getByteFrequencyData(audioElement._specData);
+        specData = audioElement._specData;
       }
+
+      bars.forEach((bar, idx) => {
+        const staticH = parseFloat(bar.dataset.staticHeight) || 12;
+        if(idx < activeBarCount){
+          bar.classList.add('active');
+          bar.classList.remove('playhead');
+          if(specData){
+            // Map bar to a frequency bin (logarithmic) for more natural voice representation
+            const logT = Math.log(1 + (idx / bars.length) * (specData.length - 1)) / Math.log(specData.length);
+            const binIdx = Math.round(logT * (specData.length - 1));
+            const amplitude = specData[Math.min(binIdx, specData.length - 1)] / 255;
+            // Blend static shape with live amplitude
+            const reactiveH = staticH * 0.35 + amplitude * 38 + 4;
+            bar.style.height = reactiveH + 'px';
+          }
+        }else if(idx === activeBarCount){
+          // Playhead bar
+          bar.classList.remove('active');
+          bar.classList.add('playhead');
+          bar.style.height = staticH + 'px';
+        }else{
+          bar.classList.remove('active', 'playhead');
+          bar.style.height = staticH + 'px';
+        }
+      });
+
+      audioDuration.textContent = formatDuration(Math.floor(audioElement.currentTime));
+
+      if(!audioElement.paused) playbackAnimationId = requestAnimationFrame(updatePlaybackProgress);
     };
-    
+
     audioElement.addEventListener('play', () => {
-      lastUpdateTime = 0; // Reset throttle
+      // Setup Web Audio analyser on first play (MediaElementSourceNode can only be created once)
+      if(!audioElement._audioCtx){
+        try{
+          audioElement._audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const src = audioElement._audioCtx.createMediaElementSource(audioElement);
+          audioElement._analyser = audioElement._audioCtx.createAnalyser();
+          audioElement._analyser.fftSize = 128;
+          audioElement._analyser.smoothingTimeConstant = 0.55;
+          audioElement._specData = new Uint8Array(audioElement._analyser.frequencyBinCount);
+          src.connect(audioElement._analyser);
+          audioElement._analyser.connect(audioElement._audioCtx.destination);
+        }catch(e){ console.warn('[audio spectral] Web Audio setup failed:', e); }
+      }
+      if(audioElement._audioCtx?.state === 'suspended') audioElement._audioCtx.resume();
+      lastUpdateTime = 0;
       playbackAnimationId = requestAnimationFrame(updatePlaybackProgress);
     });
-    
+
     audioElement.addEventListener('pause', () => {
-      if(playbackAnimationId){
-        cancelAnimationFrame(playbackAnimationId);
-        playbackAnimationId = null;
-      }
+      if(playbackAnimationId){ cancelAnimationFrame(playbackAnimationId); playbackAnimationId = null; }
     });
-    
-    // ⚡ timeupdate: Importante para seek/skip y como backup
-    // El throttling (50ms) evita demasiadas actualizaciones
-    audioElement.addEventListener('timeupdate', updatePlaybackProgress);
-    
+
     audioElement.addEventListener('ended', () => {
       audioPlayBtn.textContent = "▶️";
+      audioPlayBtn.classList.remove('playing');
       audioPlayBtn.dataset.playing = "false";
-      
-      // Reset waveform
-      const bars = audioWaveform.querySelectorAll('.audio-wave-bar');
-      bars.forEach(bar => bar.classList.remove('active'));
-      
-      // Reset duration
+      if(playbackAnimationId){ cancelAnimationFrame(playbackAnimationId); playbackAnimationId = null; }
+      // Restore static waveform heights
+      audioWaveform.querySelectorAll('.audio-wave-bar').forEach(bar => {
+        bar.classList.remove('active', 'playhead');
+        bar.style.height = bar.dataset.staticHeight || '12px';
+      });
       audioDuration.textContent = formatDuration(durationSec);
     });
-    
-    // Click waveform to seek
-    audioWaveform.onclick = (e) => {
+
+    // Seek on waveform click
+    audioWaveformArea.onclick = (e) => {
+      if(e.target === audioSpeedBtn) return;
       if(!audioElement.duration) return;
-      
       const rect = audioWaveform.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const progress = Math.max(0, Math.min(1, x / rect.width));
       audioElement.currentTime = progress * audioElement.duration;
+      if(audioElement.paused && audioPlayBtn.dataset.loaded === "true"){
+        lastUpdateTime = 0; // bypass throttle for immediate seek refresh
+        updatePlaybackProgress();
+      }
     };
-    
+
     audioMsg.appendChild(audioPlayBtn);
-    audioMsg.appendChild(audioWaveform);
-    audioMsg.appendChild(audioDuration);
-    
+    audioMsg.appendChild(audioWaveformArea);
+
     // ========================================
     // AUDIO READ RECEIPT UI: Show "🎧 N" indicator on sender's messages
     // Displays how many people listened to this audio message
@@ -18494,7 +18561,7 @@ function createMessageElement(m){
     // ========================================
     const userId = session?.userId || localGuest.userId;
     const isMyMessage = m.userId === userId;
-    
+
     if(isMyMessage && m.listenedBy && m.listenedBy.length > 0){
       const listenedCount = m.listenedBy.length;
       const listeners = m.listenedBy.map(l => l.username).join(', ');
@@ -18507,7 +18574,7 @@ function createMessageElement(m){
       listenedIndicator.style.cssText = 'font-size:10px; opacity:0.7; margin-top:4px; text-align:right; color:var(--muted);';
       audioMsg.appendChild(listenedIndicator);
     }
-    
+
     text.appendChild(audioMsg);
     text.appendChild(audioElement);
   }else if(m.type === 'media' && m.attachments && m.attachments.length > 0){
@@ -22724,11 +22791,11 @@ let animationFrameId = null;
 // Initialize visualizer bars
 function initVisualizer(){
   audioVisualizer.innerHTML = '';
-  const barCount = 40;
+  const barCount = 50;
   for(let i = 0; i < barCount; i++){
     const bar = document.createElement('div');
     bar.className = 'audio-bar';
-    bar.style.height = '4px';
+    bar.style.height = '3px';
     audioVisualizer.appendChild(bar);
   }
 }
@@ -22736,48 +22803,50 @@ function initVisualizer(){
 // Update visualizer with real audio data
 function updateVisualizer(){
   if(!analyser || audioPaused) return;
-  
-  // Get frequency data
+
   analyser.getByteFrequencyData(dataArray);
-  
+
   const bars = audioVisualizer.querySelectorAll('.audio-bar');
   const barCount = bars.length;
-  
-  // Calculate how many data points per bar
-  const step = Math.floor(bufferLength / barCount);
-  
-  bars.forEach((bar, index) => {
-    // Get average amplitude for this bar's range
-    let sum = 0;
-    const start = index * step;
-    const end = start + step;
-    
-    for(let i = start; i < end && i < bufferLength; i++){
-      sum += dataArray[i];
+
+  // Logarithmic frequency bin mapping — concentrates more bars on voice/low-mid range
+  const logMin = Math.log(1);
+  const logMax = Math.log(Math.max(1, bufferLength - 1));
+
+  for(let i = 0; i < barCount; i++){
+    const t = i / (barCount - 1);
+    const binIndex = Math.round(Math.exp(logMin + t * (logMax - logMin)));
+    const clampedBin = Math.max(0, Math.min(binIndex, bufferLength - 1));
+
+    // Average with neighbours for smooth curves
+    let sum = 0, count = 0;
+    for(let b = Math.max(0, clampedBin - 1); b <= Math.min(bufferLength - 1, clampedBin + 1); b++){
+      sum += dataArray[b]; count++;
     }
-    
-    const average = sum / step;
-    
-    // Normalize to 0-1 range (dataArray values are 0-255)
-    const normalized = average / 255;
-    
-    // Map to height (minimum 4px, maximum 70px)
-    const height = 4 + (normalized * 66);
+    const normalized = (sum / count) / 255;
+    const height = 3 + normalized * 82;
+    const bar = bars[i];
     bar.style.height = height + 'px';
-  });
-  
+
+    // Peak class for high-amplitude bars (>75%)
+    if(normalized > 0.75){ bar.classList.add('peak'); }
+    else { bar.classList.remove('peak'); }
+  }
+
   // Continue animation
   animationFrameId = requestAnimationFrame(updateVisualizer);
 }
 
 // Stop visualizer animation
-function stopVisualizerAnimation(){
+function stopVisualizerAnimation(freeze = false){
   if(animationFrameId){
     cancelAnimationFrame(animationFrameId);
     animationFrameId = null;
   }
-  const bars = audioVisualizer.querySelectorAll('.audio-bar');
-  bars.forEach(bar => bar.style.height = '4px');
+  if(!freeze){
+    const bars = audioVisualizer.querySelectorAll('.audio-bar');
+    bars.forEach(bar => { bar.style.height = '3px'; bar.classList.remove('peak'); });
+  }
 }
 
 // Update recording timer
@@ -23869,9 +23938,10 @@ async function startAudioRecording(){
     const source = audioContext.createMediaStreamSource(audioStream);
     analyser = audioContext.createAnalyser();
     
-    // Configure analyser
-    analyser.fftSize = 256; // Higher = more detail, lower = better performance
-    bufferLength = analyser.frequencyBinCount;
+    // Configure analyser — fftSize 128 = snappier real-time response, smoothing 0.4 = fast decay
+    analyser.fftSize = 128;
+    analyser.smoothingTimeConstant = 0.4;
+    bufferLength = analyser.frequencyBinCount;  // 64 bins
     dataArray = new Uint8Array(bufferLength);
     
     // Connect source to analyser (don't connect to destination to avoid feedback)
@@ -23894,13 +23964,17 @@ async function startAudioRecording(){
     
     // Initialize visualizer
     initVisualizer();
-    
+
     // Start timer and real-time visualizer
     recordingInterval = setInterval(updateTimer, 100);
     updateVisualizer(); // Start animation loop
-    
+
     // Show initial time
     audioTimer.textContent = '0:00';
+    if(audioRecordStatus){
+      audioRecordStatus.className = 'audio-record-status rec';
+      audioRecordStatus.textContent = '\u25cf REC';
+    }
     audioStopBtn.style.display = 'block';
     audioPauseBtn.style.display = 'block';
     audioSendBtn.style.display = 'none';
@@ -23917,24 +23991,35 @@ async function startAudioRecording(){
 // Pause/Resume recording
 function togglePauseRecording(){
   if(!mediaRecorder || mediaRecorder.state === 'inactive') return;
-  
+
   if(audioPaused){
-    // Resume
+    // Resume — restart analyser animation loop
     mediaRecorder.resume();
     pausedDuration += Date.now() - lastPauseTime;
     audioPaused = false;
+    // Restart the visualizer rAF loop (it stopped when audioPaused was true)
+    if(!animationFrameId) animationFrameId = requestAnimationFrame(updateVisualizer);
     audioPauseBtn.textContent = '⏸️ Pause';
     audioPauseBtn.classList.remove('record');
     audioPauseBtn.classList.add('pause');
+    if(audioRecordStatus){
+      audioRecordStatus.className = 'audio-record-status rec';
+      audioRecordStatus.textContent = '● REC';
+    }
     log('🎤 Recording resumed', 'INFO');
   }else{
-    // Pause
+    // Pause — freeze visualizer bars at current heights
     mediaRecorder.pause();
     lastPauseTime = Date.now();
     audioPaused = true;
+    // Let the rAF loop self-stop on next tick (audioPaused guard), bars stay frozen
     audioPauseBtn.textContent = '▶️ Resume';
     audioPauseBtn.classList.remove('pause');
     audioPauseBtn.classList.add('record');
+    if(audioRecordStatus){
+      audioRecordStatus.className = 'audio-record-status paused';
+      audioRecordStatus.textContent = '⏸ PAUSED';
+    }
     log('⏸️ Recording paused', 'INFO');
   }
 }
